@@ -414,10 +414,28 @@ def add_target_lags(
 
 def add_time_of_day_features(
     df: pd.DataFrame,
-    datetime_col: str | None = None,
     include_12h: bool = False,
-) -> pd.DataFrame:
-    """Add smooth time-of-day harmonics; uses DateTimeIndex if `datetime_col` is None."""
+    datetime_col: str | None = None,
+) -> tuple[pd.DataFrame, list]:
+    """
+    Add sinusoidal time-of-day features to a time-indexed DataFrame.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input data, with either a DatetimeIndex or a datetime column.
+    datetime_col : str | None
+        Datetime column to use; if None, use the index.
+    include_12h : bool
+        If True, also add 12-hour harmonics.
+
+    Returns
+    -------
+    df_out : pd.DataFrame
+        DataFrame with added time-of-day columns.
+    added_cols : list
+        Names of the new feature columns.
+    """
     if datetime_col is None:
         if not isinstance(df.index, pd.DatetimeIndex):
             raise ValueError("DataFrame index must be DatetimeIndex if datetime_col is None.")
@@ -437,7 +455,7 @@ def add_time_of_day_features(
             "tod_sin_12h": np.sin(2 * np.pi * hour / 12.0),
             "tod_cos_12h": np.cos(2 * np.pi * hour / 12.0),
         })
-    return df.assign(**new_cols)
+    return df.assign(**new_cols), list(new_cols.keys())
 
 def add_event_present_indicator(
     df: pd.DataFrame,
@@ -481,7 +499,7 @@ def add_exponential_decay_feature(
     use_magnitude: bool = True,
     past_only: bool = True,
     out_name: str | None = None,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, str]:
     """
     Add an exponential-decay memory feature for a sparse event series `col`.
     Recurrence: r_t = alpha_t * r_{t-1} + x_{t-1}  (past-only to avoid leakage)
@@ -501,6 +519,7 @@ def add_exponential_decay_feature(
     Returns
     -------
     DataFrame with one new column: {col}_expdecay_{halflife_min}m  (or `out_name`).
+    column name: name of the added column
     """
     # Input signal (fill NaN with 0; cast presence if requested)
     x = df[col].fillna(0.0)
@@ -535,7 +554,7 @@ def add_exponential_decay_feature(
         r[i] = acc
 
     name = out_name or f"{col}_expdecay_{int(round(halflife_min))}m"
-    return df.assign(**{name: pd.Series(r, index=df.index)})
+    return df.assign(**{name: pd.Series(r, index=df.index)}), name
 
 
 def encode_bolus_type_semantic(

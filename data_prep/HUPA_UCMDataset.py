@@ -1,8 +1,8 @@
 from .BaseDataset import BaseDataset
 
 class HUPA_UCMDataset(BaseDataset):
-    def clean_cols(self):
-        super().clean_cols()
+    def _clean_cols(self):
+        super()._clean_cols()
 
         for i, df in enumerate(self.all_data):
 

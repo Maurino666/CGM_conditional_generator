@@ -648,7 +648,7 @@ class TimeGanModule(BaseTrainableModule):
         elif self.phase == self.PHASE_ADVERSARIAL:
             losses = self.adversarial_step(x)
             return losses  # dict con g_loss, d_loss, er_loss, ecc.
-        # TODO fix: il trainer si aspetta un float
+        # TODO fix: better handling of multiple losses
 
         else:
             raise RuntimeError(

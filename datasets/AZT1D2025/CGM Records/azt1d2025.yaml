@@ -1,0 +1,57 @@
+dataset:
+  name: "azt1d"
+  description: "AZT1D: Real-world type 1 diabetes dataset from Tandem pump exports"
+  separator: ","              # CSV delimiter
+
+schema:
+  # After renaming, this is the standard time column name
+  target_col: "glucose"
+  time_col: "timestamp"
+  patient_id_col: null     # one file per patient, or handled outside
+
+  # Mapping from standard internal names -> raw AZT1D column names
+  col_mapping:
+    timestamp: "EventDateTime"
+    glucose: "CGM"
+    basal_rate: "Basal"                # basal rate (U/h)
+    bolus_total: "TotalBolusInsulinDelivered"
+    bolus_correction: "CorrectionDelivered"
+    bolus_meal: "FoodDelivered"
+    carbs: "CarbSize"
+    device_mode: "DeviceMode"
+    bolus_type: "BolusType"
+
+  # Desired dtypes after standardization
+  dtypes:
+    timestamp: "datetime64[ns]"
+    glucose: "float"
+    basal_rate: "float"
+    bolus_total: "float"
+    bolus_correction: "float"
+    bolus_meal: "float"
+    carbs: "float"
+    device_mode: "category"
+    bolus_type: "category"
+
+
+  defaults:
+    bolus_total: 0.0
+    bolus_correction: 0.0
+    bolus_meal: 0.0
+    carbs: 0.0
+    device_mode: "Unknown"
+    bolus_type: "None"
+
+units:
+  glucose: "mg/dL"
+  basal_rate: "U/h"
+  bolus_total: "U"
+  bolus_correction: "U"
+  bolus_meal: "U"
+  carbs: "g"
+
+sampling:
+  target_frequency: "5min"
+  interval_minutes: 5
+  assumes_already_on_grid: true
+  enforce_regular_grid: true

@@ -1,0 +1,48 @@
+options:
+  max_small_gap: "30min" # max gap for target interpolation
+
+schema: # information on global columns
+
+  target_col: "glucose"
+  time_col: "timestamp"
+
+  metadata_cols:
+    - "patient_id"
+
+  dense_cols:
+    - "glucose"
+    - "basal_rate"
+    - "basal_insulin"
+    - "heart_rate"
+    - "steps"
+    - "calories_burned"
+    - "activity_level"
+    - "sleep_quality_score"
+
+  impulsive_cols:
+    - "bolus_total"
+    - "bolus_correction"
+    - "bolus_meal"
+    - "carbs"
+
+  category_cols:
+    - "device_mode"
+    - "bolus_type"
+    - "glucose_source"
+
+  dtypes:
+    glucose: "float"
+    basal_rate: "float"
+    basal_insuline: "float"
+    heart_rate: "int"
+
+    calories_burned: "float"
+    # TODO activity_level
+    # TODO sleep_quality_score
+    bolus_total: "float"
+    bolus_correction: "float"
+    bolus_meal: "float"
+    carbs: "float"
+    device_mode: "category"
+    bolus_type: "category"
+    glucose_source: "category"

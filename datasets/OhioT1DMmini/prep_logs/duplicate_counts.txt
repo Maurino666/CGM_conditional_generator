@@ -1,0 +1,10 @@
+[Subject 01] no duplicate timestamps
+[Subject 02] 2 duplicate rows across 1 duplicated timestamps
+   - 2021-10-29 00:00:00+00:00  (count = 2)
+[Subject 03] 2 duplicate rows across 1 duplicated timestamps
+   - 2022-01-17 00:00:00+00:00  (count = 2)
+[Subject 04] 2 duplicate rows across 1 duplicated timestamps
+   - 2022-01-02 00:00:00+00:00  (count = 2)
+[Subject 05] no duplicate timestamps
+[Subject 06] 2 duplicate rows across 1 duplicated timestamps
+   - 2022-01-14 00:00:00+00:00  (count = 2)

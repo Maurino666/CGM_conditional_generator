@@ -1,0 +1,48 @@
+dataset:
+  name: "hupa-ucm"
+  description: "HUéA-UCM Diabetes Dataset: real dataset"
+  separator: ";"              # CSV delimiter
+
+schema:
+  # After renaming, this is the standard time column name
+  target_col: "glucose"
+  time_col: "timestamp"
+  patient_id_col: null     # one file per patient, or handled outside
+
+  # Mapping from standard internal names -> raw AZT1D column names
+  col_mapping:
+    timestamp: "time"
+    glucose: "glucose"
+    calories_burned: "calories"
+    heart_rate: "heart_rate"
+    steps: "steps"
+    basal_rate: "basal_rate"
+    bolus_total: "bolus_volume_delivered"
+    carbs: "carb_input"
+
+  # Desired dtypes after standardization
+  dtypes:
+    timestamp: "datetime64[ns]"
+    glucose: "float"
+    calories_burned: "float"
+    heart_rate: "int"
+    steps: "int"
+    basal_rate: "float"
+    bolus_total: "float"
+    carbs: "float"
+
+  defaults:
+    bolus_total: 0.0
+    carbs: 0.0
+
+units:
+  glucose: "mg/dL"
+  basal_rate: "U/h"
+  bolus_total: "U"
+  bolus_correction: "U"
+  bolus_meal: "U"
+  carbs: "dag"
+
+sampling:
+  target_frequency: "5min"
+  interval_minutes: 5

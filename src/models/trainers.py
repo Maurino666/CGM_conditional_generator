@@ -2,11 +2,11 @@ import sys
 from typing import Any
 
 import torch
-from torch import Tensor, nn
+from torch import Tensor
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
-from models import BaseTrainableModule
+from src.models import BaseTrainableModule
 
 
 def _aggregate_metrics(batch_outputs: list[Any]) -> dict[str, float]:

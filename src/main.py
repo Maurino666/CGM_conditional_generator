@@ -1,7 +1,7 @@
 import torch
 
 from data_gathering_pipeline import gather_data
-from models import *
+from src.models import *
 
 
 def main():

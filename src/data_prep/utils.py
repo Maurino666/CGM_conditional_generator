@@ -78,14 +78,14 @@ def load_dataset(
     return all_data
 
 from pathlib import Path
-from typing import List
+
 import sys
 
 import pandas as pd
 
 
 def print_df_summary(
-        all_data: List[pd.DataFrame],
+        all_data: list[pd.DataFrame],
         logging_path: Path | None = None
 ) -> None:
     """
@@ -146,7 +146,7 @@ def print_df_summary(
             out.close()
 
 def print_duplicate_counts(
-        all_data: List[pd.DataFrame],
+        all_data: list[pd.DataFrame],
         logging_path: Path | None = None
 ):
     # Decide where to write: stdout or a log file

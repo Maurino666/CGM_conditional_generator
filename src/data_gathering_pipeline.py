@@ -4,8 +4,8 @@ from typing import List, Tuple
 import numpy as np
 from torch.utils.data import DataLoader
 
-from data import create_dataloaders, minmax_scale_features
-from data_prep import AZT1D2025Dataset, HUPA_UCMDataset, OhioT1DMDataset
+from src.data import create_dataloaders, minmax_scale_features
+from src.data_prep import AZT1D2025Dataset, HUPA_UCMDataset, OhioT1DMDataset
 
 def gather_data(
         features: List[str],
@@ -23,23 +23,23 @@ def gather_data(
 
     # 1. Instantiate datasets and run cleaning pipeline
     dataset1 = AZT1D2025Dataset(
-        Path("datasets/AZT1D2025/CGM Records"),
-        Path("datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
-        logging_dir=Path("datasets/AZT1D2025/prep_logs"),
+        Path("../datasets/AZT1D2025/CGM Records"),
+        Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
+        logging_dir=Path("../datasets/AZT1D2025/prep_logs"),
     )
     dataset1.clean_data()
 
     dataset2 = HUPA_UCMDataset(
-        Path("datasets/HUPA-UCM Diabetes Dataset/Preprocessed"),
-        Path("datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"),
-        logging_dir=Path("datasets/HUPA-UCM Diabetes Dataset/prep_logs"),
+        Path("../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"),
+        Path("../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"),
+        logging_dir=Path("../datasets/HUPA-UCM Diabetes Dataset/prep_logs"),
     )
     dataset2.clean_data()
 
     dataset3 = OhioT1DMDataset(
-        Path("datasets/OhioT1DMmini"),
-        Path("datasets/OhioT1DMmini/ohiot1dmmini.yaml"),
-        logging_dir=Path("datasets/OhioT1DMmini/prep_logs"),
+        Path("../datasets/OhioT1DMmini"),
+        Path("../datasets/OhioT1DMmini/ohiot1dmmini.yaml"),
+        logging_dir=Path("../datasets/OhioT1DMmini/prep_logs"),
     )
     dataset3.clean_data()
 

@@ -16,8 +16,8 @@ schema: # information on global columns
     - "heart_rate"
     - "steps"
     - "calories_burned"
-    - "activity_level"
-    - "sleep_quality_score"
+    # TODO - "activity_level"
+    # TODO - "sleep_quality_score"
 
   impulse_cols:
     - "bolus_total"
@@ -47,3 +47,13 @@ schema: # information on global columns
     bolus_type: "category"
     glucose_source: "category"
 
+  cond_cols:
+    - "basal_rate"
+    - "basal_insulin"
+    - "heart_rate"
+    - "steps"
+    - "calories_burned"
+    - "bolus_total"
+    - "bolus_correction"
+    - "bolus_meal"
+    - "carbs"

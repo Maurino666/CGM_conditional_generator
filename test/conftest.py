@@ -22,11 +22,18 @@ class DummyBaseDataset(BaseDataset):
         self.impulse_cols = ["bolus_total", "carbs"]
         self.added_cols: list[str] = []
         self.logging_dir = None
+        self.cols = list(dfs[0].columns)
+        self.numeric_cols = list(self.cols)
+        self.defaults = {c: 0.0 for c in self.numeric_cols if c != self.target_col}
+        self.max_small_gap = pd.Timedelta("20min")
 
 @pytest.fixture
 def dummy_dataset(toy_subject_df: pd.DataFrame) -> DummyBaseDataset:
     """Istanza di DummyBaseDataset riutilizzabile in tutti i test."""
-    dfs = [toy_subject_df, toy_subject_df]
+    dfs = [
+        toy_subject_df.assign(_subject_id=0),
+        toy_subject_df.assign(_subject_id=1),
+    ]
     return DummyBaseDataset(dfs)
 
 @pytest.fixture

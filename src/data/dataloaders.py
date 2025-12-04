@@ -1,4 +1,4 @@
-from .TimeSeriesDataset import TimeSeriesDataset
+from .time_series_datasets import TimeSeriesDataset
 
 import numpy as np
 from torch.utils.data import DataLoader
@@ -57,6 +57,58 @@ def create_dataloaders(
 
     val_loader = DataLoader(
         val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        drop_last=False,
+    )
+
+    return train_loader, val_loader
+
+
+def create_conditional_dataloaders(
+    y_train: np.ndarray,
+    c_train: np.ndarray,
+    y_val: np.ndarray,
+    c_val: np.ndarray,
+    batch_size: int,
+    shuffle_train: bool = True,
+    num_workers: int = 0,
+) -> tuple[DataLoader, DataLoader]:
+    """
+    Create DataLoaders for conditional models.
+
+    Parameters
+    ----------
+    y_train, y_val : np.ndarray
+        Target sequences, shape (num_windows, seq_len, target_dim).
+    c_train, c_val : np.ndarray
+        Conditional sequences, shape (num_windows, seq_len, cond_dim).
+    batch_size : int
+        Batch size for both DataLoaders.
+    shuffle_train : bool, default True
+        Whether to shuffle training windows.
+    num_workers : int, default 0
+        Number of worker processes for data loading.
+
+    Returns
+    -------
+    Tuple[DataLoader, DataLoader]
+        (train_loader, val_loader).
+    """
+    train_ds = ConditionalTimeSeriesDataset(y_train, c_train)
+    val_ds = ConditionalTimeSeriesDataset(y_val, c_val)
+
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=batch_size,
+        shuffle=shuffle_train,
+        num_workers=num_workers,
+        drop_last=False,
+    )
+
+    val_loader = DataLoader(
+        val_ds,
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,

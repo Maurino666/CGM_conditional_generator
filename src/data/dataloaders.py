@@ -1,4 +1,4 @@
-from .time_series_datasets import TimeSeriesDataset
+from .time_series_datasets import TimeSeriesDataset, ConditionalTimeSeriesDataset
 
 import numpy as np
 from torch.utils.data import DataLoader

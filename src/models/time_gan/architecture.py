@@ -203,3 +203,57 @@ class Discriminator(nn.Module):
         if sigmoid:
             Y_hat = self.sigmoid(Y_hat)
         return Y_hat
+
+class TimeGan(nn.Module):
+    """
+    Pure TimeGAN networks: Encoder, Recovery, Generator,
+    Supervisor, Discriminator.
+    """
+
+    def __init__(
+        self,
+        encoder_input_dim: int,
+        hidden_dim: int,
+        generator_input_dim: int,
+        recovery_output_dim: int,
+        num_layers: int = 1,
+    ) -> None:
+        super().__init__()
+        self.encoder = Encoder(
+            z_dim=encoder_input_dim,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+        )
+        self.recovery = Recovery(
+            hidden_dim=hidden_dim,
+            z_dim=recovery_output_dim,
+            num_layers=num_layers,
+        )
+        self.generator = Generator(
+            z_dim=generator_input_dim,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+        )
+        self.supervisor = Supervisor(
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+        )
+        self.discriminator = Discriminator(
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+        )
+
+    def e_forward(self, x):
+        return self.encoder(x)
+
+    def r_forward(self, H):
+        return self.recovery(H)
+
+    def s_forward(self, H):
+        return self.supervisor(H)
+
+    def g_forward(self, z_input):
+        return self.generator(z_input)
+
+    def d_forward(self, H):
+        return self.discriminator(H)

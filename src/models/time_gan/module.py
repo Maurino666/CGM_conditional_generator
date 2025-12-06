@@ -397,7 +397,8 @@ class TimeGanModule(BaseTrainableModule):
           - supervisor parameters
         """
         # Real path: X -> H -> H_sup
-        H = self._encode(x)
+        with torch.no_grad():
+            H = self._encode(x)
         H_sup = self._supervise(H)
 
         # Noise path: Z -> E_hat -> H_hat -> X_hat

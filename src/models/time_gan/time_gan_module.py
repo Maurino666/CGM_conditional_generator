@@ -1,10 +1,9 @@
-from abc import ABC
 from typing import Any
 
 import torch
 from torch import Tensor
 
-from .base_module import BaseTimeGanModule
+from base_time_gan.module import BaseTimeGanModule
 
 class TimeGanModule(BaseTimeGanModule):
     """

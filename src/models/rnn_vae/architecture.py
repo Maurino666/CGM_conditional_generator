@@ -16,6 +16,7 @@ class RnnVae(nn.Module):
         input_dim: int,
         hidden_dim: int,
         latent_dim: int,
+        output_dim: int,
         num_layers: int = 1,
         rnn_type: str = "gru",
     ) -> None:
@@ -50,7 +51,7 @@ class RnnVae(nn.Module):
         )
 
         # Final projection from hidden_dim -> input_dim
-        self.output_layer = nn.Linear(hidden_dim, input_dim)
+        self.output_layer = nn.Linear(hidden_dim, output_dim)
 
     def encode(self, x: Tensor) -> tuple[Tensor, Tensor]:
         """

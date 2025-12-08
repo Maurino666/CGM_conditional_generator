@@ -235,6 +235,22 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         # H -> H_sup
         H_sup = self.core.s_forward(H)
 
+        # --- debug block (BEACUSE I'M PARANOID) ---
+        if not hasattr(self, "_sup_debug_done"):
+            print("[SUP DEBUG] H shape:", H.shape, "H_sup shape:", H_sup.shape)
+            print("[SUP DEBUG] H std:", H.std().item(), "H_sup std:", H_sup.std().item())
+
+            # MSE tra H e H_sup allineati (stesso indice)
+            mse_same = torch.nn.functional.mse_loss(H_sup, H).item()
+            # MSE tra H(t) e H(t+1) (baseline di quanto è smooth l'embedding)
+            mse_shift = torch.nn.functional.mse_loss(H[:, :-1, :], H[:, 1:, :]).item()
+
+            print("[SUP DEBUG] MSE(H_sup, H):", mse_same)
+            print("[SUP DEBUG] MSE(H_t, H_{t+1}):", mse_shift)
+
+            self._sup_debug_done = True
+        # --- fine debug block ---
+
         # Supervised loss on shifted sequences:
         #   H[:, 1:, :]   is H(t+1)
         #   H_sup[:, :-1, :] is S(H(t))

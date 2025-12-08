@@ -4,7 +4,7 @@ from typing import Any
 import torch
 from torch import nn, Tensor
 
-from models import BaseTrainableModule
+from ...module_interfaces import BaseTrainableModule
 from .architecture import TimeGan
 
 

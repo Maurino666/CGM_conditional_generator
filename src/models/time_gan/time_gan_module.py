@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from torch import Tensor
 
@@ -114,3 +116,24 @@ class TimeGanModule(BaseTimeGanModule):
 
         return output
 
+    def get_config(self) -> dict[str, Any]:
+        """
+        Return a serializable configuration dictionary for this TimeGAN model.
+
+        This is used to reconstruct the same architecture and training
+        hyperparameters when loading from disk.
+        """
+        return {
+            "input_dim": self.input_dim,
+            "hidden_dim": self.hidden_dim,
+            "num_layers": self.num_layers,
+            "noise_dim": self.noise_dim,
+            "lr": self.lr,
+            "beta1": self.beta1,
+            "gamma": self.gamma,
+            "moment_weight": self.moment_weight,
+            "grad_clip_G": self.grad_clip_G,
+            "grad_clip_D": self.grad_clip_D,
+            "g_steps_per_iter": self.g_steps_per_iter,
+            "d_loss_threshold": self.d_loss_threshold,
+        }

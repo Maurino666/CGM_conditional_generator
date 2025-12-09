@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
 from sklearn.metrics import r2_score
 from pathlib import Path
 
@@ -40,9 +39,9 @@ def make_regressor(random_state: int = 42):
 
 # ---------------------- Utility: design matrix -------------------
 def _build_X(df: pd.DataFrame,
-             base_cols: List[str],
+             base_cols: list[str],
              add_time_of_day: bool = True,
-             extra_cols: Optional[List[str]] = None) -> pd.DataFrame:
+             extra_cols: list[str] | None = None) -> pd.DataFrame:
     """
     Seleziona le colonne di base (lag) + opzionali di time-of-day + extra (A o B).
     Non crea nuove feature: assume che i lag e le TOD siano già presenti in df.
@@ -66,7 +65,7 @@ class TemporalCVSpec:
     min_train_size: int = 2000     # per stabilità
     purge_gap: int = 0             # righe da "saltare" tra train e test per evitare leakage
 
-def make_walkforward_splits(n_samples: int, spec: TemporalCVSpec) -> List[Tuple[np.ndarray, np.ndarray]]:
+def make_walkforward_splits(n_samples: int, spec: TemporalCVSpec) -> list[tuple[np.ndarray, np.ndarray]]:
     """
     Crea fold walk-forward: [train  ... ][gap][test] ripetuto,
     mantenendo min_train_size e test_size costanti. Nessuno shuffle.
@@ -75,7 +74,7 @@ def make_walkforward_splits(n_samples: int, spec: TemporalCVSpec) -> List[Tuple[
     total_needed = spec.min_train_size + spec.purge_gap + spec.test_size
     # Quante finestre complete ci stanno?
     # Lasciamo lo stesso test_size e scorriamo in avanti di test_size ad ogni fold.
-    max_folds = (n_samples - spec.min_train_size) // (spec.test_size)
+    max_folds = (n_samples - spec.min_train_size) // spec.test_size
     n_folds = max(1, min(spec.n_splits, max_folds))
     if n_folds < 1:
         return splits
@@ -97,35 +96,36 @@ def make_walkforward_splits(n_samples: int, spec: TemporalCVSpec) -> List[Tuple[
     return splits
 
 # ------------------- Core: ΔR² out-of-sample ---------------------
-def delta_r2_cv_nonlinear(
-    df: pd.DataFrame,
-    target_col: str,
-    base_cols: List[str],
-    features_A: List[str],
-    features_B: List[str],
-    horizons_min: List[int],
-    freq_min: int = 5,
-    add_time_of_day: bool = True,
-    cv_spec: TemporalCVSpec = TemporalCVSpec(),
-    random_state: int = 42,
-    clip_shared_at_zero: bool = True,
+def compute_delta_r2_cv_nonlinear(
+        df: pd.DataFrame,
+        target_col: str,
+        base_cols: list[str],
+        candidate_cols: list[str],
+        horizons_min: list[int],
+        freq_min: int = 5,
+        add_time_of_day: bool = True,
+        cv_spec: TemporalCVSpec = TemporalCVSpec(),
+        random_state: int = 42,
 ) -> pd.DataFrame:
     """
-    Per ogni orizzonte h (in minuti):
-      - y = target spostato di -h (in step da freq_min)
-      - modelli non lineari su: base, base+A, base+B, base+A+B
-      - R² out-of-sample per ciascun fold
-      - ΔR² condizionate: unique_A_CV, unique_B_CV, shared_CV
-    Ritorna un DataFrame con medie sui fold e dettagli di base.
+    Compute out-of-sample ΔR² for a single candidate feature group.
+
+    Models:
+      baseline: base_cols (+ TOD)
+      augmented: baseline + candidate_cols
+    Method:
+      - Future target: shift(-h)
+      - Walk-forward CV, no shuffle
+      - Model: LightGBM or RandomForest
+    Output:
+      R²_base, R²_aug, ΔR² per horizon (mean across folds)
     """
-    rng = np.random.RandomState(random_state)
     rows = []
 
-    # colonne utilizzate in totale (per "fairness", stesse righe per tutti i modelli)
     needed_all = set(base_cols)
     if add_time_of_day:
-        needed_all |= set([c for c in ("tod_sin_24h", "tod_cos_24h") if c in df.columns])
-    needed_all |= set(features_A) | set(features_B)
+        needed_all |= {c for c in ("tod_sin_24h", "tod_cos_24h") if c in df.columns}
+    needed_all |= set(candidate_cols)
     needed_all = list(needed_all)
 
     for h in horizons_min:
@@ -133,99 +133,164 @@ def delta_r2_cv_nonlinear(
         if step <= 0:
             continue
 
-        # y futuro
+        # Build future target
         y = df[target_col].shift(-step).rename("_y_")
 
-        # indice "pulito": nessun NaN in base+A+B+target
+        # Drop NaNs in required features + y_future
         idx = df[needed_all].join(y).dropna().index
-        df_h = df.loc[idx]  # mantieni l'ordine temporale
-
-        # design matrices
-        X_base   = _build_X(df_h, base_cols, add_time_of_day, extra_cols=[])
-        X_baseA  = _build_X(df_h, base_cols, add_time_of_day, extra_cols=features_A)
-        X_baseB  = _build_X(df_h, base_cols, add_time_of_day, extra_cols=features_B)
-        X_baseAB = _build_X(df_h, base_cols, add_time_of_day, extra_cols=(features_A + features_B))
-        y_h      = y.loc[idx]
+        df_h = df.loc[idx]
+        y_h = y.loc[idx]
 
         n = len(y_h)
-        if n < (cv_spec.min_train_size + cv_spec.purge_gap + cv_spec.test_size):
+        min_needed = cv_spec.min_train_size + cv_spec.test_size + cv_spec.purge_gap
+        if n < min_needed:
             rows.append({
-                "horizon_min": h, "n": n,
-                "r2_base": np.nan, "r2_baseA": np.nan, "r2_baseB": np.nan, "r2_baseAB": np.nan,
-                "unique_A_CV": np.nan, "unique_B_CV": np.nan, "shared_CV": np.nan,
-                "n_folds": 0,
+                "horizon_min": h, "n": n, "n_folds": 0,
+                "r2_base": np.nan, "r2_aug": np.nan, "delta_r2": np.nan,
+                "r2_base_folds": [], "r2_aug_folds": [],
             })
             continue
 
-        # purge gap: almeno "step" per evitare leakage tra y_t+h e righe vicine
+        # Prevent leakage: purge gap ≥ forecast horizon
         gap = max(cv_spec.purge_gap, step)
         spec = TemporalCVSpec(
             n_splits=cv_spec.n_splits,
             test_size=cv_spec.test_size,
             min_train_size=cv_spec.min_train_size,
-            purge_gap=gap
+            purge_gap=gap,
         )
         splits = make_walkforward_splits(n, spec)
 
-        r2_base_f, r2_baseA_f, r2_baseB_f, r2_baseAB_f = [], [], [], []
+        Xb = _build_X(df_h, base_cols, add_time_of_day)
+        Xa = _build_X(df_h, base_cols, add_time_of_day, extra_cols=candidate_cols)
 
-        for (tr, te) in splits:
-            # estrazione fold
-            Xb_tr, Xb_te   = X_base.iloc[tr],   X_base.iloc[te]
-            XA_tr, XA_te   = X_baseA.iloc[tr],  X_baseA.iloc[te]
-            XB_tr, XB_te   = X_baseB.iloc[tr],  X_baseB.iloc[te]
-            XAB_tr, XAB_te = X_baseAB.iloc[tr], X_baseAB.iloc[te]
-            y_tr, y_te     = y_h.iloc[tr],      y_h.iloc[te]
+        r2b_f, r2a_f = [], []
 
-            # modelli (stessa random_state per riproducibilità)
-            M_base   = make_regressor(random_state)
-            M_baseA  = make_regressor(random_state)
-            M_baseB  = make_regressor(random_state)
-            M_baseAB = make_regressor(random_state)
+        for tr, te in splits:
+            Xb_tr, Xb_te = Xb.iloc[tr], Xb.iloc[te]
+            Xa_tr, Xa_te = Xa.iloc[tr], Xa.iloc[te]
+            y_tr, y_te = y_h.iloc[tr], y_h.iloc[te]
 
-            # fit
-            M_base.fit(Xb_tr,  y_tr)
-            M_baseA.fit(XA_tr, y_tr)
-            M_baseB.fit(XB_tr, y_tr)
-            M_baseAB.fit(XAB_tr, y_tr)
+            M_base = make_regressor(random_state)
+            M_aug = make_regressor(random_state)
 
-            # R² out-of-sample sul test
-            r2_base_f.append(  r2_score(y_te, M_base.predict(Xb_te)) )
-            r2_baseA_f.append( r2_score(y_te, M_baseA.predict(XA_te)) )
-            r2_baseB_f.append( r2_score(y_te, M_baseB.predict(XB_te)) )
-            r2_baseAB_f.append(r2_score(y_te, M_baseAB.predict(XAB_te)) )
+            M_base.fit(Xb_tr, y_tr)
+            M_aug.fit(Xa_tr, y_tr)
 
-        # medie sui fold
-        r2b   = float(np.mean(r2_base_f))
-        r2bA  = float(np.mean(r2_baseA_f))
-        r2bB  = float(np.mean(r2_baseB_f))
-        r2bAB = float(np.mean(r2_baseAB_f))
+            r2b_f.append(r2_score(y_te, M_base.predict(Xb_te)))
+            r2a_f.append(r2_score(y_te, M_aug.predict(Xa_te)))
 
-        delta_total = r2bAB - r2b
-        unique_A = r2bAB - r2bB
-        unique_B = r2bAB - r2bA
-        shared   = delta_total - unique_A - unique_B
+        r2b, r2a = np.mean(r2b_f), np.mean(r2a_f)
+
+        rows.append({
+            "horizon_min": h,
+            "n": n,
+            "n_folds": len(splits),
+            "r2_base": float(r2b),
+            "r2_aug": float(r2a),
+            "delta_r2": float(r2a - r2b),
+            "r2_base_folds": r2b_f,
+            "r2_aug_folds": r2a_f,
+        })
+
+    return pd.DataFrame(rows)
+
+
+def compute_delta_r2_cv_nonlinear_ab(
+        df: pd.DataFrame,
+        target_col: str,
+        base_cols: list[str],
+        features_A: list[str],
+        features_B: list[str],
+        horizons_min: list[int],
+        freq_min: int = 5,
+        add_time_of_day: bool = True,
+        cv_spec: TemporalCVSpec = TemporalCVSpec(),
+        random_state: int = 42,
+        clip_shared_at_zero: bool = True,
+) -> pd.DataFrame:
+    """
+    A/B comparison using compute_delta_r2_cv_nonlinear:
+      base vs base+A,
+      base vs base+B,
+      base vs base+A+B,
+    evaluated on the same valid rows.
+
+    Output includes:
+      r2_base, r2_baseA, r2_baseB, r2_baseAB
+      unique_A_CV, unique_B_CV, shared_CV
+    """
+    rows = []
+
+    needed_static = set(base_cols)
+    if add_time_of_day:
+        needed_static |= {c for c in ("tod_sin_24h", "tod_cos_24h") if c in df.columns}
+    needed_static |= set(features_A) | set(features_B)
+    needed_static = list(needed_static)
+
+    for h in horizons_min:
+        step = int(round(h / float(freq_min)))
+        if step <= 0:
+            continue
+
+        y = df[target_col].shift(-step)
+        idx = df[needed_static].join(y).dropna().index
+        df_h = df.loc[idx]
+
+        n = len(df_h)
+        min_needed = cv_spec.min_train_size + cv_spec.test_size + cv_spec.purge_gap
+        if n < min_needed:
+            rows.append({
+                "horizon_min": h, "n": n, "n_folds": 0,
+                "r2_base": np.nan, "r2_baseA": np.nan,
+                "r2_baseB": np.nan, "r2_baseAB": np.nan,
+                "unique_A_CV": np.nan, "unique_B_CV": np.nan,
+                "shared_CV": np.nan,
+            })
+            continue
+
+        h_list = [h]
+
+        res_A = compute_delta_r2_cv_nonlinear(df_h, target_col, base_cols, features_A,
+                                      h_list, freq_min, add_time_of_day,
+                                      cv_spec, random_state)
+        res_B = compute_delta_r2_cv_nonlinear(df_h, target_col, base_cols, features_B,
+                                      h_list, freq_min, add_time_of_day,
+                                      cv_spec, random_state)
+        res_AB = compute_delta_r2_cv_nonlinear(df_h, target_col, base_cols,
+                                       features_A + features_B,
+                                       h_list, freq_min, add_time_of_day,
+                                       cv_spec, random_state)
+
+        row_A, row_B, row_AB = res_A.iloc[0], res_B.iloc[0], res_AB.iloc[0]
+
+        r2_base = float(row_AB["r2_base"])
+        r2_baseA = float(row_A["r2_aug"])
+        r2_baseB = float(row_B["r2_aug"])
+        r2_baseAB = float(row_AB["r2_aug"])
+
+        delta_total = r2_baseAB - r2_base
+        unique_A = r2_baseAB - r2_baseB
+        unique_B = r2_baseAB - r2_baseA
+        shared = delta_total - unique_A - unique_B
         if clip_shared_at_zero:
             shared = max(0.0, shared)
 
         rows.append({
             "horizon_min": h,
             "n": n,
-            "n_folds": len(splits),
-            "r2_base": r2b,
-            "r2_baseA": r2bA,
-            "r2_baseB": r2bB,
-            "r2_baseAB": r2bAB,
-            "unique_A_CV": unique_A,
-            "unique_B_CV": unique_B,
-            "shared_CV": shared,
-            "r2_base_folds": r2_base_f,
-            "r2_baseA_folds": r2_baseA_f,
-            "r2_baseB_folds": r2_baseB_f,
-            "r2_baseAB_folds": r2_baseAB_f,
+            "n_folds": int(row_AB["n_folds"]),
+            "r2_base": r2_base,
+            "r2_baseA": r2_baseA,
+            "r2_baseB": r2_baseB,
+            "r2_baseAB": r2_baseAB,
+            "unique_A_CV": float(unique_A),
+            "unique_B_CV": float(unique_B),
+            "shared_CV": float(shared),
         })
 
     return pd.DataFrame(rows)
+
 
 # -------------------------- Plot helper --------------------------
 import matplotlib.pyplot as plt

@@ -1,11 +1,26 @@
 <component name="ProjectDictionaryState">
   <dictionary name="project">
     <words>
+      <w>acond</w>
+      <w>bcond</w>
+      <w>coeff</w>
+      <w>datetimes</w>
+      <w>denom</w>
+      <w>dfden</w>
       <w>dmmini</w>
+      <w>exog</w>
+      <w>frenzel</w>
+      <w>ftmp</w>
       <w>logvar</w>
       <w>mmini</w>
       <w>ohiot</w>
+      <w>pval</w>
       <w>schaar</w>
+      <w>tmax</w>
+      <w>uncond</w>
+      <w>vmax</w>
+      <w>vmin</w>
+      <w>walkforward</w>
       <w>yoon</w>
     </words>
   </dictionary>

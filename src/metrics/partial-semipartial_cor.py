@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple, Literal, Optional
+from typing import Literal
 from statsmodels.api import OLS, add_constant
 
 
 # TODO fix
-from utils import build_lagged_view
+from .metric_utils import build_lagged_view
 
 # -----------------------------
 # Core helpers for (semi)partial
@@ -28,7 +28,7 @@ def partial_or_semipartial_from_lagged(
     df_lagged: pd.DataFrame,
     y_col: str,
     x_col: str,
-    control_cols: List[str],
+    control_cols: list[str],
     mode: Literal["partial", "semipartial"] = "partial"
 ) -> float:
     """
@@ -64,13 +64,13 @@ def compute_partial_semipartial(
     df: pd.DataFrame,
     *,
     target_col: str,
-    target_lags: List[int],
-    exog_lags: Dict[str, List[int]],
+    target_lags: list[int],
+    exog_lags: dict[str, list[int]],
     x_feature: str,
     x_lag: int,
     mode: Literal["partial", "semipartial"] = "partial",
     dropna_after_lag: bool = True
-) -> Tuple[float, pd.DataFrame, Dict[str, List[str]]]:
+) -> tuple[float, pd.DataFrame, dict[str, list[str]]]:
     """
     Compute partial or semipartial correlation for a *single* lagged predictor
     X = <x_feature>_lag<x_lag> against Y = <target_col> at time t,

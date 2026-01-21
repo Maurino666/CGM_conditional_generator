@@ -12,7 +12,6 @@ schema: # information on global columns
   dense_cols:
     - "glucose"
     - "basal_rate"
-    - "basal_insulin"
     - "heart_rate"
     - "steps"
     - "calories_burned"
@@ -54,8 +53,6 @@ schema: # information on global columns
     bolus_type: "category"
     glucose_source: "category"
 
-
-
   cond_cols:
     - "basal_rate"
     - "heart_rate"
@@ -68,6 +65,10 @@ schema: # information on global columns
     - "age"
     - "sex_m"
     - "hba1c"
+
+  derived_cols:
+    - "tod_sin_24h"
+    - "tod_cos_24h"
 
   normalization_ranges:
     age: [18.0, 80.0]

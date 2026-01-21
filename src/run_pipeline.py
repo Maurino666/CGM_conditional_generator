@@ -13,7 +13,7 @@ from data_management.splitter import DataSplitter
 from data_management.normalization import MinMaxNormalizer
 
 # --- 3. Import New Windowing Components ---
-from windowing import WindowBuilder, ConditionalWindowPack, WindowSplit
+from windowing import WindowBuilder, ConditionalWindowPack
 
 # --- 4. Import Reconstruction Components ---
 from reconstruction import WindowReconstructor, ReconstructionConfig

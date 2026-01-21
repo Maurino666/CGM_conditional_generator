@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -18,6 +19,7 @@ class WindowBuilder:
             self,
             target_col: str,
             cond_cols: list[str],
+            static_cols: list[str] | None = None,
             batch_size: int = 64,
             num_workers: int = 0,
             max_missing_ratio: float = 0.0,
@@ -32,6 +34,14 @@ class WindowBuilder:
         self.max_missing_ratio = max_missing_ratio
         self.allow_target_nan = allow_target_nan
         self.force_device = force_device
+
+        self.static_cols = static_cols if static_cols else []
+
+        # Calculate feature indices
+        self.static_indices = [i for i, c in enumerate(cond_cols) if c in self.static_cols]
+        self.dynamic_indices = [i for i, c in enumerate(cond_cols) if c not in self.static_cols]
+
+        print(f"   [Builder Config] Static indices: {self.static_indices}")
 
     def build_subset(
             self,
@@ -91,25 +101,42 @@ class WindowBuilder:
         count = y_data.shape[0]
         print(f"     -> Generated {count} windows.")
 
+        has_static = len(self.static_indices) > 0
+        if has_static:
+            print(f"     -> [Fast-Loader] Static features detected.")
+
         # 3. Create Loader
         if count > 0:
             y_tensor = torch.tensor(y_data, dtype=torch.float32)
-            c_tensor = torch.tensor(c_data, dtype=torch.float32)
+            if has_static:
+                c_dynamic_data = c_data[:, :, self.dynamic_indices]
+                c_static_data = c_data[:, 0, self.static_indices]
+
+                c_dynamic_tensor = torch.tensor(c_dynamic_data, dtype=torch.float32)
+                c_static_tensor = torch.tensor(c_static_data, dtype=torch.float32)
+
+                tensors_to_load = [y_tensor, c_dynamic_tensor, c_static_tensor]
+            else:
+                c_dynamic_data = c_data
+                c_static_data = None
+                c_tensor = torch.tensor(c_data, dtype=torch.float32)
+
+                tensors_to_load = [y_tensor, c_tensor]
 
             num_workers = self.num_workers
             pin_memory = True if torch.cuda.is_available() else False
 
 
             if self.force_device is not None and self.force_device.type != 'cpu':
-                y_tensor = y_tensor.to(self.force_device)
-                c_tensor = c_tensor.to(self.force_device)
+                # Load everything on device
+                tensors_to_load = [t.to(self.force_device) for t in tensors_to_load]
 
                 # Workers > 0 may create problems if tensors are already on vram
                 num_workers = 0
                 pin_memory = False
-                print(f"     -> [Fast-Loader] Dataset loaded to {self.force_device}. Speed boost enabled 🚀")
+                print(f"     -> [Fast-Loader] Dataset loaded to {self.force_device}.")
 
-            dataset = TensorDataset(y_tensor, c_tensor)
+            dataset = TensorDataset(*tensors_to_load)
 
             loader = DataLoader(
                 dataset,
@@ -120,12 +147,20 @@ class WindowBuilder:
             )
         else:
             print("     [!] Warning: Dataset is empty.")
+            c_dynamic_data = np.empty((0, seq_len, len(self.dynamic_indices)), dtype=np.float32)
+            c_static_data = np.empty((0, len(self.static_indices)), dtype=np.float32)
             loader = DataLoader([], batch_size=self.batch_size)
 
         # 4. Return the Split Object
         return WindowSplit(
             y=y_data,
-            c=c_data,
+            c_dynamic=c_dynamic_data,
+            c_static=c_static_data if has_static else np.empty((count, 0)),
+
+            dynamic_cols_indices=self.dynamic_indices if has_static else list(range(len(self.cond_cols))),
+            static_cols_indices=self.static_indices,
+            n_total_cond=len(self.cond_cols),
+
             loader=loader,
             metadata=metadata,
             templates=templates

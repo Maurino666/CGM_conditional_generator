@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from .utils import WindowMetadata
 
 
-@dataclass(frozen=True)
+@dataclass
 class WindowSplit:
     """
     Represents a processed subset of data (e.g., just Training, or just Validation).
@@ -16,7 +16,13 @@ class WindowSplit:
     """
     # Tensors
     y: np.ndarray  # (N, seq_len, 1)
-    c: np.ndarray  # (N, seq_len, n_cond)
+    c_dynamic: np.ndarray  # (N, seq_len, n_cond)
+    c_static: np.ndarray # (N, n_stat)
+
+    # Reconstruction info
+    dynamic_cols_indices: list[int]
+    static_cols_indices: list[int]
+    n_total_cond: int
 
     # PyTorch Loader
     loader: DataLoader
@@ -27,6 +33,32 @@ class WindowSplit:
 
     def __len__(self) -> int:
         return self.y.shape[0]
+
+    @property
+    def c(self) -> np.ndarray:
+        """
+        Reconstructs the full (N, seq_len, n_cond) matrix on the fly.
+        Useful for reconstruction/visualization without storing the redundancy.
+        """
+        N, seq_len, _ = self.c_dynamic.shape
+
+        # 1. Create an empty container
+        full_c = np.empty((N, seq_len, self.n_total_cond), dtype=np.float32)
+
+        # 2. Fill in dynamic values
+        if self.dynamic_cols_indices:
+            full_c[:, :, self.dynamic_cols_indices] = self.c_dynamic
+
+        # 3. Fill in static values (Broadcasting)
+        # c_static is (N, n_stat) -> gets repeated for the whole sequence
+        if self.static_cols_indices:
+            # Expand dims: (N, 1, n_stat) -> (N, seq_len, n_stat)
+            static_expanded = np.expand_dims(self.c_static, axis=1)
+            static_broadcasted = np.repeat(static_expanded, seq_len, axis=1)
+
+            full_c[:, :, self.static_cols_indices] = static_broadcasted
+
+        return full_c
 
 
 @dataclass(frozen=True)

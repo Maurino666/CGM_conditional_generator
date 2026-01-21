@@ -310,7 +310,7 @@ class BaseDataset:
             random_state: int | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
 
-        if not val_ratio <= 1 or val_ratio >= 0:
+        if not (0.0 < val_ratio < 1.0):
             raise ValueError("val_ratio must be between 0 and 1.")
 
         num_subjects = len(self.all_data)

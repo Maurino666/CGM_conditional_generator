@@ -6,7 +6,7 @@ def minmax_scale_features(
     features: list[str],
     normalize: list[str],
     eps: float = 1e-8,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, dict[str, tuple[float, float]]]:
     """
     Apply feature-wise Min–Max scaling to a subset of features.
 
@@ -34,11 +34,12 @@ def minmax_scale_features(
     """
     if not normalize:
         # Nothing to do
-        return X_train, X_val
+        return X_train, X_val, {}
 
     normalize_set = set(normalize)
     feature_set = set(features)
 
+    scaling_params = {}
     # Ensure all requested columns are present in features
     if not normalize_set.issubset(feature_set):
         missing = normalize_set - feature_set
@@ -78,7 +79,9 @@ def minmax_scale_features(
             X_val_scaled[:, :, idx] - col_min
         ) / (scale + eps)
 
-    return X_train_scaled, X_val_scaled
+        scaling_params[col_name] = (col_min, col_max)
+
+    return X_train_scaled, X_val_scaled, scaling_params
 
 
 def minmax_scale_conditional(
@@ -90,7 +93,7 @@ def minmax_scale_conditional(
     cond_features: list[str],
     normalize: list[str],
     eps: float = 1e-8,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, tuple[float, float]]]:
     """
     Apply Min–Max scaling to target + conditional features using the existing
     minmax_scale_features helper.
@@ -115,7 +118,7 @@ def minmax_scale_conditional(
     y_train_scaled, c_train_scaled, y_val_scaled, c_val_scaled
     """
     if not normalize:
-        return y_train, c_train, y_val, c_val
+        return y_train, c_train, y_val, c_val, {}
 
     # 1) Build full feature arrays by concatenating target and conditionals
     X_train_full = np.concatenate([y_train, c_train], axis=-1)
@@ -127,7 +130,7 @@ def minmax_scale_conditional(
     # 3) Reuse existing scaler
     from src.data import minmax_scale_features  # or appropriate import
 
-    X_train_scaled, X_val_scaled = minmax_scale_features(
+    X_train_scaled, X_val_scaled, scaling_params = minmax_scale_features(
         X_train=X_train_full,
         X_val=X_val_full,
         features=all_features,
@@ -141,5 +144,36 @@ def minmax_scale_conditional(
     y_val_scaled = X_val_scaled[:, :, :1]
     c_val_scaled = X_val_scaled[:, :, 1:]
 
-    return y_train_scaled, c_train_scaled, y_val_scaled, c_val_scaled
+    return y_train_scaled, c_train_scaled, y_val_scaled, c_val_scaled, scaling_params
+
+
+def denormalize_numpy_array(
+        array: np.ndarray,
+        feature_name: str,
+        scaling_params: dict[str, tuple[float, float]],
+) -> np.ndarray:
+    """
+    Reverses the MinMax scaling for a specific feature using provided parameters.
+
+    Formula: x_real = x_norm * (max - min) + min
+
+    Args:
+        array: Normalized numpy array (usually in [0, 1]).
+        feature_name: Name of the feature (key to look up in params).
+        scaling_params: Dictionary {feature_name: (min, max)}.
+
+    Returns:
+        np.ndarray: Denormalized array (in physical units).
+        If feature_name is not in scaling_params, returns the array unchanged.
+    """
+    if feature_name not in scaling_params:
+        # If the feature was not normalized (e.g. masks), return as is.
+        return array
+
+    min_val, max_val = scaling_params[feature_name]
+    scale = max_val - min_val
+
+    # Apply inverse transformation
+    # We assume 'array' is float32/64.
+    return array * scale + min_val
 

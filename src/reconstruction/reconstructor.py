@@ -7,6 +7,7 @@ import pandas as pd
 
 from windowing import WindowMetadata
 from .strategies import NonOverlapStrategy
+from data import denormalize_numpy_array
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,7 @@ class WindowReconstructor:
         meta: list[WindowMetadata],
         c_windows: np.ndarray,
         y_hat_windows: np.ndarray,
+        scaling_params: dict[str, tuple[float, float]] | None = None,
     ) -> list[pd.DataFrame]:
         """
         Reconstruct a list of DataFrames (one per subject) using templates as backbone.
@@ -63,6 +65,9 @@ class WindowReconstructor:
             Conditional windows aligned with meta. Shape (N, seq_len, cond_dim).
         y_hat_windows:
             Generated target windows aligned with meta. Shape (N, seq_len, 1).
+        scaling_params: optional
+            Dictionary {feature_name: (min, max)} for denormalization.
+            If provided, 'y_hat_windows' is assumed to be in [0, 1] range.
 
         Returns
         -------
@@ -73,6 +78,15 @@ class WindowReconstructor:
             raise ValueError("meta and y_hat_windows must be aligned (same number of windows).")
         if len(meta) != int(c_windows.shape[0]):
             raise ValueError("meta and c_windows must be aligned (same number of windows).")
+
+        if scaling_params is not None:
+            print(f"   [WindowReconstructor] Delegating denormalization for '{self.cfg.target_col}'...")
+
+            y_hat_windows = denormalize_numpy_array(
+                array=y_hat_windows,
+                feature_name=self.cfg.target_col,
+                scaling_params=scaling_params
+            )
 
         # Build per-subject buffers for the synthetic target
         synth_buffers: dict[int, np.ndarray] = {}

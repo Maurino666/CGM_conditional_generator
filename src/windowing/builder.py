@@ -160,8 +160,9 @@ class ConditionalWindowBuilder:
         c_val = np.concatenate(all_c_val, axis=0) if all_c_val else np.empty((0, val_seq_len, len(cond_cols)), dtype=np.float32)
 
         # 8) Optional normalization (fit on train, apply to train+val)
+        scaling_params = None
         if cfg.normalize:
-            y_train, c_train, y_val, c_val = minmax_scale_conditional(
+            y_train, c_train, y_val, c_val, scaling_params = minmax_scale_conditional(
                 y_train=y_train,
                 c_train=c_train,
                 y_val=y_val,
@@ -200,6 +201,7 @@ class ConditionalWindowBuilder:
                 "train_step": cfg.train_step,
                 "val_seq_len": val_seq_len,
                 "val_step": val_step,
+                "scaling_params": scaling_params,
             },
         )
 

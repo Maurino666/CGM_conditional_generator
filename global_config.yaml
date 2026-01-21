@@ -33,7 +33,6 @@ schema: # information on global columns
   dtypes:
     glucose: "float"
     basal_rate: "float"
-    basal_insuline: "float"
     heart_rate: "int"
 
     calories_burned: "float"
@@ -49,7 +48,6 @@ schema: # information on global columns
 
   cond_cols:
     - "basal_rate"
-    - "basal_insulin"
     - "heart_rate"
     - "steps"
     - "calories_burned"
@@ -57,3 +55,5 @@ schema: # information on global columns
     - "bolus_correction"
     - "bolus_meal"
     - "carbs"
+
+  normalization_ranges:

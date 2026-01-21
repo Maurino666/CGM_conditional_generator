@@ -69,8 +69,8 @@ def restore_nans_from_masks_global(df: pd.DataFrame, cfg: EvaluationConfig) -> p
         cols_to_check.append(cfg.target_col)
 
     # Synthetic target column (if present)
-    if cfg.synth_col and cfg.synth_col in out.columns:
-        cols_to_check.append(cfg.synth_col)
+    if cfg.comparison_target_col and cfg.comparison_target_col in out.columns:
+        cols_to_check.append(cfg.comparison_target_col)
 
     # Conditional columns
     if cfg.cond_cols:

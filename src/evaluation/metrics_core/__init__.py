@@ -7,6 +7,8 @@ from .granger import compute_granger_block, compute_granger_ab_decomposition
 from .delta_r2_nonlinear import TemporalCVSpec, RegressorFactory, compute_delta_r2_nonlinear, \
     compute_delta_r2_nonlinear_ab_decomposition, Regressor
 from .cmi import compute_cmi_ksg, compute_cmi_ksg_decomposition
+from .distributional_distance import compute_distributional_distance
+from .clinical import compute_clinical_stats
 
 __all__ = [
     # metric_utils
@@ -19,6 +21,7 @@ __all__ = [
     "build_future_targets",
 
     # metrics
+    "compute_clinical_stats",
     "compute_mage",
     "compute_agp",
 
@@ -35,4 +38,6 @@ __all__ = [
 
     "compute_cmi_ksg",
     "compute_cmi_ksg_decomposition",
+
+    "compute_distributional_distance",
 ]

@@ -1,6 +1,7 @@
 import pandas as pd
+import numpy as np
 
-def compute_glucose_clinical_stats(
+def compute_clinical_stats(
         values: pd.Series,
         hypo_threshold: float = 70.0,
         hyper_threshold: float = 180.0,

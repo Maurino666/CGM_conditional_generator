@@ -78,13 +78,13 @@ class Evaluator:
             for j, metric in enumerate(self.metrics):
                 # Filter single metrics
                 if metric.requires_synth:
-                    if self.cfg.synth_col is None:
+                    if self.cfg.comparison_target_col is None:
                         # Skip metric that requires synthetic
                         continue
-                    if self.cfg.synth_col not in df.columns:
+                    if self.cfg.comparison_target_col not in df.columns:
                         # Defensive Skip: synth column not in df
                         if self.verbose:
-                            print(f"  [Skip] {metric.name} requires '{self.cfg.synth_col}' (missing).")
+                            print(f"  [Skip] {metric.name} requires '{self.cfg.comparison_target_col}' (missing).")
                         continue
 
                 if self.verbose:
@@ -166,8 +166,8 @@ class Evaluator:
         cols_to_lag = [self.cfg.target_col]
 
         # Add synthetic col only if present
-        if self.cfg.synth_col is not None and self.cfg.synth_col in df.columns:
-            cols_to_lag.append(self.cfg.synth_col)
+        if self.cfg.comparison_target_col is not None and self.cfg.comparison_target_col in df.columns:
+            cols_to_lag.append(self.cfg.comparison_target_col)
 
         for base_col in cols_to_lag:
             for m in self.cfg.lag_minutes or []:

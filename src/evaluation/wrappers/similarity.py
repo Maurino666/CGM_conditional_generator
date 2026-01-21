@@ -13,7 +13,7 @@ class SimilarityParams:
 class SimilarityMetric(Metric):
     """
     Compares the distribution of Real vs. Synthetic target values.
-    Requires 'synth_col' to be present in the dataframe.
+    Requires 'comparison_target_col' to be present in the dataframe.
     """
     name: str = "similarity"
     requires_synthetic: bool = True  # This flags the Evaluator!
@@ -22,17 +22,17 @@ class SimilarityMetric(Metric):
         self.params = params
 
     def compute(self, subject_id: int, df: pd.DataFrame, cfg: EvaluationConfig) -> MetricOutput:
-        if cfg.synth_col is None:
-            raise ValueError("SimilarityMetric requires 'synth_col' in config.")
+        if cfg.comparison_target_col is None:
+            raise ValueError("SimilarityMetric requires 'comparison_target_col' in config.")
 
-        if cfg.synth_col not in df.columns:
+        if cfg.comparison_target_col not in df.columns:
             # Skip gracefully if synth column missing
             return MetricOutput(scalars={}, tables={}, artifacts={})
 
         res = compute_distributional_distance(
             df,
             target_col=cfg.target_col,
-            synth_col=cfg.synth_col,
+            comparison_target_col=cfg.comparison_target_col,
             method=self.params.method
         )
 

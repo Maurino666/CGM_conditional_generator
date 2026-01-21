@@ -45,7 +45,7 @@ class Logger(ABC):
         pass
 
 
-class TensorBoardLogger(BaseLogger):
+class TensorBoardLogger(Logger):
     """
     Concrete implementation of BaseLogger using PyTorch's TensorBoard SummaryWriter.
     """

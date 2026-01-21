@@ -3,8 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 import yaml
 import torch
-import numpy as np
-import pandas as pd
 from datetime import datetime
 
 # --- 1. Import Datasets ---
@@ -21,65 +19,15 @@ from windowing import WindowBuilder, ConditionalWindowPack, WindowSplit
 from reconstruction import WindowReconstructor, ReconstructionConfig
 
 # --- 5. Import Model ---
-# Assuming you kept the model class in the 'models' package or moved it to 'src.models'
-# Adjust this import based on your current file structure.
 from models import ConditionalTimeGanModule
 
-# --- 6. Import NEW Training Components (The Refactor) ---
-from src.training.trainer import Trainer
-from src.training.loggers import TensorBoardLogger
-from src.training.callbacks.visualization import GenerativeVisualizer
+# --- 6. Import NEW Training Components ---
+from training import Trainer
+from training.loggers import TensorBoardLogger
+from training.callbacks import GenerativeVisualizer
 
-
-# [Helper functions remain unchanged]
-def save_results_as_csv_folder(dfs: list[pd.DataFrame], output_dir: Path, prefix: str = "synthetic_subject") -> None:
-    csv_dir = output_dir / "csv_data"
-    csv_dir.mkdir(parents=True, exist_ok=True)
-    print(f"   Saving {len(dfs)} CSV files to: {csv_dir}")
-    for i, df in enumerate(dfs):
-        unique_id = df.attrs.get("unique_id", None)
-        if unique_id:
-            filename = f"{prefix}_{str(unique_id)}.csv"
-        else:
-            subject_id = df.attrs.get("subject_id", None)
-            data_source = df.attrs.get("dataset_source", None)
-            if subject_id:
-                if data_source:
-                    filename = f"{prefix}_{str(data_source)}_{subject_id}.csv"
-                else:
-                    filename = f"{prefix}_{str(subject_id)}.csv"
-            else:
-                filename = f"{prefix}_{i:03d}.csv"
-        save_path = csv_dir / filename
-        df.to_csv(save_path, index=True)
-    print("   CSV saving complete.")
-
-
-def generate_val_target_windows(model: torch.nn.Module, c_val: np.ndarray, device: torch.device) -> np.ndarray:
-    model.eval()
-    c = torch.as_tensor(c_val, dtype=torch.float32, device=device)
-    with torch.no_grad():
-        out = model.generate(c)
-        if isinstance(out, tuple):
-            y_hat = out[0]
-        else:
-            y_hat = out
-    return y_hat.detach().cpu().numpy().astype(np.float32)
-
-
-def process_split_generation(model: torch.nn.Module, split: WindowSplit, reconstructor: WindowReconstructor,
-                             scaling_params: dict[str, tuple[float, float]], device: torch.device, split_name: str) -> \
-list[pd.DataFrame]:
-    print(f"\n   [Processing Generation: {split_name.upper()}]")
-    if len(split) == 0:
-        print("   [!] Warning: Split is empty. Skipping.")
-        return []
-    print(f"   Generating synthetic data for {len(split)} windows...")
-    y_hat = generate_val_target_windows(model, split.c, device=device)
-    print(f"   Reconstructing into DataFrames...")
-    dfs = reconstructor.reconstruct(templates=split.templates, meta=split.metadata, y_hat_windows=y_hat,
-                                    scaling_params=scaling_params)
-    return dfs
+# --- 7. Import Inference Component ---
+from inference import InferenceOrchestrator
 
 
 def main() -> None:
@@ -109,7 +57,6 @@ def main() -> None:
     # 1. DATA INGESTION (Load & Clean)
     # -------------------------------------------------------------------------
     print("\n>>> 1. Loading Datasets...")
-    # [Data loading code remains identical to previous version]
     ds1 = AZT1D2025Dataset(
         dataset_root=Path("../datasets/AZT1D2025/CGM Records"),
         config_file=Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
@@ -160,15 +107,30 @@ def main() -> None:
     # 4. WINDOWING
     # -------------------------------------------------------------------------
     print("\n>>> 4. Building Windows...")
-    builder = WindowBuilder(target_col=target_col, cond_cols=final_cond_cols, batch_size=BATCH_SIZE, num_workers=4)
+    builder = WindowBuilder(
+        target_col=target_col,
+        cond_cols=final_cond_cols,
+        batch_size=BATCH_SIZE,
+        num_workers=4
+    )
 
-    train_split_optim = builder.build_subset(dfs=train_dfs_norm, seq_len=SEQ_LEN, step=TRAIN_STEP, shuffle=True,
-                                             split_name="Train_Optimized")
-    val_split = builder.build_subset(dfs=val_dfs_norm, seq_len=SEQ_LEN, step=SEQ_LEN, shuffle=False,
-                                     split_name="Validation")
+    train_split = builder.build_subset(
+        dfs=train_dfs_norm,
+        seq_len=SEQ_LEN,
+        step=TRAIN_STEP,
+        shuffle=True,
+        split_name="Train"
+    )
+    val_split = builder.build_subset(
+        dfs=val_dfs_norm,
+        seq_len=SEQ_LEN,
+        step=SEQ_LEN,
+        shuffle=False,
+        split_name="Validation"
+    )
 
     pack = ConditionalWindowPack(
-        train_split=train_split_optim,
+        train_split=train_split,
         val_split=val_split,
         target_col=target_col,
         cond_cols=final_cond_cols,
@@ -176,7 +138,7 @@ def main() -> None:
     )
 
     # -------------------------------------------------------------------------
-    # 5. TRAINING (MODIFIED WITH NEW ARCHITECTURE)
+    # 5. TRAINING
     # -------------------------------------------------------------------------
     base_dir = Path("../runs")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -188,12 +150,9 @@ def main() -> None:
     print(f"\n>>> 5. Training ConditionalTimeGAN (Modular Trainer)...")
 
     # A. Setup Logger
-    # We initialize the TensorBoard logger pointing to the experiment directory
     tb_logger = TensorBoardLogger(log_dir=output_dir / "tensorboard")
 
     # B. Setup Visualizer Callback
-    # We grab a single batch from the validation loader to serve as a fixed reference
-    # for generating comparison plots throughout training.
     try:
         fixed_vis_batch = next(iter(pack.val_split.loader))
         print("   [Setup] Fixed validation batch acquired for visualization.")
@@ -204,7 +163,7 @@ def main() -> None:
     visualizer = GenerativeVisualizer(
         fixed_batch=fixed_vis_batch,
         device=device,
-        every_n_epochs=1  # Generate plot every 5 epochs
+        every_n_epochs=1
     )
 
     # C. Instantiate Model
@@ -218,89 +177,86 @@ def main() -> None:
     # --- Phase 1: Autoencoder ---
     print("\n   [Phase 1] Autoencoder...")
     model.set_phase("ae")
-
-    # We create a specific trainer for this phase.
-    # Note: We don't use the visualizer here because AE reconstruction
-    # is usually tracked via MSE loss, not generation.
-    trainer = Trainer(
-        device=device,
-        logger=tb_logger,
-    )
-    # Fit the model (using train and val loaders)
-    model.set_phase("ae")
-    trainer.fit(model, 10 ,pack.train_split.loader, pack.val_split.loader)
+    trainer = Trainer(device=device, logger=tb_logger)
+    trainer.fit(model, 2, pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 2: Supervisor ---
     print("\n   [Phase 2] Supervisor...")
     model.set_phase("sup")
-    trainer.fit(model, 5,pack.train_split.loader, pack.val_split.loader)
+    trainer.fit(model, 2, pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 3: Adversarial (Joint) ---
     print("\n   [Phase 3] Adversarial (Joint)...")
     model.set_phase("adv")
-
-    # In this phase, we attach the visualizer callback to see
-    # if the generator learns to produce realistic data.
     trainer.fit(model, 2, pack.train_split.loader, pack.val_split.loader, callbacks=[visualizer])
 
-    # Manual Save (Temporary, as requested without Checkpoint Callback)
     print(f"\n   Saving final model to {output_dir}...")
     torch.save(model.state_dict(), output_dir / "timegan_model.pth")
-
-    # Close logger explicitly
     tb_logger.close()
 
     # -------------------------------------------------------------------------
-    # 6. GENERATION & RECONSTRUCTION (Standard Pipeline)
+    # 6. GENERATION & RECONSTRUCTION (New Inference Orchestrator)
     # -------------------------------------------------------------------------
     print("\n>>> 6. Generation & Reconstruction...")
 
-    builder = WindowBuilder(
+    # 1. Setup Inference Components
+    # We create a specific WindowBuilder for generation (inference mode).
+    # 'allow_target_nan=True' allows generating even if target data has gaps (common in real data).
+    gen_builder = WindowBuilder(
         target_col=target_col,
         cond_cols=final_cond_cols,
         batch_size=BATCH_SIZE,
         num_workers=4,
-        max_missing_ratio=0.05,
         allow_target_nan=True,
     )
 
-    val_gen_split = builder.build_subset(
-        dfs=val_dfs_norm,
-        seq_len=SEQ_LEN,
-        step=SEQ_LEN,
-        shuffle=False,
-        split_name="Val_generation"
-    )
-
+    # Setup Reconstructor
+    # 'include_true_target=True' preserves the original target column in the output DF
+    # for direct comparison/evaluation.
     reconstructor = WindowReconstructor(
-        cfg=ReconstructionConfig(target_col=target_col, cond_cols=final_cond_cols, include_true_target=True),
+        cfg=ReconstructionConfig(
+            target_col=target_col,
+            cond_cols=final_cond_cols,
+            include_true_target=True
+        ),
         strategy="overwrite"
     )
 
-    synth_val_dfs = process_split_generation(model, val_gen_split, reconstructor, pack.scaling_params, device,
-                                             "Validation")
-
-    print("\n   [TSTR Prep] Re-building Training Windows (Non-Overlapping)...")
-    train_split_tstr = builder.build_subset(
-        dfs=train_dfs_norm,
-        seq_len=SEQ_LEN,
-        step=SEQ_LEN,
-        shuffle=False,
-        split_name="Train_TSTR_Subset"
+    # 2. Instantiate Orchestrator
+    orchestrator = InferenceOrchestrator(
+        model=model,
+        window_builder=gen_builder,
+        reconstructor=reconstructor,
+        device=device,
+        verbose=True
     )
 
-    synth_train_dfs = process_split_generation(model, train_split_tstr, reconstructor, pack.scaling_params, device,
-                                               "Train_TSTR_Synth")
+    # 3. Generate Validation Split (Generalization Test)
+    # Generates: output_dir/val/csv_data/val_subject_X.csv
+    print("\n   [Generating Validation Data]...")
+    orchestrator.run(
+        dfs=val_dfs_norm,
+        seq_len=SEQ_LEN,
+        output_dir=output_dir / "val",
+        file_prefix="val_subject",
+        scaling_params=pack.scaling_params,
+        split_name="Validation"
+    )
 
-    # -------------------------------------------------------------------------
-    # 7. SAVING
-    # -------------------------------------------------------------------------
-    print(f"\n>>> 7. Saving Results to {output_dir}...")
+    # 4. Generate Training Split (TSTR Utility)
+    # Generates: output_dir/train/csv_data/train_tstr_subject_X.csv
+    # This creates a synthetic version of the training set for Train-on-Synthetic-Test-on-Real evaluation.
+    print("\n   [Generating TSTR Training Data]...")
+    orchestrator.run(
+        dfs=train_dfs_norm,
+        seq_len=SEQ_LEN,
+        output_dir=output_dir / "train",
+        file_prefix="train_tstr_subject",
+        scaling_params=pack.scaling_params,
+        split_name="Train_TSTR"
+    )
 
-    save_results_as_csv_folder(synth_val_dfs, output_dir / "val", prefix="val_subject")
-    save_results_as_csv_folder(synth_train_dfs, output_dir/ "train", prefix="train_tstr_subject")
-
-    print("\n>>> Pipeline Completed Successfully. 🎉")
+    print(f"\n>>> Pipeline Completed Successfully. Results saved in {output_dir}")
 
 
 if __name__ == "__main__":

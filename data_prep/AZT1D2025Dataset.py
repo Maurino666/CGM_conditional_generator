@@ -2,8 +2,8 @@ from .BaseDataset import BaseDataset
 
 
 class AZT1D2025Dataset (BaseDataset):
-    def clean_cols(self):
-        super().clean_cols()
+    def _clean_cols(self):
+        super()._clean_cols()
         for i, df in enumerate(self.all_data):
 
             df["device_mode"] = df["device_mode"].replace({"0": "Unknown", 0: "Unknown"}).fillna("Unknown").astype("category")

@@ -19,7 +19,7 @@ schema: # information on global columns
     - "activity_level"
     - "sleep_quality_score"
 
-  impulsive_cols:
+  impulse_cols:
     - "bolus_total"
     - "bolus_correction"
     - "bolus_meal"
@@ -46,3 +46,4 @@ schema: # information on global columns
     device_mode: "category"
     bolus_type: "category"
     glucose_source: "category"
+

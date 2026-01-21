@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 import yaml
 
-from data_prep import print_df_summary, print_duplicate_counts, build_sliding_windows
-from data_prep.utils import load_dataset_config
-from .utils import load_dataset, clean_duplicates, fill_data
+from .utils import load_dataset, load_dataset_config, clean_duplicates, fill_data, \
+    print_df_summary, print_duplicate_counts, \
+    build_sliding_windows, add_time_of_day_features, add_exponential_decay_feature
 
 
 NUMERIC_PREFIXES = ("int", "float")
@@ -38,6 +38,7 @@ class BaseDataset:
     numeric_cols : list[str] # numeric columns
     impulse_cols : list[str] # numeric columns which register events
     category_cols : list[str] # categoric columns
+    added_cols = []
 
 
     defaults : dict
@@ -83,7 +84,7 @@ class BaseDataset:
         self.col_mapping = dataset_schema["col_mapping"]
 
         # Renaming columns to global schema
-        self.rename_cols()
+        self._rename_cols()
 
         self.target_col = global_schema["target_col"]
 
@@ -112,9 +113,9 @@ class BaseDataset:
         self.defaults = dataset_schema["defaults"]
 
         # Setting time index
-        self.set_time_index()
+        self._set_time_index()
 
-        self.ensure_cols()
+        self._ensure_cols()
 
         # Setting logging path
         self.logging_dir = logging_dir
@@ -125,7 +126,7 @@ class BaseDataset:
         print_df_summary(self.all_data, self.logging_dir / "init_summary.txt")
 
     # function that cleans the dataset
-    def rename_cols(self):
+    def _rename_cols(self):
         inverse_mapping = {raw: standard for standard, raw in self.col_mapping.items()}
         for i, df in enumerate(self.all_data):
 
@@ -134,7 +135,7 @@ class BaseDataset:
 
             self.all_data[i] = df
 
-    def set_time_index(self):
+    def _set_time_index(self):
         """
         Function to set the time index of the dataset.
         Time column is referred to as "time_col".
@@ -146,7 +147,7 @@ class BaseDataset:
             df = df.set_index(self.time_col).sort_index()
             self.all_data[i] = df
 
-    def ensure_cols(self):
+    def _ensure_cols(self):
         """
         Ensure that all and only known columns are present in the dataset.
         """
@@ -166,7 +167,11 @@ class BaseDataset:
         """
 
         # Clean columns
-        self.clean_cols()
+        self._clean_cols()
+
+        # Safety check
+        if self.logging_dir is not None:
+            self.logging_dir.mkdir(parents=True, exist_ok=True)
 
         # Log and remove duplicate timestamps
         print_duplicate_counts(self.all_data, self.logging_dir / "duplicate_counts.txt")
@@ -180,7 +185,7 @@ class BaseDataset:
     # function that sets the time index for the df
 
     # function that cleans the cols
-    def clean_cols(self):
+    def _clean_cols(self):
         """
         Core of the data cleaning process.
         This function applies basic data cleaning techniques on the dfs:
@@ -201,6 +206,94 @@ class BaseDataset:
             df[self.impulse_cols] = df[self.impulse_cols].clip(lower=0.0)
 
             self.all_data[i] = df
+
+    def add_features(self) -> None:
+        """
+        Add basic engineered features to each subject DataFrame.
+
+        Currently, this includes:
+          - time-of-day sinusoidal features (24h, and optionally 12h if enabled
+            inside add_time_of_day_features),
+          - exponential decay features for each column in self.impulse_cols.
+
+        Features generated can be changed by overriding the _add_features_to_df function.
+
+        If self.logging_dir is not None, log the names of the added columns
+        for each subject to 'added_columns.txt' inside that directory.
+        """
+
+        # Optional logging setup
+        log_file = None
+        if self.logging_dir is not None:
+            self.logging_dir.mkdir(parents=True, exist_ok=True)
+            log_path = self.logging_dir / "added_columns.txt"
+            # Append mode so multiple runs do not overwrite previous logs
+            log_file = log_path.open("w", encoding="utf-8")
+
+        try:
+            for i, df in enumerate(self.all_data):
+
+                # Update the stored DataFrame
+                self.all_data[i], cols = self._add_features_to_df(df)
+
+                # Console feedback
+                print(f"Subject {i + 1}: added {len(cols)} columns")
+
+                # Keep a global list of all distinct added columns
+                for c in cols:
+                    if c not in self.added_cols:
+                        self.added_cols.append(c)
+
+                # Optional logging to file
+                if log_file is not None:
+                    print(f"Subject {i + 1}:", file=log_file)
+                    for c in cols:
+                        print(f"  - {c}", file=log_file)
+                    print("", file=log_file)  # blank line for readability
+
+        finally:
+            # Make sure we close the log file if it was opened
+            if log_file is not None:
+                log_file.close()
+
+    def _add_features_to_df(
+            self,
+            df: pd.DataFrame
+    ) -> tuple[pd.DataFrame, list[str]]:
+        """
+        Add basic engineered features to a single subject DataFrame.
+        Designed to be overridden by subclasses that need custom features.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Input DataFrame indexed by time.
+
+        Returns
+        -------
+        df_out : pd.DataFrame
+            DataFrame with added time-of-day and exponential-decay features.
+        added_cols : list[str]
+            Names of the newly created feature columns.
+        """
+        cols: list[str] = []
+
+        # Time-of-day features (use index as datetime)
+        df, tod_cols = add_time_of_day_features(df)
+        cols.extend(tod_cols)
+
+        # Exponential decay features for each impulse-like column
+        for col in self.impulse_cols:
+            df, col_name = add_exponential_decay_feature(
+                df,
+                col=col,
+                sampling_minutes=int(self.time_steps.total_seconds() / 60),
+                halflife_min=120,
+                past_only=True,
+            )
+            cols.append(col_name)
+
+        return df, cols
 
     def to_sequences(
             self,

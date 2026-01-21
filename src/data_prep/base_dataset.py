@@ -126,13 +126,13 @@ class BaseDataset:
             StaticFeaturesProcessor(patient_metadata_path),
             SchemaStandardizer(  # 3. Create Masks & Enforce Column Order
                 global_cond_cols=self.global_config['schema'].get('cond_cols', [])
-            )
+            ),
+            TodProcessor()
         ]
 
         # D) Augmentation Pipeline
         self.augmentation_pipeline = [
             BaseTimeEventAugmenter(),
-            TodProcessor()
         ]
 
         # 5. Execute Structure Pipeline Immediately

@@ -80,9 +80,6 @@ def minmax_scale_features(
 
     return X_train_scaled, X_val_scaled
 
-from typing import List, Tuple
-import numpy as np
-
 
 def minmax_scale_conditional(
     y_train: np.ndarray,
@@ -90,10 +87,10 @@ def minmax_scale_conditional(
     y_val: np.ndarray,
     c_val: np.ndarray,
     target_feature: str,
-    cond_features: List[str],
-    normalize: List[str],
+    cond_features: list[str],
+    normalize: list[str],
     eps: float = 1e-8,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Apply Min–Max scaling to target + conditional features using the existing
     minmax_scale_features helper.

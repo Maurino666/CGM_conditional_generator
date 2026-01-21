@@ -122,23 +122,36 @@ class Trainer:
         """Computes all metrics averages over all batches."""
         if not outputs: return {}
 
-        keys = outputs[0].keys()
-        avg_metrics = {}
+        if isinstance(outputs[0], dict):
+            keys = outputs[0].keys()
+            avg_metrics = {}
 
-        for k in keys:
+            for k in keys:
+                values = []
+                for o in outputs:
+                    if k in o:
+                        val = o[k]
+                        if isinstance(val, torch.Tensor):
+                            values.append(val.item())
+                        else:
+                            values.append(val)
+
+                if values:
+                    avg_metrics[f"{prefix}/{k}"] = sum(values) / len(values)
+
+            return avg_metrics
+
+        else:
             values = []
-            for o in outputs:
-                if k in o:
-                    val = o[k]
-                    if isinstance(val, torch.Tensor):
-                        values.append(val.item())
-                    else:
-                        values.append(val)
-
-            if values:
-                avg_metrics[f"{prefix}/{k}"] = sum(values) / len(values)
-
-        return avg_metrics
+            for val in outputs:
+                if isinstance(val, torch.Tensor):
+                    values.append(val.item())
+                else:
+                    values.append(val)
+                if values:
+                    return {f"{prefix}/loss": sum(values) / len(values)}
+                #else
+                return {}
 
     def _fire_callback(self, event_name, *args, **kwargs):
         """Fires the event on all subscribed callbacks."""

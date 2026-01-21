@@ -184,7 +184,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
     # -- Steps --
     # Auto-Encoder Training Step
-    def autoencoder_step(self, batch: Any) -> dict[str, float]:
+    def autoencoder_step(self, batch: Any) -> dict[str, Tensor]:
         """
         One optimization step for encoder + recovery pretraining (AE phase).
 
@@ -199,8 +199,8 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         Returns
         -------
-        loss_value : float
-            Scalar reconstruction loss value for logging.
+        loss_value : dict[str, Tensor}
+            Detached reconstruction loss Tensor for logging.
         """
         # Let the subclass interpret the batch
         info: dict[str, Tensor] = self._unpack_batch(batch)
@@ -228,10 +228,10 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self.optimizer_e.step()
         self.optimizer_r.step()
 
-        return {"er/autoencoder_loss" : float(loss_ae.item())}
+        return {"er/autoencoder_loss" : loss_ae.detach()}
 
     # Supervisor Training Step
-    def supervisor_step(self, batch: Any) -> dict[str, float]:
+    def supervisor_step(self, batch: Any) -> dict[str, Tensor]:
         """
         One optimization step for supervisor pretraining (SUP phase).
 
@@ -245,8 +245,8 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         Returns
         -------
-        loss_value : float
-            Scalar supervised loss value for logging.
+        loss_value : dict[str, Tensor]
+            Detached supervised loss Tensor for logging.
         """
         info: dict[str, Tensor] = self._unpack_batch(batch)
         x_enc: Tensor = self._build_encoder_input(info)
@@ -270,11 +270,11 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         self.optimizer_s.step()
 
-        return {"sup/supervisor_loss": float(loss_s.item())}
+        return {"sup/supervisor_loss": loss_s.detach()}
 
     # Adversary Training Step (All nets)
 
-    def _generator_supervisor_step(self, batch: Any) -> float:
+    def _generator_supervisor_step(self, batch: Any) -> Tensor:
         """
         One optimization step for generator + supervisor (G + S).
 
@@ -294,8 +294,8 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         Returns
         -------
-        loss_value : float
-            Scalar generator+supervisor loss value for logging.
+        loss_value : Tensor
+            Detached generator+supervisor loss Tensor for logging.
         """
         info: dict[str, Tensor] = self._unpack_batch(batch)
 
@@ -360,9 +360,9 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self.optimizer_g.step()
         self.optimizer_s.step()
 
-        return float(loss_g.item())
+        return loss_g.detach()
 
-    def _encoder_recovery_refine_step(self, batch: Any) -> float:
+    def _encoder_recovery_refine_step(self, batch: Any) -> Tensor:
         """
         Refinement step for encoder + recovery (E + R) with combined loss.
 
@@ -383,8 +383,8 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         Returns
         -------
-        loss_value : float
-            Scalar combined loss value for logging.
+        loss_value : Tensor
+            Detached combined loss Tensor for logging.
         """
         info: dict[str, Tensor] = self._unpack_batch(batch)
         x_enc: Tensor = self._build_encoder_input(info)
@@ -413,9 +413,9 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self.optimizer_e.step()
         self.optimizer_r.step()
 
-        return float(combined_loss.item())
+        return combined_loss.detach()
 
-    def _discriminator_step(self, batch: Any) -> float:
+    def _discriminator_step(self, batch: Any) -> Tensor:
         """
         One optimization step for the discriminator (D).
 
@@ -433,8 +433,8 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         Returns
         -------
-        loss_value : float
-            Scalar discriminator loss value for logging.
+        loss_value : Tensor
+            Detached discriminator loss Tensor for logging.
         """
         info: dict[str, Tensor] = self._unpack_batch(batch)
         x_enc: Tensor = self._build_encoder_input(info)
@@ -482,10 +482,10 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
             self.optimizer_d.step()
 
-        return float(loss_d.item())
+        return loss_d.detach()
 
 
-    def adversarial_step(self, batch: Any) -> dict[str, float]:
+    def adversarial_step(self, batch: Any) -> dict[str, Tensor]:
         """
         One adversarial training cycle on a batch of real sequences.
 
@@ -501,16 +501,16 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         Returns
         -------
-        losses : dict[str, float]
-            Dictionary with average losses for this step:
+        losses : dict[str, Tensor]
+            Dictionary with detached average losses Tensors for this step:
               {
                 "g_loss":  ...,
                 "er_loss": ...,
                 "d_loss":  ...,
               }
         """
-        g_losses: list[float] = []
-        er_losses: list[float] = []
+        g_losses: list[Tensor] = []
+        er_losses: list[Tensor] = []
 
         # Multiple G/S + ER refinement steps
         for _ in range(self.g_steps_per_iter):
@@ -520,13 +520,13 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         # One D step
         d_loss = self._discriminator_step(batch)
 
-        avg_g_loss = float(sum(g_losses) / len(g_losses))
-        avg_er_loss = float(sum(er_losses) / len(er_losses))
+        avg_g_loss = torch.stack(g_losses).mean()
+        avg_er_loss = torch.stack(er_losses).mean()
 
         return {
             "adv/g_loss": avg_g_loss,
             "adv/er_loss": avg_er_loss,
-            "adv/d_loss": float(d_loss),
+            "adv/d_loss": d_loss,
         }
 
     # Phase-wise Training Step compatible with trainer class

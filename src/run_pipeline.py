@@ -193,7 +193,7 @@ def main() -> None:
     # --- Phase 1: Autoencoder ---
     print("\n   [Phase 1] Autoencoder...")
     model.set_phase("ae")
-    trainer = Trainer(device=device, logger=tb_logger)
+    trainer = Trainer(device=device, logger=tb_logger, log_every_n_steps= 50)
     trainer.fit(model, AE_EPOCHS, pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 2: Supervisor ---

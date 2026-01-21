@@ -1,5 +1,4 @@
 from .module_interfaces import BaseTrainableModule
-from .tensorboard_trainers import train_module
 from .loaders import load_any_model
 
 from .rnn_vae import RnnVaeModule
@@ -10,7 +9,6 @@ from .time_gan import ConditionalTimeGanModule
 
 __all__ = [
     "BaseTrainableModule",
-    "train_module",
     "load_any_model",
 
     "RnnVaeModule",

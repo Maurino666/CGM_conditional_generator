@@ -134,9 +134,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             t = torch.full((n_samples,), i, device=device, dtype=torch.long)
             noise_pred = self.backbone(img, t, cond)
 
-            # ... (Standard sampling math calls to self.scheduler) ...
-            # (Codice identico a prima, omesso per brevità)
-            # ...
+            # TODO implement math
 
             # Placeholder for brevity - copy the logic from previous response
             alpha = self.scheduler._extract(self.scheduler.alphas, t, img.shape)

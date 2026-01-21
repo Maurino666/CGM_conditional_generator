@@ -153,7 +153,7 @@ def main() -> None:
     # -------------------------------------------------------------------------
     base_dir = Path("../runs")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    experiment_name = f"{timestamp}_TimeGAN_Modular_Test"
+    experiment_name = f"{timestamp}_CondTimeGan_No_Static_No_augment"
     output_dir = base_dir / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
 

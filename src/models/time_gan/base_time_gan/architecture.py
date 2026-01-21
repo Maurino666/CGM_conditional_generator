@@ -22,6 +22,7 @@ model.py: Network Modules
 
 import torch.nn as nn
 import torch.nn.init as init
+from torch import Tensor
 
 
 def _weights_init(m):
@@ -47,13 +48,11 @@ def _weights_init(m):
 class Encoder(nn.Module):
     """Embedding network between original feature space to latent space.
 
-        Args:
-          - input: input time-series features. (N, L, X) = (24, ?, 6)
-          - h3: (num_layers, N, H). [3, ?, 24]
-
-        Returns:
-          - H: embeddings
-        """
+    Args:
+        z_dim (int): Input dimension (e.g. features + condition).
+        hidden_dim (int): Hidden dimension size.
+        num_layers (int): Number of RNN layers.
+    """
 
     def __init__(
             self,
@@ -68,23 +67,39 @@ class Encoder(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 
-    def forward(self, input, sigmoid=True):
-        e_outputs, _ = self.rnn(input)
+    def forward(
+            self,
+            input: Tensor,
+            hidden_state: Tensor | None = None,
+            sigmoid=True
+    ):
+        """
+        Forward pass with optional hidden state propagation.
+
+        Args:
+            input (torch.Tensor): Input sequence features.
+            hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
+            sigmoid (bool): Whether to apply sigmoid activation to the output.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]:
+                - H: Embeddings.
+                - h_new: Updated hidden state.
+        """
+        e_outputs, h_new = self.rnn(input, hidden_state)
         H = self.fc(e_outputs)
         if sigmoid:
             H = self.sigmoid(H)
-        return H
+        return H, h_new
 
 
 class Recovery(nn.Module):
     """Recovery network from latent space to original space.
 
     Args:
-      - H: latent representation
-      - T: input time information
-
-    Returns:
-      - X_tilde: recovered data
+        z_dim (int): Output dimension (original space).
+        hidden_dim (int): Hidden dimension size.
+        num_layers (int): Number of RNN layers.
     """
 
     def __init__(
@@ -101,23 +116,39 @@ class Recovery(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 
-    def forward(self, input, sigmoid=True):
-        r_outputs, _ = self.rnn(input)
+    def forward(
+            self,
+            input: Tensor,
+            hidden_state: Tensor | None = None,
+            sigmoid=True
+    ):
+        """
+        Forward pass with optional hidden state propagation.
+
+        Args:
+            input (torch.Tensor): Latent representation.
+            hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
+            sigmoid (bool): Whether to apply sigmoid activation to the output.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]:
+                - X_tilde: Recovered data.
+                - h_new: Updated hidden state.
+        """
+        r_outputs, h_new = self.rnn(input, hidden_state)
         X_tilde = self.fc(r_outputs)
         if sigmoid:
             X_tilde = self.sigmoid(X_tilde)
-        return X_tilde
+        return X_tilde, h_new
 
 
 class Generator(nn.Module):
     """Generator function: Generate time-series data in latent space.
 
     Args:
-      - Z: random variables
-      - T: input time information
-
-    Returns:
-      - E: generated embedding
+        z_dim (int): Input dimension (noise + condition).
+        hidden_dim (int): Hidden dimension size.
+        num_layers (int): Number of RNN layers.
     """
 
     def __init__(
@@ -133,24 +164,39 @@ class Generator(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 
-    def forward(self, input, sigmoid=True):
-        g_outputs, _ = self.rnn(input)
+    def forward(
+            self,
+            input: Tensor,
+            hidden_state: Tensor | None = None,
+            sigmoid=True
+    ):
+        """
+        Forward pass with optional hidden state propagation.
+
+        Args:
+            input (torch.Tensor): Random variables (concatenated with conditions if applicable).
+            hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
+            sigmoid (bool): Whether to apply sigmoid activation to the output.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]:
+                - E: Generated embedding.
+                - h_new: Updated hidden state.
+        """
+        g_outputs, h_new = self.rnn(input, hidden_state)
         #  g_outputs = self.norm(g_outputs)
         E = self.fc(g_outputs)
         if sigmoid:
             E = self.sigmoid(E)
-        return E
+        return E, h_new
 
 
 class Supervisor(nn.Module):
-    """Generate next sequence using the previous sequence.
+    """Generate next sequence using the previous sequence in latent space.
 
     Args:
-      - H: latent representation
-      - T: input time information
-
-    Returns:
-      - S: generated sequence based on the latent representations generated by the generator
+        hidden_dim (int): Input and hidden dimension size.
+        num_layers (int): Number of RNN layers.
     """
 
     def __init__(
@@ -165,24 +211,39 @@ class Supervisor(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 
-    def forward(self, input, sigmoid=True):
-        s_outputs, _ = self.rnn(input)
+    def forward(
+            self,
+            input: Tensor,
+            hidden_state: Tensor | None = None,
+            sigmoid=True
+    ):
+        """
+        Forward pass with optional hidden state propagation.
+
+        Args:
+            input (torch.Tensor): Latent representation.
+            hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
+            sigmoid (bool): Whether to apply sigmoid activation to the output.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]:
+                - S: Generated sequence shifted in time.
+                - h_new: Updated hidden state.
+        """
+        s_outputs, h_new = self.rnn(input, hidden_state)
         #  s_outputs = self.norm(s_outputs)
         S = self.fc(s_outputs)
         if sigmoid:
             S = self.sigmoid(S)
-        return S
+        return S, h_new
 
 
 class Discriminator(nn.Module):
     """Discriminate the original and synthetic time-series data.
 
     Args:
-      - H: latent representation
-      - T: input time information
-
-    Returns:
-      - Y_hat: classification results between original and synthetic time-series
+        hidden_dim (int): Input and hidden dimension size.
+        num_layers (int): Number of RNN layers.
     """
 
     def __init__(
@@ -197,17 +258,37 @@ class Discriminator(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 
-    def forward(self, input, sigmoid=True):
-        d_outputs, _ = self.rnn(input)
+    def forward(
+            self,
+            input: Tensor,
+            hidden_state: Tensor | None = None,
+            sigmoid=True
+    ):
+        """
+        Forward pass with optional hidden state propagation.
+
+        Args:
+            input (torch.Tensor): Latent representation.
+            hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
+            sigmoid (bool): Whether to apply sigmoid activation to the output.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]:
+                - Y_hat: Classification results.
+                - h_new: Updated hidden state.
+        """
+        d_outputs, h_new = self.rnn(input, hidden_state)
         Y_hat = self.fc(d_outputs)
         if sigmoid:
             Y_hat = self.sigmoid(Y_hat)
-        return Y_hat
+        return Y_hat, h_new
 
 class TimeGan(nn.Module):
     """
-    Pure TimeGAN networks: Encoder, Recovery, Generator,
-    Supervisor, Discriminator.
+    Pure TimeGAN networks: Encoder, Recovery, Generator, Supervisor, Discriminator.
+
+    This class wraps the sub-modules and provides forward methods that expose
+    hidden state management for stateful generation.
     """
 
     def __init__(
@@ -243,17 +324,17 @@ class TimeGan(nn.Module):
             num_layers=num_layers,
         )
 
-    def e_forward(self, x):
-        return self.encoder(x)
+    def e_forward(self, x, hidden_state = None):
+        return self.encoder(x, hidden_state)
 
-    def r_forward(self, H):
-        return self.recovery(H)
+    def r_forward(self, H, hidden_state = None):
+        return self.recovery(H, hidden_state)
 
-    def s_forward(self, H):
-        return self.supervisor(H)
+    def s_forward(self, H, hidden_state = None):
+        return self.supervisor(H, hidden_state)
 
-    def g_forward(self, z_input):
-        return self.generator(z_input)
+    def g_forward(self, z_input, hidden_state = None):
+        return self.generator(z_input, hidden_state)
 
-    def d_forward(self, H):
-        return self.discriminator(H)
+    def d_forward(self, H, hidden_state = None):
+        return self.discriminator(H, hidden_state)

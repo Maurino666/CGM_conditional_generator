@@ -191,8 +191,8 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         target: Tensor = self._get_reconstruction_target(info)
 
         # Forward: X_enc -> H -> X_tilde (or y_tilde)
-        H = self.core.e_forward(x_enc)
-        X_tilde = self.core.r_forward(H)
+        H, _ = self.core.e_forward(x_enc)
+        X_tilde, _ = self.core.r_forward(H)
 
         # Reconstruction loss
         loss_ae = self.mse_loss(X_tilde, target)
@@ -233,10 +233,10 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         x_enc: Tensor = self._build_encoder_input(info)
 
         # X_enc -> H
-        H = self.core.e_forward(x_enc)
+        H, _ = self.core.e_forward(x_enc)
 
         # H -> H_sup
-        H_sup = self.core.s_forward(H)
+        H_sup, _ = self.core.s_forward(H)
 
         # Supervised loss on shifted sequences:
         #   H[:, 1:, :]   is H(t+1)
@@ -286,22 +286,22 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         # Encoder is used as a fixed feature extractor in this step
         with torch.no_grad():
-            H_real = self.core.e_forward(x_enc)
+            H_real, _ = self.core.e_forward(x_enc)
 
         # Supervisor remains trainable: we want gradients for S
-        H_sup = self.core.s_forward(H_real)
+        H_sup, _ = self.core.s_forward(H_real)
 
         # Noise path: Z + cond -> E_hat -> H_hat -> Y_hat
         Z = self._sample_noise_like(x_enc)
         z_input: Tensor = self._build_generator_input(info, Z)
 
-        E_hat = self.core.g_forward(z_input)
-        H_hat = self.core.s_forward(E_hat)
-        Y_hat = self.core.r_forward(H_hat)  # output in target space
+        E_hat, _ = self.core.g_forward(z_input)
+        H_hat, _ = self.core.s_forward(E_hat)
+        Y_hat, _ = self.core.r_forward(H_hat)  # output in target space
 
         # Adversarial losses: fool D with H_hat and E_hat
-        Y_fake = self.core.d_forward(H_hat)
-        Y_fake_e = self.core.d_forward(E_hat)
+        Y_fake, _ = self.core.d_forward(H_hat)
+        Y_fake_e, _ = self.core.d_forward(E_hat)
 
         ones_like_Y_fake = torch.ones_like(Y_fake)
         ones_like_Y_fake_e = torch.ones_like(Y_fake_e)
@@ -368,11 +368,11 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         target: Tensor = self._get_reconstruction_target(info)
 
         # X_enc -> H -> output
-        H = self.core.e_forward(x_enc)
-        output = self.core.r_forward(H)
+        H, _ = self.core.e_forward(x_enc)
+        output, _ = self.core.r_forward(H)
 
         # Supervisory path (S not updated, but still differentiable)
-        H_sup = self.core.s_forward(H)
+        H_sup, _ = self.core.s_forward(H)
 
         recon_loss = self.mse_loss(output, target)
         sup_loss = self.mse_loss(H_sup[:, :-1, :], H[:, 1:, :])
@@ -418,20 +418,20 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         # Real latent: X_enc -> H_real (no grad to encoder here)
         with torch.no_grad():
-            H_real = self.core.e_forward(x_enc)
+            H_real, _ = self.core.e_forward(x_enc)
 
         # Fake latent: Z + cond -> E_hat -> H_hat (no grad to G/S/E here)
         Z = self._sample_noise_like(x_enc)
         z_input: Tensor = self._build_generator_input(info, Z)
 
         with torch.no_grad():
-            E_hat = self.core.g_forward(z_input)
-            H_hat = self.core.s_forward(E_hat)
+            E_hat, _ = self.core.g_forward(z_input)
+            H_hat, _ = self.core.s_forward(E_hat)
 
         # Discriminator outputs
-        Y_real = self.core.d_forward(H_real)
-        Y_fake = self.core.d_forward(H_hat)
-        Y_fake_e = self.core.d_forward(E_hat)
+        Y_real, _ = self.core.d_forward(H_real)
+        Y_fake, _ = self.core.d_forward(H_hat)
+        Y_fake_e, _ = self.core.d_forward(E_hat)
 
         ones_real = torch.ones_like(Y_real)
         zeros_fake = torch.zeros_like(Y_fake)
@@ -587,7 +587,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         concatenation of noise and conditioning features. The last
         dimension must match the generator input size.
         """
-        E_hat = self.core.g_forward(generator_input)
-        H_hat = self.core.s_forward(E_hat)
-        output = self.core.r_forward(H_hat)
+        E_hat, _ = self.core.g_forward(generator_input)
+        H_hat, _ = self.core.s_forward(E_hat)
+        output, _ = self.core.r_forward(H_hat)
         return output

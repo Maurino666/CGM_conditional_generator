@@ -641,16 +641,12 @@ def encode_bolus_type_semantic(
     return out
 
 
-from typing import List, Sequence
-
-
 def build_sliding_windows(
-    all_data: List[pd.DataFrame],
-    feature_cols: Sequence[str],
+    all_data: list[pd.DataFrame],
+    feature_cols: list[str],
     seq_len: int,
     step: int,
     max_missing_ratio: float = 0.0,
-    time_column: str | None = None,
 ) -> np.ndarray:
     """
     Build contiguous sliding windows from a list of patient DataFrames.
@@ -675,9 +671,6 @@ def build_sliding_windows(
     max_missing_ratio : float, optional
         Maximum allowed fraction of NaN values inside a window (between 0 and 1).
         Windows with a higher missing ratio are discarded. Default is 0.0 (no NaNs allowed).
-    time_column : str or None, optional
-        Optional name of the time column. If provided, each DataFrame will be
-        sorted by this column before building windows.
 
     Returns
     -------
@@ -697,12 +690,8 @@ def build_sliding_windows(
         if df.empty:
             continue
 
-        # Optionally sort by time to ensure correct chronological order
-        if time_column is not None and time_column in df.columns:
-            df = df.sort_values(by=time_column)
-        elif df.index is not None:
+        if df.index is not None:
             df = df.sort_index()
-
 
         # Check that all required feature columns are present
         missing_features = [c for c in feature_cols if c not in df.columns]
@@ -742,3 +731,67 @@ def build_sliding_windows(
     # Stack all windows into a single 3D array
     X = np.stack(windows, axis=0)  # shape: (num_windows, seq_len, num_features)
     return X
+
+def build_sliding_windows_conditional(
+    all_data: list[pd.DataFrame],
+    seq_len: int,
+    step: int,
+    target_col: str,
+    cond_cols: list[str],
+    max_missing_ratio: float = 0.0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Build sliding windows and split them into target and conditioning parts.
+
+    Parameters
+    ----------
+    all_data : list[pd.DataFrame]
+        Sequence of subject DataFrames.
+    seq_len : int
+        Window length (number of time steps).
+    step : int
+        Stride between consecutive windows.
+    target_col : str
+        Name of the target column (first feature in the windows).
+    cond_cols : list[str]
+        Names of conditioning columns to include in the windows.
+    max_missing_ratio: float, Optional
+        Max ratio of missing values in window.
+
+    Returns
+    -------
+    X_target : np.ndarray
+        Target windows of shape (num_windows, seq_len, 1).
+    X_cond : np.ndarray
+        Conditioning windows of shape (num_windows, seq_len, num_cond_features).
+    """
+    # Ensure target is not duplicated in cond_cols
+    cond_cols_clean = [c for c in cond_cols if c != target_col]
+
+    # Complete feature list: target first, then conditioning
+    all_cols: list[str] = [target_col] + cond_cols_clean
+
+    # Sanity check: required columns must exist in all DataFrames
+    for i, df in enumerate(all_data):
+        missing = [c for c in all_cols if c not in df.columns]
+        if missing:
+            raise KeyError(
+                f"DataFrame {i} is missing required columns for sliding windows: {missing}"
+            )
+
+    # Use the existing generic sliding-window builder
+    X_full = build_sliding_windows(
+        all_data = all_data,
+        seq_len=seq_len,
+        step=step,
+        feature_cols=all_cols,
+        max_missing_ratio=max_missing_ratio,
+    )
+    # X_full shape: (num_windows, seq_len, 1 + len(cond_cols_clean))
+
+    # Split into target (first feature) and conditioning (remaining features)
+    X_target = X_full[:, :, :1]        # (N, seq_len, 1)
+    X_cond = X_full[:, :, 1:]          # (N, seq_len, num_cond_features)
+
+    return X_target, X_cond
+

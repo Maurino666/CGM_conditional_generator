@@ -6,8 +6,7 @@ import yaml
 
 from .utils import load_dataset, load_dataset_config, clean_duplicates, fill_data, \
     print_df_summary, print_duplicate_counts, \
-    build_sliding_windows, add_time_of_day_features, add_exponential_decay_feature
-
+    build_sliding_windows, add_time_of_day_features, add_exponential_decay_feature, build_sliding_windows_conditional
 
 NUMERIC_PREFIXES = ("int", "float")
 GLOBAL_CONFIG_PATH = "global_config.yaml"
@@ -38,6 +37,7 @@ class BaseDataset:
     numeric_cols : list[str] # numeric columns
     impulse_cols : list[str] # numeric columns which register events
     category_cols : list[str] # categoric columns
+
     added_cols = []
 
 
@@ -207,7 +207,7 @@ class BaseDataset:
 
             self.all_data[i] = df
 
-    def add_features(self) -> None:
+    def add_features(self) -> list[str]:
         """
         Add basic engineered features to each subject DataFrame.
 
@@ -256,6 +256,9 @@ class BaseDataset:
             if log_file is not None:
                 log_file.close()
 
+        self.cols.extend(self.added_cols)
+        return self.added_cols.copy()
+
     def _add_features_to_df(
             self,
             df: pd.DataFrame
@@ -295,47 +298,6 @@ class BaseDataset:
 
         return df, cols
 
-    def to_sequences(
-            self,
-            feature_cols: list[str],
-            seq_len: int,
-            step: int,
-            max_missing_ratio: float = 0.0,
-    ):
-
-        """
-        Convert cleaned patient DataFrames into fixed-length sliding window sequences.
-
-        This method builds input sequences for time-series models (e.g. VAE) by
-        applying a sliding window over the data of each subject.
-
-        Parameters
-        ----------
-        seq_len : int
-            Length of each window (number of time steps).
-        step : int
-            Sliding window stride (number of rows between consecutive windows).
-        feature_cols : list of str, optional
-            Names of feature columns to include in each window. If None, the
-            dataset's default feature columns are used.
-        max_missing_ratio : float, optional
-            Maximum allowed fraction of NaN values inside a window (between 0 and 1).
-            Windows with a higher missing ratio are discarded. Default is 0.0.
-
-        Returns
-        -------
-        np.ndarray
-            Array of shape (num_windows, seq_len, num_features) containing all
-            valid windows stacked along the first dimension. The dtype is float32.
-        """
-
-        return build_sliding_windows(
-            self.all_data,
-            feature_cols,
-            seq_len,
-            step,
-            max_missing_ratio
-        )
 
     def to_sequence_splits(
             self,
@@ -347,6 +309,9 @@ class BaseDataset:
             max_missing_ratio: float = 0.0,
             random_state: int | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
+
+        if not val_ratio <= 1 or val_ratio >= 0:
+            raise ValueError("val_ratio must be between 0 and 1.")
 
         num_subjects = len(self.all_data)
         if num_subjects == 0:
@@ -384,6 +349,95 @@ class BaseDataset:
 
         return X_train, X_val
 
+    def to_sequence_splits_conditional(
+            self,
+            seq_len: int,
+            step: int,
+            cond_cols: list[str],
+            val_ratio: float = 0.2,
+            split_by: str = "subject",
+            max_missing_ratio: float = 0.0,
+            random_state: int | None = None,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Build sliding windows for target and conditioning features, then split them
+        into train and validation sets.
+
+        This behaves like `to_sequence_splits`, but:
+          - uses `self.target_col` as target,
+          - uses `cond_cols` for conditioning features,
+          - returns 4 arrays: (X_train_y, X_train_c, X_val_y, X_val_c).
+
+        Parameters
+        ----------
+        seq_len : int
+            Length of each sliding window (number of time steps).
+        step : int
+            Stride between consecutive windows.
+        cond_cols : list[str]
+            Columns to use as conditioning features.
+        val_ratio : float, optional
+            Fraction of data to reserve for validation, by default 0.2.
+        split_by : str, optional
+            Split strategy: "subject" or "time", by default "subject".
+        max_missing_ratio : float, optional
+            Maximum allowed fraction of missing values in a window,
+            passed to `build_sliding_windows_conditional`, by default 0.0.
+        random_state : int | None, optional
+            Random seed for subject-level split, by default None.
+
+        Returns
+        -------
+        X_train_y : np.ndarray
+            Training target windows, shape (N_train, seq_len, 1).
+        X_train_c : np.ndarray
+            Training conditioning windows, shape (N_train, seq_len, cond_dim).
+        X_val_y : np.ndarray
+            Validation target windows, shape (N_val, seq_len, 1).
+        X_val_c : np.ndarray
+            Validation conditioning windows, shape (N_val, seq_len, cond_dim).
+        """
+        if not (0.0 < val_ratio < 1.0):
+            raise ValueError("val_ratio must be between 0 and 1 (exclusive).")
+
+        num_subjects = len(self.all_data)
+        if num_subjects == 0:
+            raise ValueError("No subjects available in all_data.")
+
+        # Reuse the same splitting logic as to_sequence_splits
+        if split_by == "subject":
+            train_data, val_data = self._split_by_subject(
+                val_ratio=val_ratio,
+                random_state=random_state,
+            )
+        elif split_by == "time":
+            train_data, val_data = self._split_by_time_index(
+                val_ratio=val_ratio,
+            )
+        else:
+            raise ValueError("Attribute split_by must be 'subject' or 'time'.")
+
+        # Build conditional windows for train split
+        X_train_y, X_train_c = build_sliding_windows_conditional(
+            all_data=train_data,
+            target_col=self.target_col,
+            cond_cols=cond_cols,
+            seq_len=seq_len,
+            step=step,
+            max_missing_ratio=max_missing_ratio,
+        )
+
+        # Build conditional windows for validation split
+        X_val_y, X_val_c = build_sliding_windows_conditional(
+            all_data=val_data,
+            target_col=self.target_col,
+            cond_cols=cond_cols,
+            seq_len=seq_len,
+            step=step,
+            max_missing_ratio=max_missing_ratio,
+        )
+
+        return X_train_y, X_train_c, X_val_y, X_val_c
 
     def _split_by_subject(
             self,

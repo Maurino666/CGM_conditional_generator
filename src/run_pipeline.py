@@ -54,8 +54,8 @@ def main() -> None:
     TRAIN_STEP = 12
     SPLIT_STRATEGY = "subject"
     # TimeGan params
-    HIDDEN_DIM = 2
-    NUM_LAYERS = 1
+    HIDDEN_DIM = 256
+    NUM_LAYERS = 3
     G_STEPS_PER_ITER = 3
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
@@ -72,14 +72,14 @@ def main() -> None:
         dataset_root=Path("../datasets/AZT1D2025/CGM Records"),
         config_file=Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
         global_config_file=global_config_path,
-        patient_metadata_path=Path("../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"),
+        # patient_metadata_path=Path("../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"),
         logging_dir=Path("../datasets/AZT1D2025/prep_logs"),
     )
     ds2 = HUPA_UCMDataset(
         dataset_root=Path("../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"),
         config_file=Path("../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"),
         global_config_file=global_config_path,
-        patient_metadata_path=Path("../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"),
+        # patient_metadata_path=Path("../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"),
         logging_dir=Path("../datasets/HUPA-UCM Diabetes Dataset/prep_logs"),
     )
 
@@ -88,7 +88,7 @@ def main() -> None:
         print(f"   Processing {ds.config['dataset'].get('name')}...")
         ds.clean()
         ds.standardize()
-        ds.augment()
+        # ds.augment()
 
     sample_df = ds1.all_data[0]
     final_cond_cols = [c for c in sample_df.columns if c != target_col]

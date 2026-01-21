@@ -111,7 +111,6 @@ class BaseDataset:
         self.structure_pipeline = [
             ColumnMapper(),  # 1. Raw Names -> Standard Names
             TimeIndexer(),  # 2. Set Index & Sort
-            StaticFeaturesProcessor(patient_metadata_path)
         ]
 
         # B) Cleaning Pipeline (Lazy - runs on clean_data())
@@ -123,6 +122,7 @@ class BaseDataset:
 
         # C) Schema Standardization Pipeline
         self.standardization_pipeline = [
+            StaticFeaturesProcessor(patient_metadata_path),
             SchemaStandardizer(  # 3. Create Masks & Enforce Column Order
                 global_cond_cols=self.global_config['schema'].get('cond_cols', [])
             )

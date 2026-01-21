@@ -28,14 +28,10 @@ def main() -> None:
         logging_dir=Path("../datasets/AZT1D2025/prep_logs"),
     )
 
-    print(dataset.all_data[0].columns)
     dataset.clean()
 
-    print(dataset.all_data[0].columns)
     dataset.standardize()
-    print(dataset.all_data[0].columns)
 
-    return
     # Prefer your dataset API if available; here you used dataset.all_data already
     series: list[pd.DataFrame] = dataset.all_data
 

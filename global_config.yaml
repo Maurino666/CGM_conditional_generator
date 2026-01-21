@@ -65,6 +65,9 @@ schema: # information on global columns
     - "bolus_correction"
     - "bolus_meal"
     - "carbs"
+    - "age"
+    - "sex_m"
+    - "hba1c"
 
   normalization_ranges:
     age: [18.0, 80.0]

@@ -80,7 +80,7 @@ class StaticFeaturesProcessor(DataProcessor):
         for feat_name, raw_val in subj_info.items():
 
             # Define column names
-            col_name = f"static_{feat_name}"
+            col_name = f"{feat_name}"
 
             try:
                 # --- Broadcasting ---

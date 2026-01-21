@@ -1,8 +1,9 @@
 from .utils import *
-from .AZT1D2025Dataset import AZT1D2025Dataset
-from .OhioT1DMDataset import OhioT1DMDataset
-from .HUPA_UCMDataset import HUPA_UCMDataset
-from .BaseDataset import BaseDataset
+from .AZT1D2025_dataset import AZT1D2025Dataset
+from .OhioT1DM_dataset import OhioT1DMDataset
+from .HUPA_UCM_dataset import HUPA_UCMDataset
+from .base_dataset import BaseDataset
+from .processors.interface import DataProcessor
 
 __all__ = [
     # data_utils

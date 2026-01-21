@@ -228,7 +228,7 @@ def clean_duplicates(
     return all_data_nodup
 
 def fill_data(
-        all_data : list[pd.DataFrame],
+        data : list[pd.DataFrame],
         expected : pd.Timedelta,
         max_gap : pd.Timedelta,
         target_col : str,
@@ -241,7 +241,7 @@ def fill_data(
     Fill missing data in each DataFrame by resampling and interpolating the target column.
     Missing values in other columns are filled with specified default values.
     Target column is interpolated only for gaps smaller than max_gap.
-    :param all_data: data to be filled
+    :param data: data to be filled
     :param expected: expected sampling interval
     :param max_gap: maximum gap to fill
     :param target_col: target column to interpolate
@@ -252,9 +252,9 @@ def fill_data(
     limit_steps = int(max_gap / expected)
     all_data_filled = []
 
-    for i in range(len(all_data)):
+    for i in range(len(data)):
 
-        df = all_data[i]
+        df = data[i]
         if df is None or df.empty:
             all_data_filled.append(df)
             print(f"[Subject {i+1}] empty")
@@ -287,7 +287,7 @@ def fill_data(
         all_data_filled.append(df_full)
 
     if logging_path is not None:
-        plot_gaps(all_data, all_data_filled, target_col, expected, save_dir=logging_path)
+        plot_gaps(data, all_data_filled, target_col, expected, save_dir=logging_path)
     return all_data_filled
 
 def plot_gaps(

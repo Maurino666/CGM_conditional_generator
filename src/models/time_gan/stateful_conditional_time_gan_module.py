@@ -4,7 +4,7 @@ from torch import Tensor
 
 from .conditional_time_gan_module import ConditionalTimeGanModule
 
-
+# TODO to update with new params
 class StatefulConditionalTimeGanModule(ConditionalTimeGanModule):
     """
     Extension of ConditionalTimeGanModule that supports stateful generation

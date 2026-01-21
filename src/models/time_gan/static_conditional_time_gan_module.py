@@ -197,6 +197,27 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
     # Public Generation Interface
     # =========================================================================
 
+    def prepare_generation_inputs(self, batch: Any) -> tuple[Tensor, dict[str, Any]]:
+        """
+        Adapts a raw batch for the generic metrics callback.
+        Maps internal batch keys to generate() arguments:
+          - batch['c_dyn'] -> generate(cond_dynamic=...)
+          - batch['c_stat'] -> generate(cond_static=...)
+        """
+        # 1. Using _unpack_batch logic
+        data_dict = self._unpack_batch(batch)
+
+        # 2. Extracting target
+        real_X = data_dict["y"]
+
+        # 3. Preparing the arguments required by self.generate()
+        gen_kwargs = {
+            "cond_dynamic": data_dict["c_dyn"],
+            "cond_static": data_dict["c_stat"]
+        }
+
+        return real_X, gen_kwargs
+
     def generate(self, cond_dynamic: Tensor, cond_static: Tensor) -> Tensor:
         """
         Generate synthetic time-series data conditioned on both dynamic and static variables.

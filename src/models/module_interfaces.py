@@ -88,3 +88,19 @@ class BaseTrainableModule(nn.Module, ABC):
             model.to(map_location)
 
         return model
+
+    def prepare_generation_inputs(self, batch: Any) -> tuple[Tensor, dict[str, Any]]:
+        """
+        Parses a raw batch (from DataLoader) and prepares arguments for generation.
+
+        Used by callbacks to run inference using the specific signature of the model's
+        generate() method without knowing the details of the batch structure.
+
+        Returns:
+            real_X: The Ground Truth target tensor (for comparison metrics).
+            gen_kwargs: A dictionary of arguments to pass to self.generate(**kwargs).
+        """
+        raise NotImplementedError(
+            f"Model {self.__class__.__name__} does not implement 'prepare_generation_inputs'. "
+            "This method is required for generative callbacks."
+        )

@@ -98,6 +98,26 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         """
         return info["y"]
 
+    def prepare_generation_inputs(self, batch: Any) -> tuple[Tensor, dict[str, Any]]:
+        """
+        Adapts a raw batch for the generic metrics callback.
+        Maps internal batch keys to generate() arguments:
+          - batch['c_dyn'] -> generate(cond_dynamic=...)
+          - batch['c_stat'] -> generate(cond_static=...)
+        """
+        # 1. Using _unpack_batch logic
+        data_dict = self._unpack_batch(batch)
+
+        # 2. Extracting target
+        real_X = data_dict["y"]
+
+        # 3. Preparing the arguments required by self.generate()
+        gen_kwargs = {
+            "c": data_dict["c"]
+        }
+
+        return real_X, gen_kwargs
+
     # Public generation API (conditional)
     def generate(self, cond_seq: Tensor) -> Tensor:
         """

@@ -66,8 +66,6 @@ class Trainer:
             self._fire_callback("on_epoch_end", model, epoch=epoch, metrics=all_metrics)
 
         self._fire_callback("on_train_end", model)
-        if self.logger:
-            self.logger.close()
 
     def _run_epoch(self, model, loader, phase, epoch):
         is_train = (phase == "train")

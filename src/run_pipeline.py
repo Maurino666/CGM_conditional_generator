@@ -54,15 +54,21 @@ def main() -> None:
     TRAIN_STEP = 12
     SPLIT_STRATEGY = "subject"
     # TimeGan params
-    HIDDEN_DIM = 256
-    NUM_LAYERS = 3
+    HIDDEN_DIM = 128
+    NUM_LAYERS = 2
+    NOISE_DIM = 64
     G_STEPS_PER_ITER = 2
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
+    SUPERVISED_WEIGHT = 0.001
+    MOMENT_WEIGHT = 0.01
+    GAMMA = 1.0
+    LR = 5e-5
+    D_LOSS_THRESHOLD = 1.4
     # Training params
-    AE_EPOCHS = 10
-    SUP_EPOCHS = 10
-    ADV_EPOCHS = 100
+    AE_EPOCHS = 50
+    SUP_EPOCHS = 20
+    ADV_EPOCHS = 150
     # Builder extras
     FORCE_DEVICE = device
 
@@ -156,7 +162,7 @@ def main() -> None:
     # -------------------------------------------------------------------------
     base_dir = Path("../runs")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    experiment_name = f"{timestamp}_CondTimeGan_No_Static_No_augment"
+    experiment_name = f"{timestamp}_LowLR_HighThreshold"
     output_dir = base_dir / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -181,13 +187,20 @@ def main() -> None:
     )
 
     # C. Instantiate Model
+    # TODO problem: discriminator is too strong. experiment: higher noise_std
     model = ConditionalTimeGanModule(
         cond_dim=len(final_cond_cols),
         hidden_dim=HIDDEN_DIM,
         num_layers=NUM_LAYERS,
+        noise_dim=NOISE_DIM,
         g_steps_per_iter=G_STEPS_PER_ITER,
         noise_std=NOISE_STD,
         soft_label=SOFT_LABEL,
+        supervised_weight=SUPERVISED_WEIGHT,
+        moment_weight=MOMENT_WEIGHT,
+        gamma=GAMMA,
+        lr=LR,
+        d_loss_threshold=D_LOSS_THRESHOLD,
     ).to(device)
 
     # --- Phase 1: Autoencoder ---

@@ -1,0 +1,46 @@
+dataset:
+  name: "OHIOT1DMmini"
+  description: "OhioT1DMmini: A clean small extract from the OhioT1DM dataset"
+  separator: ","              # CSV delimiter
+
+schema:
+  # After renaming, this is the standard time column name
+  target_col: "glucose"
+  time_col: "timestamp"
+  patient_id_col: null     # one file per patient, or handled outside
+
+  # Mapping from standard internal names -> raw AZT1D column names
+  col_mapping:
+    timestamp: "date"
+    glucose: "CGM"
+    basal_rate: "basal"                # basal rate (U/h)
+    bolus_total: "bolus"
+    carbs: "carbs"
+    heart_rate: "heartrate"
+
+  # Desired dtypes after standardization
+  dtypes:
+    timestamp: "datetime64[ns]"
+    glucose: "float"
+    basal_rate: "float"
+    bolus_total: "float"
+    carbs: "float"
+    heart_rate: "int"
+
+  defaults:
+    bolus_total: 0.0
+    carbs: 0.0
+
+
+units:
+  glucose: "mg/dL"
+  basal_rate: "U/h"
+  bolus_total: "U"
+  carbs: "g"
+  heart_rate: "bpm"
+
+sampling:
+  target_frequency: "5min"
+  interval_minutes: 5
+  assumes_already_on_grid: true
+  enforce_regular_grid: true

@@ -63,7 +63,7 @@ def main() -> None:
     )
 
     for ds in (ds1, ds2, ds3):
-        ds.clean_data()
+        ds.clean()
 
     # 2) Build windows + loaders (windowing world)
     cfg = ConditionalWindowingConfig(

@@ -13,6 +13,7 @@
       <w>bnormal</w>
       <w>bstandard</w>
       <w>coeff</w>
+      <w>cumprod</w>
       <w>datetimes</w>
       <w>denom</w>
       <w>dfden</w>

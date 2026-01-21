@@ -27,7 +27,7 @@ def gather_data(
     a subset of features, and create train/val DataLoaders.
     """
 
-    # 1. Instantiate datasets and run cleaning pipeline
+    # Instantiate datasets and run cleaning pipeline
     dataset1 = AZT1D2025Dataset(
         Path("../datasets/AZT1D2025/CGM Records"),
         Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
@@ -51,10 +51,10 @@ def gather_data(
 
     print("Gathered dataset classes")
 
-    # 2. Build sliding-window sequences for each dataset
-    X_train1, X_val1 = dataset1.to_sequence_splits(
-        seq_len=seq_len,
-        step=step,
+    # Build sliding-window sequences for each dataset
+    X_train1, X_val1, _, _ = dataset1.to_sequence_splits(
+        train_seq_len=seq_len,
+        train_step=step,
         feature_cols=features,
         val_ratio=val_ratio,
         random_state=random_state,
@@ -63,9 +63,9 @@ def gather_data(
     print("Train 1 windows: ", X_train1.shape)
     print("Val 1 windows:   ", X_val1.shape)
 
-    X_train2, X_val2 = dataset2.to_sequence_splits(
-        seq_len=seq_len,
-        step=step,
+    X_train2, X_val2, _, _ = dataset2.to_sequence_splits(
+        train_seq_len=seq_len,
+        train_step=step,
         feature_cols=features,
         val_ratio=val_ratio,
         random_state=random_state,
@@ -74,9 +74,9 @@ def gather_data(
     print("Train 2 windows: ", X_train2.shape)
     print("Val 2 windows:   ", X_val2.shape)
 
-    X_train3, X_val3 = dataset3.to_sequence_splits(
-        seq_len=seq_len,
-        step=step,
+    X_train3, X_val3, _, _ = dataset3.to_sequence_splits(
+        train_seq_len=seq_len,
+        train_step=step,
         feature_cols=features,
         val_ratio=val_ratio,
         random_state=random_state,
@@ -98,7 +98,7 @@ def gather_data(
     print("Combined train shape: ", X_train.shape)
     print("Combined val shape:   ", X_val.shape)
 
-    # 4. Optional Min–Max normalization on selected features
+    # Optional Min–Max normalization on selected features
     if normalize:
         X_train, X_val = minmax_scale_features(
             X_train=X_train,
@@ -107,7 +107,7 @@ def gather_data(
             normalize=normalize,
         )
 
-    # 5. Build DataLoaders from normalized (or raw) arrays
+    # Build DataLoaders from normalized (or raw) arrays
     train_loader, val_loader = create_dataloaders(
         X_train=X_train,
         X_val=X_val,
@@ -135,7 +135,7 @@ def gather_data_conditional(
     `cond_features`.
     """
 
-    # 1. Instantiate datasets and run cleaning pipeline
+    # Instantiate datasets and run cleaning pipeline
     dataset1 = AZT1D2025Dataset(
         Path("../datasets/AZT1D2025/CGM Records"),
         Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
@@ -159,17 +159,17 @@ def gather_data_conditional(
 
     print("Gathered dataset classes")
 
-    # 2. Sanity check: target column name consistent across datasets
+    # Sanity check: target column name consistent across datasets
     target_col = dataset1.target_col
     assert dataset2.target_col == target_col == dataset3.target_col, (
         "All datasets must share the same target_col in the unified schema."
     )
 
-    # 3. Build conditional sliding-window sequences for each dataset
-    #    Each call returns: (y_train, c_train, y_val, c_val)
-    y_train1, c_train1, y_val1, c_val1 = dataset1.to_sequence_splits_conditional(
-        seq_len=seq_len,
-        step=step,
+    # Build conditional sliding-window sequences for each dataset
+    # Each call returns: (y_train, c_train, y_val, c_val)
+    y_train1, c_train1, y_val1, c_val1, _, _ = dataset1.to_sequence_splits_conditional(
+        train_seq_len=seq_len,
+        train_step=step,
         cond_cols=cond_features,
         val_ratio=val_ratio,
         random_state=random_state,
@@ -177,9 +177,9 @@ def gather_data_conditional(
     print("Dataset 1 - train windows:", y_train1.shape, c_train1.shape)
     print("Dataset 1 - val   windows:", y_val1.shape, c_val1.shape)
 
-    y_train2, c_train2, y_val2, c_val2 = dataset2.to_sequence_splits_conditional(
-        seq_len=seq_len,
-        step=step,
+    y_train2, c_train2, y_val2, c_val2, _, _ = dataset2.to_sequence_splits_conditional(
+        train_seq_len=seq_len,
+        train_step=step,
         cond_cols=cond_features,
         val_ratio=val_ratio,
         random_state=random_state,
@@ -187,9 +187,9 @@ def gather_data_conditional(
     print("Dataset 2 - train windows:", y_train2.shape, c_train2.shape)
     print("Dataset 2 - val   windows:", y_val2.shape, c_val2.shape)
 
-    y_train3, c_train3, y_val3, c_val3 = dataset3.to_sequence_splits_conditional(
-        seq_len=seq_len,
-        step=step,
+    y_train3, c_train3, y_val3, c_val3, _, _ = dataset3.to_sequence_splits_conditional(
+        train_seq_len=seq_len,
+        train_step=step,
         cond_cols=cond_features,
         val_ratio=val_ratio,
         random_state=random_state,
@@ -197,7 +197,7 @@ def gather_data_conditional(
     print("Dataset 3 - train windows:", y_train3.shape, c_train3.shape)
     print("Dataset 3 - val   windows:", y_val3.shape, c_val3.shape)
 
-    # 4. Check consistency of shapes (seq_len, target_dim/cond_dim)
+    # Check consistency of shapes (seq_len, target_dim/cond_dim)
     assert y_train1.shape[1:] == y_train2.shape[1:] == y_train3.shape[1:], (
         "Train target arrays must have the same (seq_len, target_dim)."
     )
@@ -211,7 +211,7 @@ def gather_data_conditional(
         "Val conditional arrays must have the same (seq_len, cond_dim)."
     )
 
-    # 5. Concatenate all training and validation windows
+    # Concatenate all training and validation windows
     y_train = np.concatenate([y_train1, y_train2, y_train3], axis=0)
     c_train = np.concatenate([c_train1, c_train2, c_train3], axis=0)
     y_val = np.concatenate([y_val1, y_val2, y_val3], axis=0)
@@ -222,7 +222,7 @@ def gather_data_conditional(
     print("Combined val   target shape: ", y_val.shape)
     print("Combined val   cond   shape: ", c_val.shape)
 
-    # 6. Optional Min–Max normalization on selected features
+    # Optional Min–Max normalization on selected features
     if normalize:
         # Normalize target + cond jointly, then split
         y_train, c_train, y_val, c_val = minmax_scale_conditional(
@@ -235,7 +235,7 @@ def gather_data_conditional(
             normalize=normalize,
         )
 
-    # 7. Build conditional DataLoaders
+    # Build conditional DataLoaders
     train_loader, val_loader = create_conditional_dataloaders(
         y_train=y_train,
         c_train=c_train,

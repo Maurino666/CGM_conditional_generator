@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 from matplotlib import pyplot as plt
 
 import yaml
@@ -640,14 +640,17 @@ def encode_bolus_type_semantic(
 
     return out
 
+WindowMetadata = tuple[int, int]
+
 
 def build_sliding_windows(
     all_data: list[pd.DataFrame],
     feature_cols: list[str],
     seq_len: int,
     step: int,
+    ids: Sequence[int] | None = None,
     max_missing_ratio: float = 0.0,
-) -> np.ndarray:
+) -> tuple[np.ndarray, list[WindowMetadata]]:
     """
     Build contiguous sliding windows from a list of patient DataFrames.
 
@@ -668,14 +671,18 @@ def build_sliding_windows(
         Length of each window (number of time steps).
     step : int
         Sliding window step (number of rows between the start of consecutive windows).
+    ids : sequence of int, optional
+        Sequence of subject IDs for metadata.
     max_missing_ratio : float, optional
         Maximum allowed fraction of NaN values inside a window (between 0 and 1).
         Windows with a higher missing ratio are discarded. Default is 0.0 (no NaNs allowed).
 
     Returns
     -------
-    np.ndarray
+    X : np.ndarray
         3D array of shape (num_windows, seq_len, num_features), dtype float32.
+    metadata : list[WindowMetadata]
+        List of WindowMetadata objects (tuple(id, start)), one for each window.
     """
     if seq_len <= 0:
         raise ValueError("seq_len must be positive")
@@ -685,6 +692,7 @@ def build_sliding_windows(
         raise ValueError("max_missing_ratio must be between 0.0 and 1.0")
 
     windows: list[np.ndarray] = []
+    metadata: list[WindowMetadata] = []
 
     for df_idx, df in enumerate(all_data):
         if df.empty:
@@ -721,16 +729,22 @@ def build_sliding_windows(
                 values = window.to_numpy(dtype=np.float32)
                 # values shape: (seq_len, num_features)
                 windows.append(values)
+                if ids is not None:
+                    global_id = int(ids[df_idx])
+                else:
+                    global_id = int(df_idx)
+
+                metadata.append((global_id, start))
 
             start += step
 
     if not windows:
         # No valid windows were found
-        return np.empty((0, seq_len, len(feature_cols)), dtype=np.float32)
+        return np.empty((0, seq_len, len(feature_cols)), dtype=np.float32), []
 
     # Stack all windows into a single 3D array
     X = np.stack(windows, axis=0)  # shape: (num_windows, seq_len, num_features)
-    return X
+    return X, metadata
 
 def build_sliding_windows_conditional(
     all_data: list[pd.DataFrame],
@@ -738,8 +752,9 @@ def build_sliding_windows_conditional(
     step: int,
     target_col: str,
     cond_cols: list[str],
+    ids: Sequence[int] | None = None,
     max_missing_ratio: float = 0.0,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, list[WindowMetadata]]:
     """
     Build sliding windows and split them into target and conditioning parts.
 
@@ -755,7 +770,9 @@ def build_sliding_windows_conditional(
         Name of the target column (first feature in the windows).
     cond_cols : list[str]
         Names of conditioning columns to include in the windows.
-    max_missing_ratio: float, Optional
+    ids : sequence of int
+        Sequence of subject IDs for metadata.
+    max_missing_ratio: float, optional
         Max ratio of missing values in window.
 
     Returns
@@ -764,6 +781,9 @@ def build_sliding_windows_conditional(
         Target windows of shape (num_windows, seq_len, 1).
     X_cond : np.ndarray
         Conditioning windows of shape (num_windows, seq_len, num_cond_features).
+    metadata : list[WindowMetadata]
+        List of WindowMetadata objects (tuple(id, start)), one for each window.
+
     """
     # Ensure target is not duplicated in cond_cols
     cond_cols_clean = [c for c in cond_cols if c != target_col]
@@ -780,18 +800,20 @@ def build_sliding_windows_conditional(
             )
 
     # Use the existing generic sliding-window builder
-    X_full = build_sliding_windows(
+    X_full, metadata = build_sliding_windows(
         all_data = all_data,
         seq_len=seq_len,
         step=step,
         feature_cols=all_cols,
+        ids=ids,
         max_missing_ratio=max_missing_ratio,
     )
+
     # X_full shape: (num_windows, seq_len, 1 + len(cond_cols_clean))
 
     # Split into target (first feature) and conditioning (remaining features)
     X_target = X_full[:, :, :1]        # (N, seq_len, 1)
     X_cond = X_full[:, :, 1:]          # (N, seq_len, num_cond_features)
 
-    return X_target, X_cond
+    return X_target, X_cond, metadata
 

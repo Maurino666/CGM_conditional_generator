@@ -2,17 +2,29 @@
   <dictionary name="project">
     <words>
       <w>acond</w>
+      <w>bauto</w>
+      <w>bble</w>
+      <w>bcombo</w>
       <w>bcond</w>
+      <w>bcorrection</w>
+      <w>bdual</w>
+      <w>bextended</w>
+      <w>bmultiwave</w>
+      <w>bnormal</w>
+      <w>bstandard</w>
       <w>coeff</w>
       <w>datetimes</w>
       <w>denom</w>
       <w>dfden</w>
       <w>dmmini</w>
+      <w>dups</w>
       <w>exog</w>
+      <w>expdecay</w>
       <w>frenzel</w>
       <w>ftmp</w>
       <w>logvar</w>
       <w>mmini</w>
+      <w>nunique</w>
       <w>ohiot</w>
       <w>pval</w>
       <w>schaar</w>

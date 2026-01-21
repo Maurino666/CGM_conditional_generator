@@ -79,3 +79,70 @@ def minmax_scale_features(
         ) / (scale + eps)
 
     return X_train_scaled, X_val_scaled
+
+from typing import List, Tuple
+import numpy as np
+
+
+def minmax_scale_conditional(
+    y_train: np.ndarray,
+    c_train: np.ndarray,
+    y_val: np.ndarray,
+    c_val: np.ndarray,
+    target_feature: str,
+    cond_features: List[str],
+    normalize: List[str],
+    eps: float = 1e-8,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Apply Min–Max scaling to target + conditional features using the existing
+    minmax_scale_features helper.
+
+    Parameters
+    ----------
+    y_train, y_val : np.ndarray
+        Target sequences, shape (n_windows, seq_len, 1).
+    c_train, c_val : np.ndarray
+        Conditional sequences, shape (n_windows, seq_len, cond_dim).
+    target_feature : str
+        Name of the target feature (e.g. 'glucose').
+    cond_features : list[str]
+        Names of conditional features, in the same order as c_train/c_val last dim.
+    normalize : list[str]
+        Subset of [target_feature] + cond_features to scale.
+    eps : float, optional
+        Small constant to avoid division by zero.
+
+    Returns
+    -------
+    y_train_scaled, c_train_scaled, y_val_scaled, c_val_scaled
+    """
+    if not normalize:
+        return y_train, c_train, y_val, c_val
+
+    # 1) Build full feature arrays by concatenating target and conditionals
+    X_train_full = np.concatenate([y_train, c_train], axis=-1)
+    X_val_full = np.concatenate([y_val, c_val], axis=-1)
+
+    # 2) Build the feature list consistent with concatenation order
+    all_features = [target_feature] + cond_features
+
+    # 3) Reuse existing scaler
+    from src.data import minmax_scale_features  # or appropriate import
+
+    X_train_scaled, X_val_scaled = minmax_scale_features(
+        X_train=X_train_full,
+        X_val=X_val_full,
+        features=all_features,
+        normalize=normalize,
+        eps=eps,
+    )
+
+    # 4) Split back into target and conditionals
+    y_train_scaled = X_train_scaled[:, :, :1]
+    c_train_scaled = X_train_scaled[:, :, 1:]
+    y_val_scaled = X_val_scaled[:, :, :1]
+    c_val_scaled = X_val_scaled[:, :, 1:]
+
+    return y_train_scaled, c_train_scaled, y_val_scaled, c_val_scaled
+

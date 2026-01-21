@@ -16,6 +16,7 @@ from .processors.duplicates import DuplicateRemover
 from .processors.gaps import GapFiller
 from .processors.schema import SchemaStandardizer
 from .processors.augmentation import BaseTimeEventAugmenter
+from .processors.tod import TodProcessor
 
 
 
@@ -130,7 +131,8 @@ class BaseDataset:
 
         # D) Augmentation Pipeline
         self.augmentation_pipeline = [
-            BaseTimeEventAugmenter()
+            BaseTimeEventAugmenter(),
+            TodProcessor()
         ]
 
         # 5. Execute Structure Pipeline Immediately

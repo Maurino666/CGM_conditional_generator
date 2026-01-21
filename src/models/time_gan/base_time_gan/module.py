@@ -59,6 +59,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         beta1: float = 0.5,
         gamma: float = 1.0,
         moment_weight: float = 1.0,
+        supervised_weight: float = 1.0,
         grad_clip_G: float | None = 1.0,
         grad_clip_D: float | None = 0.5,
         g_steps_per_iter: int = 2,
@@ -77,6 +78,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self.beta1 = beta1
         self.gamma = gamma
         self.moment_weight = moment_weight
+        self.supervised_weight = supervised_weight
         self.grad_clip_G = grad_clip_G
         self.grad_clip_D = grad_clip_D
         self.g_steps_per_iter = g_steps_per_iter
@@ -151,6 +153,14 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
     @property
     def should_validate(self) -> bool:
         return False # TODO consider validation in ar and sup phases
+
+    def _get_generator_initial_state(self, info: dict[str, Tensor], batch_size: int) -> Tensor | None:
+        """
+        Hook to provide an initial hidden state (h_0) for the Generator.
+        By default, returns None (standard GRU init).
+        Overridden by subclasses to implement Static Variable Initialization.
+        """
+        return None
 
     # -- helpers --
     def _sample_noise_like(self, x: Tensor) -> Tensor:
@@ -304,7 +314,11 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         Z = self._sample_noise_like(x_enc)
         z_input: Tensor = self._build_generator_input(info, Z)
 
-        E_hat, _ = self.core.g_forward(z_input)
+        # Getting generator initial hidden state
+        batch_size = x_enc.shape[0]
+        h_g_init = self._get_generator_initial_state(info, batch_size)
+
+        E_hat, _ = self.core.g_forward(z_input, hidden_state=h_g_init) # h_g_init can be initialized
         H_hat, _ = self.core.s_forward(E_hat)
         Y_hat, _ = self.core.r_forward(H_hat)  # output in target space
 
@@ -331,7 +345,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
                 adv_loss_H_hat
                 + self.gamma * adv_loss_E_hat
                 + self.moment_weight * moment_loss
-                + torch.sqrt(sup_loss + 1e-8)
+                + self.supervised_weight * torch.sqrt(sup_loss + 1e-8)
         )
 
         # Backprop on G and S only

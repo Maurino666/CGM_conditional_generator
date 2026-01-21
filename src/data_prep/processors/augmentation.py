@@ -15,9 +15,8 @@ class BaseTimeEventAugmenter(DataProcessor):
     augmentation helps the model learn causal relationships more effectively.
 
     Transformations:
-    1. Time of Day Encoding: Adds Sine/Cosine features to represent the daily cycle.
-    2. Physiological Decay: Simulates Insulin On Board (IOB) and Carbs On Board (COB)
-       using exponential decay functions on impulse columns.
+        Physiological Decay: Simulates Insulin On Board (IOB) and Carbs On Board (COB)
+        using exponential decay functions on impulse columns.
     """
 
     def process(self, data_list: list[pd.DataFrame], context: dict[str, Any]) -> list[pd.DataFrame]:
@@ -34,7 +33,7 @@ class BaseTimeEventAugmenter(DataProcessor):
         Returns:
             list[pd.DataFrame]: DataFrames enriched with continuous dynamic columns.
         """
-        print(f"   [PhysiologicalDynamicsAugmenter] Injecting physiological and temporal dynamics...")
+        print(f"   [PhysiologicalDynamicsAugmenter] Injecting physiological dynamics...")
 
         impulse_cols = context.get('impulse_cols', [])
         time_steps = context.get('time_steps')
@@ -50,13 +49,7 @@ class BaseTimeEventAugmenter(DataProcessor):
             for i, df in enumerate(data_list):
                 added_cols_for_subject = []
 
-                # 1. Time of Day (Cyclical Encoding)
-                # Transforms linear time (00:00 -> 23:59) into cyclical features (sin, cos)
-                # ensuring 23:59 is mathematically close to 00:00.
-                df, tod_cols = add_time_of_day_features(df)
-                added_cols_for_subject.extend(tod_cols)
-
-                # 2. Physiological Decay (IOB/COB Simulation)
+                #  Physiological Decay (IOB/COB Simulation)
                 # Transforms sparse impulses (spikes) into continuous curves representing
                 # the active substance in the body over time.
                 if time_steps is not None:

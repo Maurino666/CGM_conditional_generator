@@ -1,5 +1,3 @@
-from typing import Tuple, List
-
 import pandas as pd
 import numpy as np
 
@@ -21,19 +19,19 @@ def get_valid_segments(s: pd.Series, min_length: int = 5) -> list[pd.Series]:
     if len(s) < min_length:
         return []
 
-    s_copy = s.copy()
-    mask = s_copy.notna()
+
+    mask = s.notna()
     # Identifica i punti di cambio di True/False
     groups = mask.ne(mask.shift(fill_value=False)).cumsum()
 
     segments = []
-    for _, seg in s_copy.groupby(groups):
+    for _, seg in s.groupby(groups):
         # Aggiungi solo i segmenti che non hanno NaN e soddisfano la lunghezza minima
         if seg.notna().all() and len(seg) >= min_length:
             segments.append(seg)
     return segments
 
-def align_data(target: pd.Series, df: pd.DataFrame, df_cols: list, freq: pd.Timedelta) -> Tuple[
+def align_data(target: pd.Series, df: pd.DataFrame, df_cols: list, freq: pd.Timedelta) -> tuple[
     pd.Series, pd.DataFrame, pd.DatetimeIndex]:
     """
     Aligns the target series and event dataframe to a common time grid with specified frequency.
@@ -48,8 +46,6 @@ def align_data(target: pd.Series, df: pd.DataFrame, df_cols: list, freq: pd.Time
         - E_all: aligned event dataframe (pandas DataFrame)
         - grid: the common time grid (pandas DateTimeIndex)
     """
-    target = target.copy()
-    df = df.copy()
 
     for df_series in [target, df]:
         if not isinstance(df_series.index, pd.DatetimeIndex):
@@ -100,7 +96,7 @@ def standardize_series(series: pd.Series) -> pd.Series:
         # Standardize (z-score)
         return (series - mean) / std
 
-def compute_lags(max_lag: pd.Timedelta, freq: pd.Timedelta) -> Tuple[np.ndarray, pd.TimedeltaIndex]:
+def compute_lags(max_lag: pd.Timedelta, freq: pd.Timedelta) -> tuple[np.ndarray, pd.TimedeltaIndex]:
     """
     Computes integer lag steps and corresponding TimedeltaIndex for given maximum lag and frequency.
     :param max_lag: maximum lag (positive) as Timedelta
@@ -139,7 +135,7 @@ def build_lagged_view(df, target_col, target_lags, exog_lags, dropna = True):
 
     return df_lagged
 
-def build_future_targets(df: pd.DataFrame, target_col: str, horizons: List[int]) -> pd.DataFrame:
+def build_future_targets(df: pd.DataFrame, target_col: str, horizons: list[int]) -> pd.DataFrame:
     Y = pd.DataFrame(index=df.index)
     for h in horizons:
         Y[f"{target_col}_lead{h}"] = df[target_col].shift(-h)

@@ -19,7 +19,7 @@ def compute_mage(target: pd.Series,
     :return: MAGE value or NaN if not computable.
     """
     # 0) Prepara la serie
-    s = target.copy()
+    s = target
     if dropna:
         s = s.dropna()
     vmin, vmax = value_range

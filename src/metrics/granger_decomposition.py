@@ -15,8 +15,7 @@ def _ols_rss(X, y):
     return rss, p
 
 def _build_X(df, lag_cols, add_time_of_day=True, extra_cols=None):
-    parts = []
-    parts.append(df[lag_cols])
+    parts = [df[lag_cols]]
     if add_time_of_day:
         tod_cols = [c for c in ("tod_sin_24h","tod_cos_24h") if c in df.columns]
         if tod_cols:
@@ -56,7 +55,7 @@ def compute_granger_decomposition_over_horizons(
 ):
     """
     Per ogni orizzonte, calcola:
-      - partial R^2 (in-sample) uncond.:  A, B, A+B
+      - partial R^2 (in-sample) uncond.: A, B, A+B
       - F-test e p-value per A, B, A+B
       - partial R^2 condizionali (η^2 parziale): unique_A = A|B, unique_B = B|A, e shared = (A+B) - unique_A - unique_B (clip >=0)
       - decomposizione additiva su base comune (ΔR^2): unique_A_delta, unique_B_delta, shared_delta tali che
@@ -64,7 +63,6 @@ def compute_granger_decomposition_over_horizons(
     Ritorna un DataFrame con una riga per orizzonte.
     """
     out = []
-    eps = 1e-12
 
     # colonne necessarie per il base
     base_needed = set(lag_cols)
@@ -86,13 +84,13 @@ def compute_granger_decomposition_over_horizons(
         XAB_cols = XA_cols + XB_cols  # assumiamo insiemi disgiunti
 
         if match_n:
-            needed = set([target_col]) | set(base_cols) | set(XAB_cols)
+            needed = {target_col} | set(base_cols) | set(XAB_cols)
             idx = df[list(needed)].join(y.rename("_y_")).dropna().index
         else:
             idx = df.index  # ogni test userà la propria maschera
 
         # design matrices
-        X_base_all = _build_X(df.loc[idx], lag_cols, add_time_of_day, extra_cols=None).copy()
+        X_base_all = _build_X(df.loc[idx], lag_cols, add_time_of_day, extra_cols=None)
         XA_all = df.loc[idx, XA_cols]
         XB_all = df.loc[idx, XB_cols]
         XAB_all = df.loc[idx, XAB_cols]
@@ -180,7 +178,7 @@ def compute_granger_decomposition_over_horizons(
             if np.isfinite(s) and np.isfinite(pr2_AB) and abs(s - pr2_AB) < 1e-10:
                 pass  # ok
             # se per numerica s > AB di un pelo, ridistribuisci sullo shared
-            if np.isfinite(s) and np.isfinite(pr2_AB) and s - pr2_AB > 0 and s - pr2_AB < 1e-8:
+            if np.isfinite(s) and np.isfinite(pr2_AB) and 0 < s - pr2_AB < 1e-8:
                 shared_delta = max(0.0, shared_delta - (s - pr2_AB))
 
         out.append({
@@ -246,7 +244,7 @@ def plot_AB_granger_decomposition(
         resAB: pd.DataFrame,
         name : str | None = "X",
         title: str | None = None,
-        save_path: str | None = None,
+        save_path: Path | None = None,
         annotate_values: bool | None = False,
 ):
     if resA is None or resB is None or resAB is None:

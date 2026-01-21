@@ -17,7 +17,8 @@ from .granger_decomposition import (
     plot_AB_granger_decomposition
 )
 from .delta_r2_nonlinear import (
-    delta_r2_cv_nonlinear,
+    compute_delta_r2_cv_nonlinear,
+    compute_delta_r2_cv_nonlinear_ab,
     plot_delta_r2_cv,
     TemporalCVSpec
 )
@@ -55,7 +56,9 @@ __all__ = [
     "plot_granger_decomposition",
     "plot_AB_granger_decomposition",
 
-    "delta_r2_cv_nonlinear",
+    "compute_delta_r2_cv_nonlinear",
+    "compute_delta_r2_cv_nonlinear_ab",
+
     "plot_delta_r2_cv",
     "TemporalCVSpec",
 

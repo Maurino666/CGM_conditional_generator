@@ -1,17 +1,11 @@
-import pathlib
-
 import numpy as np
 import pandas as pd
-from typing import List
 
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 from scipy.special import digamma
 from pathlib import Path
-
-
-
 
 def _standardize(*arrays, jitter: float = 1e-6, rng: np.random.RandomState | None = None):
     """
@@ -34,13 +28,11 @@ def _standardize(*arrays, jitter: float = 1e-6, rng: np.random.RandomState | Non
     return out
 
 
-# ==============================
 # KSG Conditional Mutual Information
-# ==============================
 def cmi_ksg(X, Y, Z, k: int = 10, metric: str = 'chebyshev') -> float:
     """
     Stima KSG/Frenzel–Pompe di I(X;Y | Z) in bit.
-    - ε(i): distanza al k-esimo vicino nel joint (X,Y,Z) con metrica L∞ (Chebyshev).
+    - ε(i): distanza al k-esimo vicino nel joint (X, Y, Z) con metrica L∞ (Chebyshev).
     - Nei sottospazi contiamo i vicini con distanza < ε(i), escludendo il punto stesso.
     - Formula con ψ(k) e senza il termine ψ(n).
     """
@@ -93,10 +85,10 @@ def cmi_ksg(X, Y, Z, k: int = 10, metric: str = 'chebyshev') -> float:
 def cmi_decomposition_over_horizons(
     df: pd.DataFrame,
     target_col: str,
-    base_cols: List[str],
-    features_A: List[str],
-    features_B: List[str],
-    horizons_min: List[int],
+    base_cols: list[str],
+    features_A: list[str],
+    features_B: list[str],
+    horizons_min: list[int],
     freq_min: int = 5,
     k: int = 10,
     # metric tenuto per compatibilità, ma internamente usiamo sempre Chebyshev

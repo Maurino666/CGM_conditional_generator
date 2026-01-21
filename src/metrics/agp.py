@@ -1,5 +1,3 @@
-from typing import Optional, Tuple
-
 import pandas as pd
 import numpy as np
 
@@ -11,7 +9,7 @@ def compute_agp(
     cgm: pd.Series,
     freq: str = "5min",
     min_days_per_bin: int = 5,
-    clamp_range: Optional[Tuple[float, float]] = (39.0, 401.0),
+    clamp_range: tuple[float, float] | None = (39.0, 401.0),
 ) -> pd.DataFrame:
     """
     Compute Ambulatory Glucose Profile (AGP) statistics across days.
@@ -41,7 +39,7 @@ def compute_agp(
         Index: TimedeltaIndex from 00:00 to <24:00 at given freq.
         Columns: ['p10','p25','p50','p75','p90','iqr','n_days'].
     """
-    s = cgm.copy()
+    s = cgm
 
     # Optional plausibility clamp
     if clamp_range is not None:
@@ -103,7 +101,7 @@ def compute_agp(
     return agp
 
 def plot_agp(
-        df_agp: pd.DataFrame,
+        agp: pd.DataFrame,
         name : str | None = "AGP",
         title : str =  None,
         save_path : Path | None = None,

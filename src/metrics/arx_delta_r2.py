@@ -33,7 +33,7 @@ def compute_arx_delta_r2(
       - All candidate_cols are contemporaneous features at time t (no leakage)
     """
 
-    # --- 1) Infer sampling step (minutes) safely ---
+    # Infer sampling step (minutes) safely
     if time_col is None:
         if not isinstance(df.index, pd.DatetimeIndex):
             raise ValueError("Provide time_col or use a DatetimeIndex.")
@@ -47,11 +47,11 @@ def compute_arx_delta_r2(
     if not np.isfinite(dt_min) or dt_min <= 0:
         raise ValueError("Cannot infer a positive sampling step.")
 
-    # --- 2) Build y (future target at +h) ---
+    # Build y (future target at +h)
     h_steps = max(1, int(round(horizon_min / dt_min)))
     y = df[target_col].shift(-h_steps).rename("y_future")
 
-    # --- 3) Collect baseline columns present in df ---
+    # Collect baseline columns present in df
     base_cols: list[str] = []
     for m in lag_minutes:
         col = f"{target_col}_lag_{m}m"
@@ -66,12 +66,12 @@ def compute_arx_delta_r2(
     if len(base_cols) == 0:
         raise ValueError("No baseline columns found. Ensure target lags (and optionally tod_*) exist.")
 
-    # --- 4) Candidate columns: keep only those present ---
+    # Candidate columns: keep only those present
     cand_cols = [c for c in candidate_cols if c in df.columns]
     if len(cand_cols) == 0:
         raise ValueError("No candidate columns found in DataFrame.")
 
-    # --- 5) Assemble design matrices and align rows (same rows for fair comparison) ---
+    # Assemble design matrices and align rows (same rows for fair comparison)
     X_base = df[base_cols]
     X_aug = df[base_cols + cand_cols]
     data_base = pd.concat([y, X_base], axis=1).dropna()
@@ -93,7 +93,7 @@ def compute_arx_delta_r2(
     Xb  = X_base.loc[common_idx].to_numpy()
     Xa  = X_aug.loc[common_idx].to_numpy()
 
-    # --- 6) Time-series CV: standardize each fold and use Ridge for stability ---
+    # Time-series CV: standardize each fold and use Ridge for stability
     tscv = TimeSeriesSplit(n_splits=n_splits)
     def fold_r2(X: np.ndarray) -> np.ndarray:
         scores = []
@@ -179,7 +179,7 @@ def arx_ab_test_same_sample(
     Requires that `arx_delta_r2_cv` is available in scope.
     """
 
-    # 1) Infer minutes step and build future target for mask
+    # Infer minutes step and build future target for mask
     if time_col is None:
         if not isinstance(df.index, pd.DatetimeIndex):
             raise ValueError("Provide time_col or use a DatetimeIndex.")
@@ -195,7 +195,7 @@ def arx_ab_test_same_sample(
     h_steps = max(1, int(round(horizon_min / dt_min)))
     y_future = df[target_col].shift(-h_steps)
 
-    # 2) Collect baseline cols
+    # Collect baseline cols
     base_cols = [c for m in base_lag_minutes for c in [f"{target_col}_lag_{m}m"] if c in df.columns]
     if add_time_of_day:
         for c in ("tod_sin_24h", "tod_cos_24h"):
@@ -204,7 +204,7 @@ def arx_ab_test_same_sample(
     if not base_cols:
         raise ValueError("No baseline columns (target lags / tod_*) found.")
 
-    # 3) Build a *common* validity mask for both A and B
+    # Build a *common* validity mask for both A and B
     cand_A = [c for c in candidate_cols_base if c in df.columns]
     cand_B = [c for c in (candidate_cols_base + extra_cols) if c in df.columns]
     union_cols = list(set(base_cols) | set(cand_B))  # B superset ensures common sample
@@ -214,7 +214,7 @@ def arx_ab_test_same_sample(
         mask &= df[c].notna()
     df_same = df.loc[mask]
 
-    # 4) Run the metric twice on the *same* filtered df
+    # Run the metric twice on the *same* filtered df
     res_A = compute_arx_delta_r2(
         df_same, target_col,
         candidate_cols=cand_A,
@@ -238,7 +238,7 @@ def arx_ab_test_same_sample(
         min_samples=50,
     )
 
-    # 5) Incremental gain strictly attributable to `extra_cols`
+    # Incremental gain strictly attributable to `extra_cols`
     gain = (res_B["delta_r2_mean"] if np.isfinite(res_B["delta_r2_mean"]) else np.nan) - \
            (res_A["delta_r2_mean"] if np.isfinite(res_A["delta_r2_mean"]) else np.nan)
 
@@ -264,7 +264,7 @@ def plot_AB_arx_delta_r2(
 
 
     if resA is None or resB is None or resAB is None:
-        print(f"[Subject {i + 1}] Missing one of A/B/AB results, skipping plot.")
+        print(f"[{name}] Missing one of A/B/AB results, skipping plot.")
         return
 
     if title is None:
@@ -284,7 +284,7 @@ def plot_AB_arx_delta_r2(
 
     ax.set_xlabel("Horizon (minutes)")
     ax.set_ylabel("ΔR² (ARX − AR)")
-    ax.set_title(f"[Subject {i + 1}] ARX ΔR² vs forecast horizon")
+    ax.set_title(f"[{title}] ARX ΔR² vs forecast horizon")
     ax.legend()
 
     if save_path is None:

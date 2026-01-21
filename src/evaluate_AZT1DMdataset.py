@@ -22,12 +22,20 @@ DEFAULT_COND_COLS: list[str] = []
 
 def main() -> None:
     dataset = AZT1D2025Dataset(
-        Path("../datasets/AZT1D2025/CGM Records"),
-        Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
+        dataset_root= Path("../datasets/AZT1D2025/CGM Records"),
+        config_file= Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
+        patient_metadata_path= Path("../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"),
         logging_dir=Path("../datasets/AZT1D2025/prep_logs"),
     )
+
+    print(dataset.all_data[0].columns)
     dataset.clean()
 
+    print(dataset.all_data[0].columns)
+    dataset.standardize()
+    print(dataset.all_data[0].columns)
+
+    return
     # Prefer your dataset API if available; here you used dataset.all_data already
     series: list[pd.DataFrame] = dataset.all_data
 

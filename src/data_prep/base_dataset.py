@@ -9,6 +9,7 @@ from .utils import load_dataset, load_dataset_config, print_df_summary
 
 from .processors.interface import DataProcessor
 from .processors.mapping import ColumnMapper
+from .processors.static_features import StaticFeaturesProcessor
 from .processors.indexing import TimeIndexer
 from .processors.cleaning import TypeAndValueCleaner
 from .processors.duplicates import DuplicateRemover
@@ -57,6 +58,7 @@ class BaseDataset:
             dataset_root: Path,
             config_file: Path,
             global_config_file: Path | None = None,
+            patient_metadata_path: Path | None = None,
             logging_dir: Path | None = None
     ):
         """
@@ -69,6 +71,7 @@ class BaseDataset:
         self.config = load_dataset_config(config_file)
         self.global_config = yaml.safe_load(open(global_config_file))
         self.logging_dir = logging_dir
+
 
         if self.logging_dir:
             self.logging_dir.mkdir(parents=True, exist_ok=True)
@@ -84,7 +87,6 @@ class BaseDataset:
 
         # 3. Build Context (Shared memory for Processors)
         self.context = {
-            # Configs completi
             'config': self.config,
             'global_config': self.global_config,
             'logging_dir': self.logging_dir,
@@ -109,6 +111,7 @@ class BaseDataset:
         self.structure_pipeline = [
             ColumnMapper(),  # 1. Raw Names -> Standard Names
             TimeIndexer(),  # 2. Set Index & Sort
+            StaticFeaturesProcessor(patient_metadata_path)
         ]
 
         # B) Cleaning Pipeline (Lazy - runs on clean_data())

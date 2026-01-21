@@ -54,10 +54,17 @@ class AZT1D2025Dataset(BaseDataset):
             dataset_root: Path,
             config_file: Path,
             global_config_file: Path | None = None,
+            patient_metadata_path: Path | None = None,
             logging_dir: Path | None = None
     ):
         # Initialize the base orchestrator
-        super().__init__(dataset_root, config_file, global_config_file, logging_dir)
+        super().__init__(
+            dataset_root=dataset_root,
+            config_file=config_file,
+            global_config_file=global_config_file,
+            patient_metadata_path=patient_metadata_path,
+            logging_dir=logging_dir,
+        )
 
         # INJECTION: Insert the dataset-specific cleaner into the pipeline.
         # We place it at index 1, immediately after TypeAndValueCleaner (index 0),

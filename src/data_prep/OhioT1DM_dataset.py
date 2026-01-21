@@ -16,9 +16,16 @@ class OhioT1DMDataset(BaseDataset):
             dataset_root: Path,
             config_file: Path,
             global_config_file: Path | None = None,
+            patient_metadata_path: Path | None = None,
             logging_dir: Path | None = None
     ):
-        super().__init__(dataset_root, config_file, global_config_file, logging_dir)
+        super().__init__(
+            dataset_root=dataset_root,
+            config_file=config_file,
+            global_config_file=global_config_file,
+            patient_metadata_path=patient_metadata_path,
+            logging_dir=logging_dir,
+        )
 
         # No specific processors to inject yet.
         pass

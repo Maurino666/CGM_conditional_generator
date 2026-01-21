@@ -30,6 +30,11 @@ schema: # information on global columns
     - "bolus_type"
     - "glucose_source"
 
+  static_cols:
+    - "age"
+    - "sex_m"
+    - "hba1c"
+
   dtypes:
     glucose: "float"
     basal_rate: "float"
@@ -42,9 +47,14 @@ schema: # information on global columns
     bolus_correction: "float"
     bolus_meal: "float"
     carbs: "float"
+    age: "float"
+    sex_m: "bool"
+    hba1c: "float"
     device_mode: "category"
     bolus_type: "category"
     glucose_source: "category"
+
+
 
   cond_cols:
     - "basal_rate"
@@ -57,3 +67,6 @@ schema: # information on global columns
     - "carbs"
 
   normalization_ranges:
+    age: [18.0, 80.0]
+    hba1c: [3.0, 10.0]
+

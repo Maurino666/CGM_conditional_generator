@@ -145,15 +145,22 @@ class InferenceOrchestrator:
                 # We move elements to device
                 batch = self._move_to_device(batch)
 
-                # Extract conditional input 'c' (index 1)
-                # Structure validation logic:
-                if isinstance(batch, (list, tuple)) and len(batch) >= 2:
-                    c = batch[1]
+                # 1. Move everything to device
+                batch = self._move_to_device(batch)
+
+                # 2. Dynamic Dispatch based on batch structure
+                # Check if batch has 3 elements: [y, c_dyn, c_stat] -> Conditional GAN with Static Features
+                if isinstance(batch, (list, tuple)) and len(batch) == 3:
+                    _, c_dyn, c_stat = batch
+                    out = self.model.generate(c_dyn, c_stat)
+
+                # Check if batch has 2 elements: [y, c] -> Conditional GAN
+                elif isinstance(batch, (list, tuple)) and len(batch) == 2:
+                    _, c = batch
+                    out = self.model.generate(c)
                 else:
                     raise ValueError(f"Unexpected batch structure. Expected [y, c], got {type(batch)}")
 
-                # Generate
-                out = self.model.generate(c)
 
                 # Handle Tuple Output (e.g., if model returns (X, Z))
                 if isinstance(out, tuple):

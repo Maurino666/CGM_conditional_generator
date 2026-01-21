@@ -645,7 +645,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         print(f"Training Phase set to {self.phase}")
 
     # Generation
-    def _generate_from_tensor(self, generator_input: Tensor) -> Tensor:
+    def _generate_from_tensor(self, generator_input: Tensor, hidden_state: Tensor | None = None) -> Tensor:
         """
         Apply G -> S -> R to a generator input sequence.
 
@@ -653,7 +653,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         concatenation of noise and conditioning features. The last
         dimension must match the generator input size.
         """
-        E_hat, _ = self.core.g_forward(generator_input)
+        E_hat, _ = self.core.g_forward(generator_input, hidden_state=hidden_state)
         H_hat, _ = self.core.s_forward(E_hat)
         output, _ = self.core.r_forward(H_hat)
         return output

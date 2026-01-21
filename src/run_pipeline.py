@@ -60,10 +60,10 @@ def main() -> None:
     G_STEPS_PER_ITER = 2
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
-    SUPERVISED_WEIGHT = 0.001
-    MOMENT_WEIGHT = 0.01
+    SUPERVISED_WEIGHT = 0.1
+    MOMENT_WEIGHT = 0.001
     GAMMA = 1.0
-    LR = 5e-5
+    LR = 1e-4
     D_LOSS_THRESHOLD = 1.4
     # Training params
     AE_EPOCHS = 50
@@ -162,7 +162,7 @@ def main() -> None:
     # -------------------------------------------------------------------------
     base_dir = Path("../runs")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    experiment_name = f"{timestamp}_LowLR_HighThreshold"
+    experiment_name = f"{timestamp}_LowLR_HighThreshold_SW_1_MW_001"
     output_dir = base_dir / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
 

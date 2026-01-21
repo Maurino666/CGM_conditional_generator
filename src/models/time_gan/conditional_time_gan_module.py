@@ -31,7 +31,8 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         g_steps_per_iter: int = 2,
         d_loss_threshold: float = 0.15,
         noise_std: float = 0.0,
-        soft_label: float = 1.0
+        soft_label: float = 1.0,
+        g_cond_noise_std: float = 0.0,
     ) -> None:
         """
         Parameters
@@ -69,6 +70,7 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
             soft_label=soft_label,
         )
 
+        self.g_cond_noise_std = g_cond_noise_std
         self.cond_dim = cond_dim
 
     # Hooks required by BaseTimeGanModule (conditional case)
@@ -90,7 +92,11 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         Generator input is [Z, c] in the conditional case.
         Z has shape (B, T, noise_dim), c has shape (B, T, cond_dim).
         """
-        return torch.cat([Z, info["c"]], dim=-1)
+        cond = info["c"]
+
+        if self.training and self.phase == "adv":
+            cond = cond + torch.randn_like(cond) * self.g_cond_noise_std
+        return torch.cat([Z, cond], dim=-1)
 
     def _get_reconstruction_target(self, info: dict[str, Tensor]) -> Tensor:
         """

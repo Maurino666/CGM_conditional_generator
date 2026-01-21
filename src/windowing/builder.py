@@ -22,6 +22,7 @@ class WindowBuilder:
             num_workers: int = 0,
             max_missing_ratio: float = 0.0,
             allow_target_nan: bool = False,
+            force_device: torch.device = None,
     ) -> None:
         # Configuration shared across all splits
         self.target_col = target_col
@@ -30,6 +31,7 @@ class WindowBuilder:
         self.num_workers = num_workers
         self.max_missing_ratio = max_missing_ratio
         self.allow_target_nan = allow_target_nan
+        self.force_device = force_device
 
     def build_subset(
             self,
@@ -93,14 +95,28 @@ class WindowBuilder:
         if count > 0:
             y_tensor = torch.tensor(y_data, dtype=torch.float32)
             c_tensor = torch.tensor(c_data, dtype=torch.float32)
+
+            num_workers = self.num_workers
+            pin_memory = True if torch.cuda.is_available() else False
+
+
+            if self.force_device is not None and self.force_device.type != 'cpu':
+                y_tensor = y_tensor.to(self.force_device)
+                c_tensor = c_tensor.to(self.force_device)
+
+                # Workers > 0 may create problems if tensors are already on vram
+                num_workers = 0
+                pin_memory = False
+                print(f"     -> [Fast-Loader] Dataset loaded to {self.force_device}. Speed boost enabled 🚀")
+
             dataset = TensorDataset(y_tensor, c_tensor)
 
             loader = DataLoader(
                 dataset,
                 batch_size=self.batch_size,
                 shuffle=shuffle,
-                num_workers=self.num_workers,
-                pin_memory=True if torch.cuda.is_available() else False
+                num_workers=num_workers,
+                pin_memory=pin_memory,
             )
         else:
             print("     [!] Warning: Dataset is empty.")

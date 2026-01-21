@@ -6,6 +6,8 @@ import torch
 import numpy as np
 import pandas as pd
 
+from datetime import datetime
+
 # --- 1. Import Datasets ---
 from data_prep import AZT1D2025Dataset, HUPA_UCMDataset
 
@@ -137,9 +139,9 @@ def main() -> None:
     print(f"Running on device: {device}")
 
     # Configuration Constants
-    SEQ_LEN = 24
+    SEQ_LEN = 288
     VAL_RATIO = 0.2
-    BATCH_SIZE = 2048
+    BATCH_SIZE = 256
     SPLIT_STRATEGY = "subject"  # 'subject' (Stratified) or 'time'
 
     # -------------------------------------------------------------------------
@@ -206,6 +208,8 @@ def main() -> None:
     train_dfs_norm = normalizer.transform(train_dfs_raw)
     val_dfs_norm = normalizer.transform(val_dfs_raw)
 
+    print(f"Normalization parameters: {normalizer.get_params()}")
+
     # -------------------------------------------------------------------------
     # 4. WINDOWING (The Agnostic Builder)
     # -------------------------------------------------------------------------
@@ -252,8 +256,18 @@ def main() -> None:
     # 5. TRAINING
     # -------------------------------------------------------------------------
 
-    output_dir = Path("../runs/full_pipeline_true_training")
+    base_dir = Path("../runs")
+
+    # Unique Name
+    # Es: "20240115_1630_TimeGAN_SoftLabels"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    experiment_name = f"{timestamp}_TimeGAN_Tentativo"
+
+    # Specific dir for this run
+    output_dir = base_dir / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"\n>>> Run info will be saved in: {output_dir}")
 
     print(f"\n>>> 5. Training ConditionalTimeGAN...")
 
@@ -261,7 +275,7 @@ def main() -> None:
         cond_dim=len(final_cond_cols),
         hidden_dim=256,
         num_layers=3,
-        g_steps_per_iter=1,
+        g_steps_per_iter=2,
     ).to(device)
 
     print("   [Phase 1] Autoencoder...")

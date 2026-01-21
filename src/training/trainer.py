@@ -15,10 +15,12 @@ class Trainer:
             self,
             device: torch.device,
             logger: Logger | None = None,
-            val_check_interval: int = 1
+            val_check_interval: int = 1,
+            log_every_n_steps: int = 50
     ):
         self.device = device
         self.logger = logger
+        self.log_every_n_steps = log_every_n_steps
 
         self.val_check_interval = val_check_interval
 
@@ -74,9 +76,16 @@ class Trainer:
         batch_outputs = []
         desc = f"Epoch {epoch}/{self.max_epochs} [{phase}]"
 
-        pbar = tqdm(loader, desc=desc, leave=True, file=sys.stdout)
+        pbar = tqdm(
+            loader,
+            desc=desc,
+            leave=True,
+            file=sys.stdout,
+            mininterval=1.0 # avoiding to update more than 1 time per second
+        )
         context = torch.enable_grad() if is_train else torch.no_grad()
 
+        step_count = 0
         with context:
             for i, batch in enumerate(pbar):
                 batch = self._move_to_device(batch)
@@ -91,10 +100,21 @@ class Trainer:
                     tqdm.write(f"   [Warning] Batch {i} skipped in epoch {epoch} (returned None).")
                     continue
 
-                batch_outputs.append(out)
+                # detaching tensor to free memory
                 if isinstance(out, dict):
-                    postfix_str = ", ".join(f"{k}={float(v):.4f}" for k, v in out.items())
-                    pbar.set_postfix_str(postfix_str)
+                    safe_out = {k: v.detach() if isinstance(v, torch.Tensor) else v for k, v in out.items()}
+                else:
+                    safe_out = out.detach() if isinstance(out, torch.Tensor) else out
+
+                batch_outputs.append(safe_out)
+
+                # logging every n steps
+                step_count += 1
+                if step_count % self.log_every_n_steps == 0:
+                    step_count = 0
+                    if isinstance(out, dict):
+                        postfix_str = ", ".join(f"{k}={float(v):.4f}" for k, v in out.items())
+                        pbar.set_postfix_str(postfix_str)
 
         return self._aggregate_metrics(batch_outputs, prefix=phase)
 
@@ -106,7 +126,15 @@ class Trainer:
         avg_metrics = {}
 
         for k in keys:
-            values = [o[k] for o in outputs if k in o]
+            values = []
+            for o in outputs:
+                if k in o:
+                    val = o[k]
+                    if isinstance(val, torch.Tensor):
+                        values.append(val.item())
+                    else:
+                        values.append(val)
+
             if values:
                 avg_metrics[f"{prefix}/{k}"] = sum(values) / len(values)
 

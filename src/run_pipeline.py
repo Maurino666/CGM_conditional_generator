@@ -49,20 +49,22 @@ def main() -> None:
     # Configuration Constants
     SEQ_LEN = 288
     VAL_RATIO = 0.2
-    BATCH_SIZE = 128
+    BATCH_SIZE = 384
     NUM_WORKERS = 4
     TRAIN_STEP = 12
     SPLIT_STRATEGY = "subject"
     # TimeGan params
     HIDDEN_DIM = 256
     NUM_LAYERS = 3
-    G_STEPS_PER_ITER = 3
+    G_STEPS_PER_ITER = 2
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
     # Training params
-    AE_EPOCHS = 2
-    SUP_EPOCHS = 2
-    ADV_EPOCHS = 2
+    AE_EPOCHS = 10
+    SUP_EPOCHS = 10
+    ADV_EPOCHS = 100
+    # Builder extras
+    FORCE_DEVICE = device
 
     # -------------------------------------------------------------------------
     # 1. DATA INGESTION (Load & Clean)
@@ -122,7 +124,8 @@ def main() -> None:
         target_col=target_col,
         cond_cols=final_cond_cols,
         batch_size=BATCH_SIZE,
-        num_workers=NUM_WORKERS
+        num_workers=NUM_WORKERS,
+        force_device=FORCE_DEVICE,
     )
 
     train_split = builder.build_subset(
@@ -174,7 +177,7 @@ def main() -> None:
     visualizer = GenerativeVisualizer(
         fixed_batch=fixed_vis_batch,
         device=device,
-        every_n_epochs=1
+        every_n_epochs=5
     )
 
     # C. Instantiate Model

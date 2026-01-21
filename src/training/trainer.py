@@ -2,35 +2,42 @@ import sys
 import torch
 from tqdm.auto import tqdm
 from models import BaseTrainableModule
-from .loggers import BaseLogger
+from .loggers import Logger
 from .callbacks import Callback
 
 
 class Trainer:
+
+    callbacks: list[Callback] | None
+    max_epochs: int
+
     def __init__(
             self,
-            max_epochs: int,
             device: torch.device,
-            logger: BaseLogger | None = None,
-            callbacks: list[Callback] | None = None,
+            logger: Logger | None = None,
             val_check_interval: int = 1
     ):
-        self.max_epochs = max_epochs
         self.device = device
         self.logger = logger
-        self.callbacks = callbacks if callbacks is not None else []
+
         self.val_check_interval = val_check_interval
 
     def fit(
             self,
             model: BaseTrainableModule,
+            max_epochs: int,
             train_loader,
-            val_loader=None
+            val_loader=None,
+            callbacks: list[Callback] | None = None,
     ):
         model = model.to(self.device)
+
+        self.max_epochs = max_epochs
+        self.callbacks = callbacks if callbacks is not None else []
+
         self._fire_callback("on_train_start", model)
 
-        for epoch in range(1, self.max_epochs + 1):
+        for epoch in range(1, max_epochs + 1):
             self._fire_callback("on_epoch_start", model, epoch=epoch)
 
             # --- TRAINING LOOP ---

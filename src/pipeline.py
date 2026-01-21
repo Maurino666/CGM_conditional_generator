@@ -222,26 +222,18 @@ def main() -> None:
     # We create a specific trainer for this phase.
     # Note: We don't use the visualizer here because AE reconstruction
     # is usually tracked via MSE loss, not generation.
-    trainer_ae = Trainer(
-        max_epochs=2,
+    trainer = Trainer(
         device=device,
         logger=tb_logger,
-        callbacks=[]
     )
     # Fit the model (using train and val loaders)
-    trainer_ae.fit(model, pack.train_split.loader, pack.val_split.loader)
+    model.set_phase("ae")
+    trainer.fit(model, 10 ,pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 2: Supervisor ---
     print("\n   [Phase 2] Supervisor...")
     model.set_phase("sup")
-
-    trainer_sup = Trainer(
-        max_epochs=2,
-        device=device,
-        logger=tb_logger,
-        callbacks=[]
-    )
-    trainer_sup.fit(model, pack.train_split.loader, pack.val_split.loader)
+    trainer.fit(model, 5,pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 3: Adversarial (Joint) ---
     print("\n   [Phase 3] Adversarial (Joint)...")
@@ -249,13 +241,7 @@ def main() -> None:
 
     # In this phase, we attach the visualizer callback to see
     # if the generator learns to produce realistic data.
-    trainer_adv = Trainer(
-        max_epochs=2,
-        device=device,
-        logger=tb_logger,
-        callbacks=[visualizer]
-    )
-    trainer_adv.fit(model, pack.train_split.loader, pack.val_split.loader)
+    trainer.fit(model, 2, pack.train_split.loader, pack.val_split.loader, callbacks=[visualizer])
 
     # Manual Save (Temporary, as requested without Checkpoint Callback)
     print(f"\n   Saving final model to {output_dir}...")

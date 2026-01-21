@@ -1,6 +1,6 @@
-from .base import BaseLogger, TensorBoardLogger
+from .base import Logger, TensorBoardLogger
 
 __all__ = [
-    BaseLogger,
+    Logger,
     TensorBoardLogger,
 ]

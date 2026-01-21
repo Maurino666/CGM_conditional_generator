@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 
 
-class BaseLogger(ABC):
+class Logger(ABC):
     """
     Abstract base class for experiment loggers.
 

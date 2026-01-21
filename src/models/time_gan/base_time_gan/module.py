@@ -162,6 +162,21 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         """
         return None
 
+    def _get_encoder_initial_state(self, info: dict[str, Tensor], batch_size: int) -> Tensor | None:
+        """
+        Hook to provide an initial hidden state (h_0) for the Encoder.
+        By default, returns None (standard GRU init).
+        Overridden by subclasses to implement Static Variable Initialization.
+        """
+        return None
+    def _get_discriminator_initial_state(self, info: dict[str, Tensor], batch_size: int) -> Tensor | None:
+        """
+        Hook to provide an initial hidden state (h_0) for the Discriminator.
+        By default, returns None (standard GRU init).
+        Overridden by subclasses to implement Static Variable Initialization.
+        """
+        return None
+
     # -- helpers --
     def _sample_noise_like(self, x: Tensor) -> Tensor:
         """
@@ -209,8 +224,12 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         x_enc: Tensor = self._build_encoder_input(info)
         target: Tensor = self._get_reconstruction_target(info)
 
+        # Setting initial state
+        batch_size = x_enc.shape[0]
+        h_e_init = self._get_encoder_initial_state(info, batch_size)
+
         # Forward: X_enc -> H -> X_tilde (or y_tilde)
-        H, _ = self.core.e_forward(x_enc)
+        H, _ = self.core.e_forward(x_enc, hidden_state=h_e_init)
         X_tilde, _ = self.core.r_forward(H)
 
         # Reconstruction loss
@@ -251,8 +270,12 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         info: dict[str, Tensor] = self._unpack_batch(batch)
         x_enc: Tensor = self._build_encoder_input(info)
 
+        # Setting initial state
+        batch_size = x_enc.shape[0]
+        h_e_init = self._get_encoder_initial_state(info, batch_size)
+
         # X_enc -> H
-        H, _ = self.core.e_forward(x_enc)
+        H, _ = self.core.e_forward(x_enc, hidden_state=h_e_init)
 
         # H -> H_sup
         H_sup, _ = self.core.s_forward(H)
@@ -302,10 +325,16 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         # Real path: X_enc -> H_real -> H_sup
         x_enc: Tensor = self._build_encoder_input(info)
         target: Tensor = self._get_reconstruction_target(info)
+        batch_size = x_enc.shape[0]
+
+        # Setting initial states
+        h_e_init = self._get_encoder_initial_state(info, batch_size)
+        h_g_init = self._get_generator_initial_state(info, batch_size)
+        h_d_init = self._get_discriminator_initial_state(info, batch_size)
 
         # Encoder is used as a fixed feature extractor in this step
         with torch.no_grad():
-            H_real, _ = self.core.e_forward(x_enc)
+            H_real, _ = self.core.e_forward(x_enc, hidden_state=h_e_init)
 
         # Supervisor remains trainable: we want gradients for S
         H_sup, _ = self.core.s_forward(H_real)
@@ -314,17 +343,15 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         Z = self._sample_noise_like(x_enc)
         z_input: Tensor = self._build_generator_input(info, Z)
 
-        # Getting generator initial hidden state
-        batch_size = x_enc.shape[0]
-        h_g_init = self._get_generator_initial_state(info, batch_size)
+
 
         E_hat, _ = self.core.g_forward(z_input, hidden_state=h_g_init) # h_g_init can be initialized
         H_hat, _ = self.core.s_forward(E_hat)
         Y_hat, _ = self.core.r_forward(H_hat)  # output in target space
 
         # Adversarial losses: fool D with H_hat and E_hat
-        Y_fake, _ = self.core.d_forward(H_hat)
-        Y_fake_e, _ = self.core.d_forward(E_hat)
+        Y_fake, _ = self.core.d_forward(H_hat, hidden_state=h_d_init)
+        Y_fake_e, _ = self.core.d_forward(E_hat, hidden_state=h_d_init)
 
         ones_like_Y_fake = torch.ones_like(Y_fake)
         ones_like_Y_fake_e = torch.ones_like(Y_fake_e)
@@ -390,8 +417,12 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         x_enc: Tensor = self._build_encoder_input(info)
         target: Tensor = self._get_reconstruction_target(info)
 
+        # Setting hidden state
+        batch_size = x_enc.shape[0]
+        h_e_init = self._get_encoder_initial_state(info, batch_size)
+
         # X_enc -> H -> output
-        H, _ = self.core.e_forward(x_enc)
+        H, _ = self.core.e_forward(x_enc, hidden_state=h_e_init)
         output, _ = self.core.r_forward(H)
 
         # Supervisory path (S not updated, but still differentiable)
@@ -438,17 +469,23 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         """
         info: dict[str, Tensor] = self._unpack_batch(batch)
         x_enc: Tensor = self._build_encoder_input(info)
+        batch_size = batch.shape[0]
+
+        # Setting hidden state
+        h_e_init = self._get_encoder_initial_state(info, batch_size)
+        h_g_init = self._get_generator_initial_state(info, batch_size)
+        h_d_init = self._get_discriminator_initial_state(info, batch_size)
 
         # Real latent: X_enc -> H_real (no grad to encoder here)
         with torch.no_grad():
-            H_real, _ = self.core.e_forward(x_enc)
+            H_real, _ = self.core.e_forward(x_enc, hidden_state=h_e_init)
 
         # Fake latent: Z + cond -> E_hat -> H_hat (no grad to G/S/E here)
         Z = self._sample_noise_like(x_enc)
         z_input: Tensor = self._build_generator_input(info, Z)
 
         with torch.no_grad():
-            E_hat, _ = self.core.g_forward(z_input)
+            E_hat, _ = self.core.g_forward(z_input, hidden_state=h_g_init)
             H_hat, _ = self.core.s_forward(E_hat)
 
         # Optional Noise injection
@@ -458,9 +495,9 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
             E_hat = E_hat + torch.randn_like(E_hat) * self.noise_std
 
         # Discriminator outputs
-        Y_real, _ = self.core.d_forward(H_real)
-        Y_fake, _ = self.core.d_forward(H_hat)
-        Y_fake_e, _ = self.core.d_forward(E_hat)
+        Y_real, _ = self.core.d_forward(H_real, hidden_state=h_d_init)
+        Y_fake, _ = self.core.d_forward(H_hat, hidden_state=h_d_init)
+        Y_fake_e, _ = self.core.d_forward(E_hat, hidden_state=h_d_init)
 
         ones_real = torch.ones_like(Y_real) * self.soft_label
         zeros_fake = torch.zeros_like(Y_fake)

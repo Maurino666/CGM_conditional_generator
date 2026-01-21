@@ -74,7 +74,7 @@ class Evaluator:
 
             for j, metric in enumerate(self.metrics):
                 if self.verbose:
-                    print(f"  - ({j + 1}/{len(self.metrics)}) {metric.name}... ", end="", flush=True)
+                    print(f"  - ({j + 1}/{len(self.metrics)}) {metric.name}... ")
 
                 try:
                     output = metric.compute(subject_id, df_feat, self.cfg)
@@ -91,7 +91,7 @@ class Evaluator:
                     row[f"{metric.name}__error_msg"] = f"{type(e).__name__}: {e}"
 
                     if self.verbose:
-                        print(f"FAIL ({type(e).__name__}: {e})", flush=True)
+                        print(f"FAIL ({type(e).__name__}: {e})")
 
             rows.append(row)
 

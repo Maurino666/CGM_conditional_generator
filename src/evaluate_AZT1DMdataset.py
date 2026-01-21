@@ -4,17 +4,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-
-from evaluation import Evaluator, EvaluationConfig, Metric
 from data_prep import AZT1D2025Dataset
 
-from evaluation.wrappers.mage import MageMetric
-from evaluation.wrappers.agp import AgpMetric, AgpParams
-from evaluation.wrappers.arx_delta_r2 import ArxDeltaR2LinearMetric, ArxDeltaR2LinearParams
-from evaluation.wrappers.cmi import CmiKsgMetric, CmiKsgParams
-from evaluation.wrappers.granger_block import GrangerBlockFTestMetric, GrangerBlockParams
-from evaluation.wrappers.nonlinear_delta_r2 import DeltaR2NonlinearMetric, DeltaR2NonlinearParams
-from metrics_core import TemporalCVSpec
+from evaluation import *
+from evaluation.wrappers import CmiKsgDecompositionParams
 
 # -----------------------------
 # Fallback column names (EDIT)
@@ -47,6 +40,8 @@ def main() -> None:
     cond_cols = [
         "basal_rate",
         "bolus_total",
+        "bolus_correction",
+        "bolus_meal",
         "carbs"
     ]
 
@@ -56,13 +51,15 @@ def main() -> None:
 
     cond_b = [
         "bolus_total",
+        "bolus_correction",
+        "bolus_meal",
         "carbs",
     ]
 
     # -----------------------------
     # Configure evaluation
     # -----------------------------
-    out_dir = Path("reports") / "azt1d2025_eval_debug"
+    out_dir = Path("../reports") / "azt1d2025_eval_debug"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     horizons = [15, 30, 45, 60, 75, 90, 105, 120]
@@ -72,13 +69,13 @@ def main() -> None:
         cond_cols=list(cond_cols),
         time_col=None,
         subject_id_col=None,
-        lag_minutes=[15, 30, 45, 60, 75, 90, 105, 120],
+        lag_minutes=horizons,
         ensure_time_of_day=True,
         output_dir=out_dir,
         per_subject_plots=True,
         feature_groups={
-            "A": ["basal"],  # block A
-            "B": ["carbs", "bolus"],  # block B
+            "A": cond_a,  # block A
+            "B": cond_b,  # block B
         },
     )
 
@@ -107,6 +104,16 @@ def main() -> None:
             # candidate_cols=None -> uses cfg.cond_cols inside wrapper
         ),
 
+        ArxDeltaR2LinearABMetric(
+            params=ArxDeltaR2LinearABParams(
+                horizons_min=horizons,
+                add_time_of_day=True,
+                n_splits=5,
+                alpha=1.0,
+                min_samples=200,
+            )
+        ),
+
         # Granger block F-test (multi-horizon)
         GrangerBlockFTestMetric(
             params=GrangerBlockParams(
@@ -120,6 +127,16 @@ def main() -> None:
             ),
             name="granger_block_f_test",
         ),
+        GrangerABDecompositionMetric(
+            params=GrangerABDecompositionParams(
+                horizons_min=horizons,
+                freq_min=5,
+                add_time_of_day=True,
+                match_n=True,
+                min_samples=200,
+                clip_partial_r2_at_zero=True,
+            )
+        ),
 
         # Nonlinear ΔR² (multi-horizon)
         DeltaR2NonlinearMetric(
@@ -128,14 +145,27 @@ def main() -> None:
                 freq_min=5,
                 add_time_of_day=True,
                 cv_spec=TemporalCVSpec(n_splits=5, test_size=1000, min_train_size=2000, purge_gap=0),
+                regressor_factory=lambda rs: _build_default_regressor(rs),
                 random_state=42,
                 min_samples=None,
                 flatten_all_horizons=True,
             ),
             # IMPORTANT: provide your regressor_factory here (example placeholder)
             # regressor_factory must be a callable: (random_state: int) -> model with fit/predict
-            regressor_factory=lambda rs: _build_default_regressor(rs),
+
             name="delta_r2_nonlinear",
+        ),
+
+        NonlinearDeltaR2ABDecompositionMetric(
+            params=NonlinearDeltaR2ABParams(
+                horizons_min=horizons,
+                freq_min=5,
+                add_time_of_day=True,
+                cv_spec=TemporalCVSpec(n_splits=5, test_size=1000, min_train_size=2000, purge_gap=0),
+                regressor_factory=lambda rs: _build_default_regressor(rs),
+                random_state=42,
+                min_samples=None,
+            )
         ),
 
         # CMI KSG (multi-horizon)
@@ -154,6 +184,20 @@ def main() -> None:
             ),
             name="cmi_ksg",
         ),
+
+        CmiKsgDecompositionMetric(
+            params=CmiKsgDecompositionParams(
+                horizons_min=horizons,
+                freq_min=5,
+                add_time_of_day=True,
+                k=10,
+                metric="chebyshev",
+                jitter=1e-6,
+                random_state=0,
+                min_samples=100,
+                clip_at_zero=False,
+            )
+        )
     ]
 
     # -----------------------------

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from metrics_core import TemporalCVSpec, compute_delta_r2_nonlinear
+from metrics_core import TemporalCVSpec, RegressorFactory, compute_delta_r2_nonlinear
 from ..types import EvaluationConfig, Metric, MetricOutput
 
 
@@ -17,6 +17,7 @@ class DeltaR2NonlinearParams:
     freq_min: int = 5
     add_time_of_day: bool = True
     cv_spec: TemporalCVSpec = TemporalCVSpec()
+    regressor_factory: RegressorFactory | None = None
     random_state: int = 42
     min_samples: int | None = None
 
@@ -54,14 +55,12 @@ class DeltaR2NonlinearMetric(Metric):
         self,
         *,
         params: DeltaR2NonlinearParams,
-        regressor_factory,
         base_cols: list[str] | None = None,
         candidate_cols: list[str] | None = None,
         name: str = "delta_r2_nonlinear",
     ) -> None:
         self.name = name
         self.params = params
-        self._regressor_factory = regressor_factory
 
         # Optional overrides
         self._base_cols_override = base_cols
@@ -80,7 +79,7 @@ class DeltaR2NonlinearMetric(Metric):
             freq_min=int(self.params.freq_min),
             add_time_of_day=bool(self.params.add_time_of_day),
             cv_spec=self.params.cv_spec,
-            regressor_factory=self._regressor_factory,
+            regressor_factory=self.params.regressor_factory,
             random_state=int(self.params.random_state),
             min_samples=self.params.min_samples,
         )

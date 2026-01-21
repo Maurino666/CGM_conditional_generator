@@ -13,7 +13,7 @@ class EvaluationConfig:
     time_col: str | None = None  # If None, assume the index represents time
     subject_id_col: str | None = None  # If present, assume it is constant within each subject DataFrame
 
-    feature_groups: dict[str, str] | None = None
+    feature_groups: dict[str, list[str]] | None = None
 
     # Shared derived features
     lag_minutes: list[int] | None = None  # Target lags to ensure exist (e.g., [5, 10, 15, 30, 60])

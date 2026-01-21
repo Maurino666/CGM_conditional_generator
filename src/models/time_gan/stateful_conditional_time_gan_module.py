@@ -2,7 +2,6 @@ import torch
 
 from torch import Tensor
 
-# Assicurati di importare la classe base corretta dal tuo progetto
 from .conditional_time_gan_module import ConditionalTimeGanModule
 
 
@@ -15,10 +14,19 @@ class StatefulConditionalTimeGanModule(ConditionalTimeGanModule):
     to maintain temporal continuity across consecutive time windows (chunks).
     """
 
-    def generate_long_sequence(
+    def __init__(self, chunk_size: int, *args, **kwargs):
+        """
+        Args:
+            chunk_size: length of the chunk sequence.
+            *args, **kwargs: parameters required by ConditionalTimeGanModule.
+        """
+        self.chunk_size = chunk_size
+
+        super().__init__(*args, **kwargs)
+
+    def generate(
             self,
             long_cond_seq: Tensor,
-            chunk_size: int
     ) -> Tensor:
         """
         Generate a long synthetic sequence by stitching together smaller chunks,
@@ -27,8 +35,6 @@ class StatefulConditionalTimeGanModule(ConditionalTimeGanModule):
         Args:
             long_cond_seq (Tensor): The full conditioning sequence.
                 Shape: (batch_size, total_length, cond_dim)
-            chunk_size (int): The sequence length the model was trained on (e.g., 24).
-                The long sequence will be split into chunks of this size.
 
         Returns:
             Tensor: The generated long sequence.
@@ -44,7 +50,7 @@ class StatefulConditionalTimeGanModule(ConditionalTimeGanModule):
 
         # 1. Split the long conditioning sequence into chunks
         # use torch.split to handle cases where total_len is not perfectly divisible
-        cond_chunks = torch.split(long_cond_seq, chunk_size, dim=1)
+        cond_chunks = torch.split(long_cond_seq, self.chunk_size, dim=1)
 
         generated_chunks: list[Tensor] = []
 

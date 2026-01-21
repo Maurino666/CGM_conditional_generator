@@ -469,7 +469,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         """
         info: dict[str, Tensor] = self._unpack_batch(batch)
         x_enc: Tensor = self._build_encoder_input(info)
-        batch_size = batch.shape[0]
+        batch_size = x_enc.shape[0]
 
         # Setting hidden state
         h_e_init = self._get_encoder_initial_state(info, batch_size)

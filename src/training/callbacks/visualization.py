@@ -34,27 +34,28 @@ class GenerativeVisualizer(Callback):
 
         model.eval()
         with torch.no_grad():
+
             # 1. Prepare Inputs
             # Assuming fixed_batch comes from WindowPack: usually (target, condition)
-            if isinstance(self.fixed_batch, (list, tuple)):
-                real_X = self.fixed_batch[0].cpu().numpy()
-                # Move condition to GPU for inference
-                condition = self.fixed_batch[1].to(self.device)
+            if isinstance(self.fixed_batch, (list, tuple)) and len(self.fixed_batch) == 3:
+                real_X, c_dyn, c_stat = self.fixed_batch
+                out = model.generate(c_dyn, c_stat)
+
+            # Check if batch has 2 elements: [y, c] -> Conditional GAN
+            elif isinstance(self.fixed_batch, (list, tuple)) and len(self.fixed_batch) == 2:
+                real_X, c = self.fixed_batch
+                out = model.generate(c)
             else:
-                # Unconditional case fallback
-                real_X = self.fixed_batch.cpu().numpy()
-                condition = None
+                raise ValueError(f"Unexpected batch structure. Expected [y, c], got {type(batch)}")
 
-            # 2. Generate
-            # The generate method might return a tuple (X_hat, ...) or just X_hat
-            output = model.generate(condition)
 
-            if isinstance(output, tuple):
-                fake_X = output[0]
+            if isinstance(out, tuple):
+                fake_X = out[0]
             else:
-                fake_X = output
+                fake_X = out
 
-            fake_X = fake_X.cpu().numpy()
+            real_X = real_X.detach().cpu().numpy()
+            fake_X = fake_X.detach().cpu().numpy()
 
         # 3. Create Plot (Comparison of the first subject in the batch)
         # We assume the shape is (Batch, Seq_Len, Features)

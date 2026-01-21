@@ -1,5 +1,3 @@
-# models/rnn_vae_module.py
-
 import torch
 from torch import nn, Tensor
 
@@ -69,34 +67,14 @@ class RnnVaeModule(BaseTrainableModule):
             input_dim=input_dim,
             hidden_dim=hidden_dim,
             latent_dim=latent_dim,
+            output_dim=input_dim,
             num_layers=num_layers,
             rnn_type=rnn_type,
         )
         # Configure optimizer
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
 
-    # ------------------------------------------------------------------
-    # Core model API
-    # ------------------------------------------------------------------
-    def forward(self, x: Tensor) -> tuple[Tensor, Tensor, Tensor]:
-        """
-        Forward pass through the underlying RnnVae.
 
-        Parameters
-        ----------
-        x : Tensor
-            Input sequence of shape (batch_size, seq_len, input_dim).
-
-        Returns
-        -------
-        x_recon : Tensor
-            Reconstructed sequence with same shape as x.
-        mu : Tensor
-            Latent mean of shape (batch_size, latent_dim).
-        logvar : Tensor
-            Latent log-variance of shape (batch_size, latent_dim).
-        """
-        return self.model(x)
 
     # ------------------------------------------------------------------
     # Loss computation
@@ -171,7 +149,7 @@ class RnnVaeModule(BaseTrainableModule):
         x = batch  # shape: (batch_size, seq_len, input_dim)
 
         # Forward pass through the VAE
-        x_recon, mu, logvar = self.forward(x)
+        x_recon, mu, logvar = self.model(x)
 
         # Compute VAE loss (reconstruction + KL)
         loss = self._compute_loss(x, x_recon, mu, logvar)
@@ -208,7 +186,7 @@ class RnnVaeModule(BaseTrainableModule):
         """
         x = batch
 
-        x_recon, mu, logvar = self.forward(x)
+        x_recon, mu, logvar = self.model(x)
         loss = self._compute_loss(x, x_recon, mu, logvar)
         return loss
 

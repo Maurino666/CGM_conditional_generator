@@ -1,6 +1,6 @@
-from .SequenceableDataset import SequenceableDataset
+from .BaseDataset import BaseDataset
 
 
-class OhioT1DMDataset(SequenceableDataset):
+class OhioT1DMDataset(BaseDataset):
     # TODO define operations for OhioT1DM
     pass

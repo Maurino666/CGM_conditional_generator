@@ -297,3 +297,109 @@ class BaseDataset:
             cols.append(col_name)
 
         return df, cols
+
+    def _split_by_subject(
+            self,
+            val_ratio: float,
+            random_state: int | None = None,
+    ) -> tuple[list[pd.DataFrame], list[pd.DataFrame], list[int], list[int]]:
+        """
+        Split self.all_data at subject level into train/validation sets.
+        """
+        if not 0.0 < val_ratio < 1.0:
+            raise ValueError("val_ratio must be between 0 and 1 (exclusive).")
+
+        all_data = self.all_data
+        num_subjects = len(all_data)
+        if num_subjects == 0:
+            raise ValueError("No subjects available in all_data.")
+
+        rng = np.random.default_rng(random_state)
+        indices = np.arange(num_subjects)
+        rng.shuffle(indices)
+
+        num_val = max(1, int(num_subjects * val_ratio))
+        val_idx = indices[:num_val]
+        train_idx = indices[num_val:]
+
+        train_data = [all_data[i] for i in train_idx]
+        val_data = [all_data[i] for i in val_idx]
+
+        return train_data, val_data, list(map(int, train_idx)), list(map(int, val_idx))
+
+
+    def _split_by_time_index(
+            self,
+            val_ratio: float,
+    ) -> tuple[list[pd.DataFrame], list[pd.DataFrame], list[int], list[int]]:
+        """
+        Split each subject's DataFrame into train/validation segments along
+        the time axis, using the DatetimeIndex ordering.
+        """
+        if not 0.0 < val_ratio < 1.0:
+            raise ValueError("val_ratio must be between 0 and 1 (exclusive).")
+
+        train_data: list[pd.DataFrame] = []
+        val_data: list[pd.DataFrame] = []
+        train_ids: list[int] = []
+        val_ids: list[int] = []
+
+        for df_idx, df in enumerate(self.all_data):
+            if df.empty:
+                continue
+
+            # Ensure chronological order by index (DatetimeIndex)
+            df_sorted = df.sort_index()
+
+            n = len(df_sorted)
+            split_idx = int((1.0 - val_ratio) * n)
+
+            # If split is degenerate, keep everything in train
+            if split_idx <= 0 or split_idx >= n:
+                train_data.append(df_sorted)
+                train_ids.append(df_idx)
+                continue
+
+            # iloc slicing usa la posizione, coerente con l'ordine temporale
+            train_df = df_sorted.iloc[:split_idx]
+            val_df = df_sorted.iloc[split_idx:]
+
+            train_data.append(train_df)
+            val_data.append(val_df)
+
+            train_ids.append(df_idx)
+            val_ids.append(df_idx)
+
+
+        return train_data, val_data, train_ids, val_ids
+
+    def split(
+            self,
+            val_ratio: float,
+            split_by: str | None = "subject",
+            random_state: int | None = None,
+
+    ) -> tuple[list[pd.DataFrame], list[pd.DataFrame], list[int], list[int]]:
+        if not (0.0 < val_ratio < 1.0):
+            raise ValueError("val_ratio must be between 0 and 1 (exclusive).")
+
+        num_subjects = len(self.all_data)
+        if num_subjects == 0:
+            raise ValueError("No subjects available in all_data.")
+
+        # Reuse the same splitting logic as to_sequence_splits
+        if split_by == "subject":
+            train_data, val_data, train_subject_ids, val_subject_ids = self._split_by_subject(
+                val_ratio=val_ratio,
+                random_state=random_state,
+            )
+
+        elif split_by == "time":
+            train_data, val_data, train_subject_ids, val_subject_ids = self._split_by_time_index(
+                val_ratio=val_ratio,
+            )
+
+        else:
+            raise ValueError("Attribute split_by must be 'subject' or 'time'.")
+
+        return train_data, val_data, train_subject_ids, val_subject_ids

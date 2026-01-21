@@ -1,9 +1,7 @@
-from typing import Any
-
 import torch
 from torch import Tensor
 
-from base_time_gan.module import BaseTimeGanModule
+from .base_time_gan.module import BaseTimeGanModule
 
 class TimeGanModule(BaseTimeGanModule):
     """
@@ -82,7 +80,7 @@ class TimeGanModule(BaseTimeGanModule):
         )
 
 
-    def _unpack_batch(self, batch: Any) -> dict[str, Tensor]:
+    def _unpack_batch(self, batch: Tensor) -> dict[str, Tensor]:
         """
         Interpret the raw batch as a single input tensor X.
         """
@@ -101,7 +99,10 @@ class TimeGanModule(BaseTimeGanModule):
         return Z
 
     def _get_reconstruction_target(self, info: dict[str, Tensor]) -> Tensor:
-        pass
+        """
+        Target is the original input X.
+        """
+        return info["x"]
 
     def generate(self, num_samples: int, seq_len: int) -> Tensor:
         device = next(self.parameters()).device

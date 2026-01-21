@@ -1,8 +1,7 @@
-from base_time_gan.module import BaseTimeGanModule
-
 import torch
 from torch import Tensor
 
+from .base_time_gan.module import BaseTimeGanModule
 
 class ConditionalTimeGanModule(BaseTimeGanModule):
     """
@@ -37,7 +36,7 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         hidden_dim : int
             Latent dimension H.
         num_layers : int, optional
-            Number of GRU layers in each sub-network.
+            Number of GRU layers in each subnetwork.
         noise_dim : int, optional
             Dimension of the noise fed to the generator (dim(Z)).
         """
@@ -65,27 +64,27 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         self.cond_dim = cond_dim
 
     # Hooks required by BaseTimeGanModule (conditional case)
-    def _unpack_batch(self, batch: tuple[Tensor, Tensor]) -> Dict[str, Tensor]:
+    def _unpack_batch(self, batch: tuple[Tensor, Tensor]) -> dict[str, Tensor]:
         """
         Expect a batch as (y, c) from the DataLoader.
         """
         y, c = batch
         return {"y": y, "c": c}
 
-    def _build_encoder_input(self, info: Dict[str, Tensor]) -> Tensor:
+    def _build_encoder_input(self, info: dict[str, Tensor]) -> Tensor:
         """
         Encoder sees the concatenation [y, c] along the feature dimension.
         """
         return torch.cat([info["y"], info["c"]], dim=-1)
 
-    def _build_generator_input(self, info: Dict[str, Tensor], Z: Tensor) -> Tensor:
+    def _build_generator_input(self, info: dict[str, Tensor], Z: Tensor) -> Tensor:
         """
         Generator input is [Z, c] in the conditional case.
         Z has shape (B, T, noise_dim), c has shape (B, T, cond_dim).
         """
         return torch.cat([Z, info["c"]], dim=-1)
 
-    def _get_reconstruction_target(self, info: Dict[str, Tensor]) -> Tensor:
+    def _get_reconstruction_target(self, info: dict[str, Tensor]) -> Tensor:
         """
         Reconstruction target is the target sequence y only.
         """

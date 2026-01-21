@@ -5,6 +5,7 @@ def minmax_scale_features(
     X_val: np.ndarray,
     features: list[str],
     normalize: list[str],
+    fixed_ranges: dict[str, tuple[float, float]] | None = None,
     eps: float = 1e-8,
 ) -> tuple[np.ndarray, np.ndarray, dict[str, tuple[float, float]]]:
     """
@@ -24,6 +25,8 @@ def minmax_scale_features(
         of X_train / X_val.
     normalize : list[str]
         Subset of `features` to be Min–Max scaled to [0, 1].
+    fixed_ranges : dict[str, tuple[float, float]], optional
+        Subset of features to scale in a fixed range with the appropriate ranges.
     eps : float, optional
         Small constant to avoid division by zero.
 
@@ -38,6 +41,8 @@ def minmax_scale_features(
 
     normalize_set = set(normalize)
     feature_set = set(features)
+
+    fixed_ranges = fixed_ranges or {}
 
     scaling_params = {}
     # Ensure all requested columns are present in features
@@ -55,10 +60,13 @@ def minmax_scale_features(
     normalize_indices = [features.index(col) for col in normalize]
 
     for col_name, idx in zip(normalize, normalize_indices):
-        # Take all values of this feature from training windows
-        col_train = X_train_scaled[:, :, idx]  # shape (n_train_windows, seq_len)
-        col_min = float(col_train.min())
-        col_max = float(col_train.max())
+        if col_name in fixed_ranges:
+            col_min, col_max = fixed_ranges[col_name]
+        else:
+            # Take all values of this feature from training windows
+            col_train = X_train_scaled[:, :, idx]  # shape (n_train_windows, seq_len)
+            col_min = float(col_train.min())
+            col_max = float(col_train.max())
 
         if abs(col_max - col_min) < eps:
             # Feature is (almost) constant on train: normalization is not meaningful.
@@ -92,6 +100,7 @@ def minmax_scale_conditional(
     target_feature: str,
     cond_features: list[str],
     normalize: list[str],
+    fixed_ranges: dict[str, tuple[float, float]] | None = None,
     eps: float = 1e-8,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, tuple[float, float]]]:
     """
@@ -110,6 +119,8 @@ def minmax_scale_conditional(
         Names of conditional features, in the same order as c_train/c_val last dim.
     normalize : list[str]
         Subset of [target_feature] + cond_features to scale.
+    fixed_ranges : dict[str, tuple[float, float]], optional
+        Subset of features to scale in a fixed range with the appropriate ranges.
     eps : float, optional
         Small constant to avoid division by zero.
 
@@ -135,6 +146,7 @@ def minmax_scale_conditional(
         X_val=X_val_full,
         features=all_features,
         normalize=normalize,
+        fixed_ranges=fixed_ranges,
         eps=eps,
     )
 

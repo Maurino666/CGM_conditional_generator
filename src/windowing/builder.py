@@ -32,6 +32,7 @@ class ConditionalWindowingConfig:
     # Normalization (feature names)
     # Example: normalize = ["glucose", "basal_rate", ...]
     normalize: list[str] | None = None
+    fixed_normalization_ranges: dict[str, tuple[float, float]] | None = None
 
     # Dataloader
     batch_size: int = 64
@@ -170,6 +171,7 @@ class ConditionalWindowBuilder:
                 target_feature=target_col,
                 cond_features=cond_cols,
                 normalize=cfg.normalize,
+                fixed_ranges=cfg.fixed_normalization_ranges
             )
 
         # 9) Build loaders (these may shuffle, pack remains deterministic)

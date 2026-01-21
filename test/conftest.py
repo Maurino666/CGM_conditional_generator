@@ -5,6 +5,7 @@ import pytest
 from data_prep.base_dataset import BaseDataset
 from data_prep.processors.cleaning import TypeAndValueCleaner
 from data_prep.processors.augmentation import BaseTimeEventAugmenter
+from data_prep.processors.schema import SchemaStandardizer
 
 
 class DummyBaseDataset(BaseDataset):
@@ -15,7 +16,7 @@ class DummyBaseDataset(BaseDataset):
     """
 
     def __init__(self, dfs: list[pd.DataFrame]):
-        # 1. Setup Config Mock (Risolve l'AttributeError)
+        # Setup Config Mock
         self.config = {
             "dataset": {"name": "DummyDataset"},
             "sampling": {"target_frequency": "5min"},
@@ -53,16 +54,27 @@ class DummyBaseDataset(BaseDataset):
             'impulse_cols': self.impulse_cols,
             'time_steps': self.time_steps,
             'max_small_gap': self.max_small_gap,
+            # Importante: inizializziamo cond_cols vuoto, lo popoleranno i test
+            'global_cond_cols': [],
         }
 
         # --- Definizione Pipeline ---
+
+        # 1. Cleaning
         self.cleaning_pipeline = [
             TypeAndValueCleaner(),
         ]
+
+        # 2. Standardization (NUOVO)
+        # La lista dei global_cond_cols verrà sovrascritta nel test
+        self.standardization_pipeline = [
+            SchemaStandardizer(global_cond_cols=[])
+        ]
+
+        # 3. Augmentation
         self.augmentation_pipeline = [
             BaseTimeEventAugmenter()
         ]
-
 
 @pytest.fixture
 def toy_subject_df() -> pd.DataFrame:

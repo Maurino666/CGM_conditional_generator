@@ -26,7 +26,7 @@ def main() -> None:
         Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
         logging_dir=Path("../datasets/AZT1D2025/prep_logs"),
     )
-    dataset.clean_data()
+    dataset.clean()
 
     # Prefer your dataset API if available; here you used dataset.all_data already
     series: list[pd.DataFrame] = dataset.all_data

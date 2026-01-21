@@ -8,9 +8,10 @@ import pandas as pd
 import pytest
 
 from data_prep import BaseDataset  # la tua classe vera
+from data_prep.SequenceableDataset import SequenceableDataset
 
 
-class DummyBaseDataset(BaseDataset):
+class DummyBaseDataset(SequenceableDataset):
     """Sottoclasse minimale di BaseDataset per i test."""
 
     def __init__(self, dfs: list[pd.DataFrame]):

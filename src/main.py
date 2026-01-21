@@ -91,7 +91,7 @@ def main():
     print("History adv: ", history)
 
     ckpt = model2.to_checkpoint(extra={"history": history})
-    torch.save(ckpt, "../runs/prova")
+    torch.save(ckpt, "../runs/prova.pt")
 
 if __name__ == "__main__":
     main()

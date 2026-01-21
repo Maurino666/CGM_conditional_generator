@@ -1,6 +1,7 @@
-from .BaseDataset import BaseDataset
+from .SequenceableDataset import SequenceableDataset
 
-class HUPA_UCMDataset(BaseDataset):
+
+class HUPA_UCMDataset(SequenceableDataset):
     def _clean_cols(self):
         super()._clean_cols()
 

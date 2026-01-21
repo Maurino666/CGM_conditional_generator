@@ -1,7 +1,7 @@
-from .BaseDataset import BaseDataset
+from .SequenceableDataset import SequenceableDataset
 
 
-class AZT1D2025Dataset (BaseDataset):
+class AZT1D2025Dataset (SequenceableDataset):
     def _clean_cols(self):
         super()._clean_cols()
         for i, df in enumerate(self.all_data):

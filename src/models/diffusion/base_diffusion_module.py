@@ -118,6 +118,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         Standard DDPM Sampling Loop.
         Uses the scheduler math and the backbone prediction.
         """
+        self.eval()
         from tqdm.auto import tqdm
         device = cond.device
         if n_samples is None: n_samples = cond.shape[0]
@@ -134,13 +135,11 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             t = torch.full((n_samples,), i, device=device, dtype=torch.long)
             noise_pred = self.backbone(img, t, cond)
 
-            # TODO implement math
-
-            # Placeholder for brevity - copy the logic from previous response
             alpha = self.scheduler._extract(self.scheduler.alphas, t, img.shape)
             beta = self.scheduler._extract(self.scheduler.betas, t, img.shape)
-            sqrt_one_minus_alpha_cumprod = self.scheduler._extract(self.scheduler.sqrt_one_minus_alphas_cumprod, t,
-                                                                   img.shape)
+            sqrt_one_minus_alpha_cumprod = self.scheduler._extract(
+                self.scheduler.sqrt_one_minus_alphas_cumprod, t, img.shape
+            )
             mean = (1 / torch.sqrt(alpha)) * (img - (beta / sqrt_one_minus_alpha_cumprod) * noise_pred)
             if i > 0:
                 img = mean + torch.sqrt(beta) * torch.randn_like(img)

@@ -22,7 +22,8 @@ class MinMaxNormalizer:
     def __init__(
         self,
         cols_to_normalize: list[str],
-        fixed_ranges: dict[str, tuple[float, float]] | None = None
+        fixed_ranges: dict[str, tuple[float, float]] | None = None,
+        feature_range: tuple[float, float] = (0.0, 1.0)
     ) -> None:
         """
         Initialize the normalizer.
@@ -32,9 +33,12 @@ class MinMaxNormalizer:
             fixed_ranges: Dictionary mapping column names to (min, max) tuples.
                           If a column is provided here, these values are used
                           regardless of the data distribution.
+            feature_range:  Tuple of (min, max) values for feature ranges.
+                            Defines the range of the normalized values.
         """
         self.cols_to_normalize = cols_to_normalize
         self.fixed_ranges = fixed_ranges or {}
+        self.feature_range = feature_range
 
         # Dictionary to store the final (min, max) used for scaling each column.
         # Structure: { 'column_name': (min_val, max_val) }
@@ -114,6 +118,9 @@ class MinMaxNormalizer:
 
         out_dfs = []
 
+        range_min, range_max = self.feature_range
+        range_span = range_max - range_min
+
         # Optimization: Pre-calculate spans to avoid re-computing inside the loop
         # param_map structure: { col_name: (min_val, span_val) }
         param_map = {}
@@ -130,12 +137,14 @@ class MinMaxNormalizer:
 
             for col, (min_v, span) in param_map.items():
                 if col in df.columns:
+                    std_val = (df[col] - min_v) / span
+
                     # Apply MinMax Scaling Formula
-                    df[col] = (df[col] - min_v) / span
+                    df[col] = std_val * range_span + range_min
 
                     # Clip to ensure valid range [0, 1]
                     # This is critical for fixed ranges, as test data might exceed physiological limits.
-                    df[col] = df[col].clip(0.0, 1.0)
+                    df[col] = df[col].clip(range_min, range_max)
 
             out_dfs.append(df)
 
@@ -156,6 +165,7 @@ def denormalize_numpy_array(
         array: np.ndarray,
         feature_name: str,
         scaling_params: dict[str, tuple[float, float]],
+        feature_range: tuple[float, float] = (0.0, 1.0)
 ) -> np.ndarray:
     """
     Helper function used by the Reconstructor to reverse normalization.
@@ -167,6 +177,7 @@ def denormalize_numpy_array(
         array: Normalized numpy array (usually in [0, 1]).
         feature_name: Name of the feature (key to look up in params).
         scaling_params: Dictionary {feature_name: (min, max)}.
+        feature_range: Tuple [ float, float ], defines normalization range.
 
     Returns:
         Denormalized array in physical units.
@@ -178,11 +189,16 @@ def denormalize_numpy_array(
     min_val, max_val = scaling_params[feature_name]
     span = max_val - min_val
 
+    range_min, range_max = feature_range
+    range_span = range_max - range_min
+
+    std_val = (array - range_min) / range_span
+
     # Apply inverse transformation
     # We assume 'array' is float32/64.
-    return array * span + min_val
+    return std_val * span + min_val
 
-
+# TODO can be part of class
 def denormalize_dataframes(
         dfs: list[pd.DataFrame],
         scaling_params: dict[str, tuple[float, float]]
@@ -195,6 +211,9 @@ def denormalize_dataframes(
     """
     if not dfs:
         return []
+
+    range_min, range_max = self.feature_range
+    range_span = range_max - range_min
 
     # 1. Pre-calculate spans to make the loop faster
     # map: col_name -> (min, span)
@@ -210,8 +229,10 @@ def denormalize_dataframes(
 
         for col, (min_v, span) in params_map.items():
             if col in df_out.columns:
+
+                std_val = (df_out[col] - range_min) / range_span
                 # Formula: real = norm * span + min
-                df_out[col] = df_out[col] * span + min_v
+                df_out[col] = std_val * span + min_v
 
         df_out.attrs = df.attrs.copy()
         denormalized_dfs.append(df_out)

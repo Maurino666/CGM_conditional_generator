@@ -10,7 +10,8 @@ from matplotlib import pyplot as plt
 
 from evaluation.metrics_core import compute_arx_delta_r2_linear_ab_decomposition
 from ..types import EvaluationConfig, Metric, MetricOutput
-from evaluation.wrappers.utils import resolve_feature_group
+from evaluation.wrappers.utils import resolve_feature_group, filter_valid_features
+
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,16 @@ class ArxDeltaR2LinearABMetric(Metric):
 
         if cfg.lag_minutes is None or len(cfg.lag_minutes) == 0:
             raise ValueError(f"{self.name}: cfg.lag_minutes must be provided for baseline construction.")
+
+        if cfg.masked_dataframes:
+            features_a = filter_valid_features(df, features_a)
+            features_b = filter_valid_features(df, features_b)
+
+            if len(features_a) == 0 or len(features_b) == 0:
+                return MetricOutput(
+                    scalars={f"{self.name}__skipped_missing_group": 1.0},
+                    tables={}, artifacts={}
+                )
 
         out = compute_arx_delta_r2_linear_ab_decomposition(
             df,

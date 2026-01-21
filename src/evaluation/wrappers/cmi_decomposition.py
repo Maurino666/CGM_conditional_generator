@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 from evaluation.metrics_core import compute_cmi_ksg_decomposition  # adjust import path
 from ..types import EvaluationConfig, Metric, MetricOutput
-from evaluation.wrappers.utils import resolve_feature_group
+from evaluation.wrappers.utils import resolve_feature_group, filter_valid_features
 
 
 @dataclass(frozen=True)
@@ -55,22 +55,32 @@ class CmiKsgDecompositionMetric(Metric):
     def compute(self, subject_id: int, df: pd.DataFrame, cfg: EvaluationConfig) -> MetricOutput:
         base_cols = self._resolve_base_cols(df, cfg)
 
-        A_cols = resolve_feature_group(df, cfg, self.params.group_a_key)
-        B_cols = resolve_feature_group(df, cfg, self.params.group_b_key)
+        features_a = resolve_feature_group(df, cfg, self.params.group_a_key)
+        features_b = resolve_feature_group(df, cfg, self.params.group_b_key)
 
-        if len(A_cols) == 0 or len(B_cols) == 0:
+        if len(features_a) == 0 or len(features_b) == 0:
             raise ValueError(
                 f"{self.name}: empty feature groups after filtering. "
-                f"A({self.params.group_a_key})={A_cols}, "
-                f"B({self.params.group_b_key})={B_cols}"
+                f"A({self.params.group_a_key})={features_a}, "
+                f"B({self.params.group_b_key})={features_b}"
             )
+
+        if cfg.masked_dataframes:
+            features_a = filter_valid_features(df, features_a)
+            features_b = filter_valid_features(df, features_b)
+
+            if len(features_a) == 0 or len(features_b) == 0:
+                return MetricOutput(
+                    scalars={f"{self.name}__skipped_missing_group": 1.0},
+                    tables={}, artifacts={}
+                )
 
         by_h = compute_cmi_ksg_decomposition(
             df,
             target_col=cfg.target_col,
             base_cols=base_cols,
-            features_A=A_cols,
-            features_B=B_cols,
+            features_A=features_a,
+            features_B=features_b,
             horizons_min=list(self.params.horizons_min),
             freq_min=int(self.params.freq_min),
             add_time_of_day=bool(self.params.add_time_of_day),

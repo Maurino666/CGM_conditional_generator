@@ -15,6 +15,7 @@ class EvaluationConfig:
 
     synth_col: str | None = None
 
+    masked_dataframes: bool = False # if True, assume cond columns may come with mask columns
     feature_groups: dict[str, list[str]] | None = None
 
     # Shared derived features

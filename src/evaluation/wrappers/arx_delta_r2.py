@@ -8,6 +8,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from evaluation.metrics_core import compute_arx_delta_r2_linear
+from .utils import filter_valid_features
 from ..types import EvaluationConfig, Metric, MetricOutput
 
 
@@ -55,6 +56,15 @@ class ArxDeltaR2LinearMetric(Metric):
             )
 
         candidates = self.candidate_cols if self.candidate_cols is not None else list(cfg.cond_cols)
+
+        if cfg.masked_dataframes:
+            candidates = filter_valid_features(df, candidates)
+            if not candidates:
+                return MetricOutput(
+                    scalars={f"{self.name}__skipped": 1.0},
+                    tables={},
+                    artifacts={}
+                )
 
         res = compute_arx_delta_r2_linear(
             df,

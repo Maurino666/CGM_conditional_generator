@@ -10,6 +10,7 @@ from .types import (
     EvaluationArtifacts,
     Metric,
 )
+from .wrappers.utils import restore_nans_from_masks_global
 
 
 class Evaluator:
@@ -63,6 +64,8 @@ class Evaluator:
 
             if self.verbose:
                 print(f"[Evaluator] Subject {i + 1}/{n_subjects} (id={subject_id})...")
+
+            df = restore_nans_from_masks_global(df, self.cfg)
 
             # Ensure shared derived features exist once per subject
             df_feat = self._ensure_derived_features(df)

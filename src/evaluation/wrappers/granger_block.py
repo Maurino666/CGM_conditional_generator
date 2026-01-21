@@ -8,6 +8,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from evaluation.metrics_core import compute_granger_block
+from .utils import filter_valid_features
 from ..types import EvaluationConfig, Metric, MetricOutput
 
 
@@ -59,6 +60,15 @@ class GrangerBlockFTestMetric(Metric):
     def compute(self, subject_id: int, df: pd.DataFrame, cfg: EvaluationConfig) -> MetricOutput:
         base_cols = self._resolve_base_cols(df=df, cfg=cfg)
         block_cols = self._resolve_block_cols(df=df, cfg=cfg)
+
+        if cfg.masked_dataframes:
+            block_cols = filter_valid_features(df, block_cols)
+            if not block_cols:
+                return MetricOutput(
+                    scalars={f"{self.name}__skipped": 1.0},
+                    tables={},
+                    artifacts={}
+                )
 
         res = compute_granger_block(
             df,

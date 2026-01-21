@@ -8,6 +8,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from evaluation.metrics_core import TemporalCVSpec, RegressorFactory, compute_delta_r2_nonlinear
+from .utils import filter_valid_features
 from ..types import EvaluationConfig, Metric, MetricOutput
 
 
@@ -69,6 +70,15 @@ class DeltaR2NonlinearMetric(Metric):
     def compute(self, subject_id: int, df: pd.DataFrame, cfg: EvaluationConfig) -> MetricOutput:
         base_cols = self._resolve_base_cols(df=df, cfg=cfg)
         candidate_cols = self._resolve_candidate_cols(df=df, cfg=cfg)
+
+        if cfg.masked_dataframes:
+            candidate_cols = filter_valid_features(df, candidate_cols)
+            if not candidate_cols:
+                return MetricOutput(
+                    scalars={f"{self.name}__skipped": 1.0},
+                    tables={},
+                    artifacts={}
+                )
 
         res = compute_delta_r2_nonlinear(
             df,

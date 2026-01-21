@@ -50,8 +50,19 @@ def main() -> None:
     SEQ_LEN = 288
     VAL_RATIO = 0.2
     BATCH_SIZE = 128
+    NUM_WORKERS = 4
     TRAIN_STEP = 12
     SPLIT_STRATEGY = "subject"
+    # TimeGan params
+    HIDDEN_DIM = 2
+    NUM_LAYERS = 1
+    G_STEPS_PER_ITER = 3
+    NOISE_STD = 0.1
+    SOFT_LABEL = 0.9
+    # Training params
+    AE_EPOCHS = 2
+    SUP_EPOCHS = 2
+    ADV_EPOCHS = 2
 
     # -------------------------------------------------------------------------
     # 1. DATA INGESTION (Load & Clean)
@@ -111,7 +122,7 @@ def main() -> None:
         target_col=target_col,
         cond_cols=final_cond_cols,
         batch_size=BATCH_SIZE,
-        num_workers=4
+        num_workers=NUM_WORKERS
     )
 
     train_split = builder.build_subset(
@@ -169,28 +180,28 @@ def main() -> None:
     # C. Instantiate Model
     model = ConditionalTimeGanModule(
         cond_dim=len(final_cond_cols),
-        hidden_dim=256,
-        num_layers=3,
-        g_steps_per_iter=3,
-        noise_std=0.1,
-        soft_label=0.9,
+        hidden_dim=HIDDEN_DIM,
+        num_layers=NUM_LAYERS,
+        g_steps_per_iter=G_STEPS_PER_ITER,
+        noise_std=NOISE_STD,
+        soft_label=SOFT_LABEL,
     ).to(device)
 
     # --- Phase 1: Autoencoder ---
     print("\n   [Phase 1] Autoencoder...")
     model.set_phase("ae")
     trainer = Trainer(device=device, logger=tb_logger)
-    trainer.fit(model, 10, pack.train_split.loader, pack.val_split.loader)
+    trainer.fit(model, AE_EPOCHS, pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 2: Supervisor ---
     print("\n   [Phase 2] Supervisor...")
     model.set_phase("sup")
-    trainer.fit(model, 10, pack.train_split.loader, pack.val_split.loader)
+    trainer.fit(model, SUP_EPOCHS, pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 3: Adversarial (Joint) ---
     print("\n   [Phase 3] Adversarial (Joint)...")
     model.set_phase("adv")
-    trainer.fit(model, 100, pack.train_split.loader, pack.val_split.loader, callbacks=[visualizer])
+    trainer.fit(model, ADV_EPOCHS, pack.train_split.loader, pack.val_split.loader, callbacks=[visualizer])
 
     print(f"\n   Saving final model to {output_dir}...")
     torch.save(model.state_dict(), output_dir / "timegan_model.pth")
@@ -208,7 +219,7 @@ def main() -> None:
         target_col=target_col,
         cond_cols=final_cond_cols,
         batch_size=BATCH_SIZE,
-        num_workers=4,
+        num_workers=NUM_WORKERS,
         allow_target_nan=True,
     )
 

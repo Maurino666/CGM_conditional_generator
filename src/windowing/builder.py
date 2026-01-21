@@ -102,8 +102,7 @@ class WindowBuilder:
         print(f"     -> Generated {count} windows.")
 
         has_static = len(self.static_indices) > 0
-        if has_static:
-            print(f"     -> [Fast-Loader] Static features detected.")
+        if has_static: print(f"     -> [Fast-Loader] Static features detected.")
 
         # 3. Create Loader
         if count > 0:

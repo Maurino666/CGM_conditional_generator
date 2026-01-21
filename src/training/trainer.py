@@ -47,7 +47,6 @@ class Trainer:
         self._fire_callback("on_train_start", model)
 
         for epoch in range(1, max_epochs + 1):
-            epoch += 1
             self._fire_callback("on_epoch_start", model, epoch=epoch)
 
             # --- TRAINING LOOP ---

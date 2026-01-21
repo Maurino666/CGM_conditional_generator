@@ -8,7 +8,7 @@ import pandas as pd
 
 from matplotlib import pyplot as plt
 
-from metrics_core import compute_arx_delta_r2_linear_ab_decomposition
+from evaluation.metrics_core import compute_arx_delta_r2_linear_ab_decomposition
 from ..types import EvaluationConfig, Metric, MetricOutput
 from evaluation.wrappers.utils import resolve_feature_group
 

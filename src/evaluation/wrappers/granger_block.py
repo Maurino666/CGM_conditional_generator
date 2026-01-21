@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from metrics_core import compute_granger_block
+from evaluation.metrics_core import compute_granger_block
 from ..types import EvaluationConfig, Metric, MetricOutput
 
 

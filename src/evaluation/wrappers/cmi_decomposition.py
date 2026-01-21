@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from metrics_core import compute_cmi_ksg_decomposition  # adjust import path
+from evaluation.metrics_core import compute_cmi_ksg_decomposition  # adjust import path
 from ..types import EvaluationConfig, Metric, MetricOutput
 from evaluation.wrappers.utils import resolve_feature_group
 

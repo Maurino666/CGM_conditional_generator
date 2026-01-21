@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from metrics_core import compute_agp
+from evaluation.metrics_core import compute_agp
 from ..types import Metric, MetricOutput, EvaluationConfig
 
 

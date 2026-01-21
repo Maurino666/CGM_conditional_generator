@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from metrics_core import compute_arx_delta_r2_linear
+from evaluation.metrics_core import compute_arx_delta_r2_linear
 from ..types import EvaluationConfig, Metric, MetricOutput
 
 

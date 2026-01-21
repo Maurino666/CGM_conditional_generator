@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from ..types import EvaluationConfig, Metric, MetricOutput
-from metrics_core import compute_mage
+from evaluation.metrics_core import compute_mage
 
 
 class MageMetric(Metric):

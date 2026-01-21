@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from metrics_core import TemporalCVSpec, RegressorFactory, compute_delta_r2_nonlinear
+from evaluation.metrics_core import TemporalCVSpec, RegressorFactory, compute_delta_r2_nonlinear
 from ..types import EvaluationConfig, Metric, MetricOutput
 
 

@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from metrics_core import compute_delta_r2_nonlinear_ab_decomposition
-from metrics_core import TemporalCVSpec, RegressorFactory  # adjust import path
+from evaluation.metrics_core import compute_delta_r2_nonlinear_ab_decomposition
+from evaluation.metrics_core import TemporalCVSpec, RegressorFactory  # adjust import path
 from ..types import EvaluationConfig, Metric, MetricOutput
 from evaluation.wrappers.utils import resolve_feature_group
 

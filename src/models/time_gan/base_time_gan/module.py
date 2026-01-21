@@ -63,6 +63,8 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         grad_clip_D: float | None = 0.5,
         g_steps_per_iter: int = 2,
         d_loss_threshold: float = 0.15,
+        noise_std: float = 0.0,
+        soft_label: float = 1.0
     ) -> None:
         super().__init__()
 
@@ -79,6 +81,9 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self.grad_clip_D = grad_clip_D
         self.g_steps_per_iter = g_steps_per_iter
         self.d_loss_threshold = d_loss_threshold
+        self.noise_std = noise_std
+        self.soft_label = soft_label
+        self.soft_label = soft_label
 
         # --- core networks ---
         self.core = TimeGan(
@@ -428,12 +433,18 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
             E_hat, _ = self.core.g_forward(z_input)
             H_hat, _ = self.core.s_forward(E_hat)
 
+        # Optional Noise injection
+        if self.phase == self.PHASE_ADVERSARIAL and self.noise_std > 0:
+            H_real = H_real + torch.randn_like(H_real) * self.noise_std
+            H_hat = H_hat + torch.randn_like(H_hat) * self.noise_std
+            E_hat = E_hat + torch.randn_like(E_hat) * self.noise_std
+
         # Discriminator outputs
         Y_real, _ = self.core.d_forward(H_real)
         Y_fake, _ = self.core.d_forward(H_hat)
         Y_fake_e, _ = self.core.d_forward(E_hat)
 
-        ones_real = torch.ones_like(Y_real)
+        ones_real = torch.ones_like(Y_real) * self.soft_label
         zeros_fake = torch.zeros_like(Y_fake)
         zeros_fake_e = torch.zeros_like(Y_fake_e)
 

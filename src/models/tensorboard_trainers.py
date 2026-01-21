@@ -51,7 +51,7 @@ def _aggregate_metrics(batch_outputs: list[Any]) -> dict[str, float]:
     return {k: sums[k] / counts[k] for k in sums.keys()}
 
 
-def _log_visualizations(model, fixed_batch, device, writer, epoch):
+def _log_visualizations(model, fixed_batch, device, writer, epoch, suffix):
     """
     Genera un confronto Real vs Fake su TensorBoard.
     """
@@ -82,7 +82,11 @@ def _log_visualizations(model, fixed_batch, device, writer, epoch):
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-        writer.add_figure("Visual/Real_vs_Synth", fig, epoch)
+        writer.add_figure(
+            f"Visual/Real_vs_Synth/{suffix}" if suffix and len(suffix)>0 else "Visual/Real_vs_Synth",
+            fig,
+            epoch
+        )
         plt.close(fig)
 
 
@@ -100,6 +104,7 @@ def train_module(
     # --- Setup TensorBoard ---
     writer = None
     fixed_vis_batch = None
+    suffix = ""
 
     if tensorboard_dir:
         # Assicuriamoci che sia un oggetto Path
@@ -107,8 +112,8 @@ def train_module(
             tensorboard_dir = Path(tensorboard_dir)
 
         # Usiamo l'operatore / di pathlib invece di os.path.join
-        phase_suffix = getattr(model, "phase", "")
-        log_dir = tensorboard_dir / phase_suffix
+        suffix = getattr(model, "phase", "")
+        log_dir = tensorboard_dir / suffix
 
         # SummaryWriter vuole una stringa
         writer = SummaryWriter(log_dir=str(log_dir))
@@ -190,7 +195,7 @@ def train_module(
         # ----------------------------
         if writer and fixed_vis_batch is not None:
             # Salva l'immagine ogni 5 epoche o all'ultima
-            _log_visualizations(model, fixed_vis_batch, device, writer, epoch)
+            _log_visualizations(model, fixed_vis_batch, device, writer, epoch, suffix)
 
         # ----------------------------
         # SUMMARY PRINT

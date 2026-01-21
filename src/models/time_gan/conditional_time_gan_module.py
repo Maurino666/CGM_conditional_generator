@@ -29,6 +29,8 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         grad_clip_D: float | None = 0.5,
         g_steps_per_iter: int = 2,
         d_loss_threshold: float = 0.15,
+        noise_std: float = 0.0,
+        soft_label: float = 1.0
     ) -> None:
         """
         Parameters
@@ -61,6 +63,8 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
             grad_clip_D=grad_clip_D,
             g_steps_per_iter=g_steps_per_iter,
             d_loss_threshold=d_loss_threshold,
+            noise_std=noise_std,
+            soft_label=soft_label,
         )
 
         self.cond_dim = cond_dim

@@ -113,7 +113,7 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
 
         # 3. Preparing the arguments required by self.generate()
         gen_kwargs = {
-            "c": data_dict["c"]
+            "cond_seq": data_dict["c"]
         }
 
         return real_X, gen_kwargs

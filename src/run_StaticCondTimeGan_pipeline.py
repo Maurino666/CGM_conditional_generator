@@ -188,11 +188,6 @@ def main() -> None:
         print("   [Setup] WARNING: Validation loader is empty! Visualization disabled.")
         fixed_vis_batch = None
 
-    visualizer = GenerativeVisualizer(
-        fixed_batch=fixed_vis_batch,
-        device=device,
-        every_n_epochs=5
-    )
 
     # C. Instantiate Model
     model = StaticConditionalTimeGanModule(
@@ -225,7 +220,30 @@ def main() -> None:
     # --- Phase 3: Adversarial (Joint) ---
     print("\n   [Phase 3] Adversarial (Joint)...")
     model.set_phase("adv")
-    trainer.fit(model, ADV_EPOCHS, pack.train_split.loader, pack.val_split.loader, callbacks=[visualizer])
+    trainer.fit(
+        model,
+        ADV_EPOCHS,
+        pack.train_split.loader,
+        pack.val_split.loader,
+        callbacks=[
+            GenerativeVisualizer(
+                fixed_batch=fixed_vis_batch,
+                device=device,
+                every_n_epochs=5
+            ),
+            GenerativeMomentsMetric(
+                device=device,
+                every_n_epochs=5,
+                max_batches=10,
+            ),
+            GenerativePCAVisualizer(
+                device=device,
+                every_n_epochs=5,
+                max_batches=10,
+                n_components=2
+            )
+        ]
+    )
 
     print(f"\n   Saving final model to {output_dir}...")
     torch.save(model.state_dict(), output_dir / "timegan_model.pth")

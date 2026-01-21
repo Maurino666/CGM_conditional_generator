@@ -11,6 +11,9 @@ class Trainer:
     callbacks: list[Callback] | None
     max_epochs: int
 
+    train_loader: torch.utils.data.DataLoader
+    val_loader: torch.utils.data.DataLoader
+
     def __init__(
             self,
             device: torch.device,
@@ -36,6 +39,9 @@ class Trainer:
 
         self.max_epochs = max_epochs
         self.callbacks = callbacks if callbacks is not None else []
+
+        self.train_loader = train_loader
+        self.val_loader = val_loader
 
         self._fire_callback("on_train_start", model)
 

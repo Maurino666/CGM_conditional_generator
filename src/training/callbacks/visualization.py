@@ -14,7 +14,7 @@ class GenerativeVisualizer(Callback):
     def __init__(self, fixed_batch, device: torch.device, every_n_epochs: int = 5):
         """
         Args:
-            fixed_batch: A tuple (X, C) or tensor X to be used as a fixed reference.
+            fixed_batch: A tuple or tensor structure representing a fixed reference batch.
             device: The device where the model is running.
             every_n_epochs: Frequency of logging.
         """
@@ -27,34 +27,33 @@ class GenerativeVisualizer(Callback):
         if epoch % self.every_n_epochs != 0:
             return
 
-        # Safety check: does the model support generation?
-        # This allows reusing this callback for AE phase (if implemented) or skipping it safely.
-        if not hasattr(model, "generate"):
+        # Safety check: ensure model supports generation and input preparation
+        if not hasattr(model, "generate") or not hasattr(model, "prepare_generation_inputs"):
             return
 
         model.eval()
         with torch.no_grad():
 
-            # 1. Prepare Inputs
-            # Assuming fixed_batch comes from WindowPack: usually (target, condition)
-            if isinstance(self.fixed_batch, (list, tuple)) and len(self.fixed_batch) == 3:
-                real_X, c_dyn, c_stat = self.fixed_batch
-                out = model.generate(c_dyn, c_stat)
+            # 1. Prepare Inputs using the Model's Adapter
+            # The model knows how to unpack fixed_batch and move necessary
+            # conditions to the correct device.
+            real_X, gen_kwargs = model.prepare_generation_inputs(self.fixed_batch)
 
-            # Check if batch has 2 elements: [y, c] -> Conditional GAN
-            elif isinstance(self.fixed_batch, (list, tuple)) and len(self.fixed_batch) == 2:
-                real_X, c = self.fixed_batch
-                out = model.generate(c)
-            else:
-                raise ValueError(f"Unexpected batch structure. Expected [y, c], got {type(batch)}")
+            # 2. Generate
+            # Pass the arguments exactly as the model expects them
+            out = model.generate(**gen_kwargs)
 
-
+            # Handle tuple output
             if isinstance(out, tuple):
                 fake_X = out[0]
             else:
                 fake_X = out
 
-            real_X = real_X.detach().cpu().numpy()
+            # Move results to CPU and convert to Numpy for plotting
+            # real_X might still be on GPU depending on prepare_generation_inputs implementation
+            if isinstance(real_X, torch.Tensor):
+                real_X = real_X.detach().cpu().numpy()
+
             fake_X = fake_X.detach().cpu().numpy()
 
         # 3. Create Plot (Comparison of the first subject in the batch)
@@ -77,5 +76,8 @@ class GenerativeVisualizer(Callback):
         # 4. Log to TensorBoard (via Trainer's Logger)
         if trainer.logger:
             trainer.logger.log_figure("Visual/Real_vs_Fake", fig, step=epoch)
+            # Optional: force flush to disk to avoid missing plots in UI
+            if hasattr(trainer.logger, 'writer'):
+                trainer.logger.writer.flush()
 
         plt.close(fig)  # Close figure to free memory

@@ -23,8 +23,8 @@ from models import StaticConditionalTimeGanModule
 
 # --- 6. Import NEW Training Components ---
 from training import Trainer
-from training.loggers import TensorBoardLogger
-from training.callbacks import GenerativeVisualizer
+from training.loggers import WandBLogger
+from training.callbacks import GenerativeVisualizer, GenerativeMomentsMetric, GenerativePCAVisualizer
 
 # --- 7. Import Inference Component ---
 from inference import InferenceOrchestrator
@@ -71,6 +71,37 @@ def main() -> None:
     ADV_EPOCHS = 100
     # Builder extras
     FORCE_DEVICE = device
+
+    RUN_NAME = "LowLR_HighThreshold_SW_1_MW_001"
+
+    # configs for logging
+    config = {
+        "seq_len": SEQ_LEN,
+        "val_ratio": VAL_RATIO,
+        "batch_size": BATCH_SIZE,
+        "num_workers": NUM_WORKERS,
+        "train_steps": TRAIN_STEP,
+        "split_strategy": SPLIT_STRATEGY,
+        "hidden_dim": HIDDEN_DIM,
+        "num_layers": NUM_LAYERS,
+        "noise_dim": NOISE_DIM,
+        "g_steps_per_iter": G_STEPS_PER_ITER,
+        "noise_std": NOISE_STD,
+        "soft_label": SOFT_LABEL,
+        "supervised_weight": SUPERVISED_WEIGHT,
+        "moment_weight": MOMENT_WEIGHT,
+        "gamma": GAMMA,
+        "lr": LR,
+        "d_loss_threshold": D_LOSS_THRESHOLD,
+        "ae_epochs": AE_EPOCHS,
+        "sup_epochs": SUP_EPOCHS,
+        "adv_epochs": ADV_EPOCHS,
+    }
+
+
+    base_dir = Path("../runs")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    experiment_name = f"{timestamp}_{RUN_NAME}"
 
     # -------------------------------------------------------------------------
     # 1. DATA INGESTION (Load & Clean)
@@ -153,7 +184,7 @@ def main() -> None:
         dfs=val_dfs_norm,
         seq_len=SEQ_LEN,
         step=SEQ_LEN,
-        shuffle=False,
+        shuffle=True,
         split_name="Validation"
     )
 
@@ -178,7 +209,12 @@ def main() -> None:
     print(f"\n>>> 5. Training ConditionalTimeGAN (Modular Trainer)...")
 
     # A. Setup Logger
-    tb_logger = TensorBoardLogger(log_dir=output_dir / "tensorboard")
+    logger = WandBLogger(
+        project_name="CGM_conditional_generation",
+        run_name=experiment_name,
+        config=config,
+        log_dir=output_dir,
+    )
 
     # B. Setup Visualizer Callback
     try:
@@ -209,7 +245,7 @@ def main() -> None:
     # --- Phase 1: Autoencoder ---
     print("\n   [Phase 1] Autoencoder...")
     model.set_phase("ae")
-    trainer = Trainer(device=device, logger=tb_logger, log_every_n_steps= 50)
+    trainer = Trainer(device=device, logger=logger, log_every_n_steps= 50)
     trainer.fit(model, AE_EPOCHS, pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 2: Supervisor ---
@@ -247,7 +283,7 @@ def main() -> None:
 
     print(f"\n   Saving final model to {output_dir}...")
     torch.save(model.state_dict(), output_dir / "timegan_model.pth")
-    tb_logger.close()
+    logger.close()
 
     # -------------------------------------------------------------------------
     # 6. GENERATION & RECONSTRUCTION (New Inference Orchestrator)

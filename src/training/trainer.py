@@ -27,6 +27,7 @@ class Trainer:
 
         self.val_check_interval = val_check_interval
 
+
     def fit(
             self,
             model: BaseTrainableModule,
@@ -46,6 +47,7 @@ class Trainer:
         self._fire_callback("on_train_start", model)
 
         for epoch in range(1, max_epochs + 1):
+            epoch += 1
             self._fire_callback("on_epoch_start", model, epoch=epoch)
 
             # --- TRAINING LOOP ---
@@ -62,8 +64,15 @@ class Trainer:
                 val_metrics = self._run_epoch(model, val_loader, phase="val", epoch=epoch)
 
             # --- LOGGING ---
-            all_metrics = {**train_metrics, **val_metrics}
-
+            all_metrics = {
+                'epoch': epoch,
+                **train_metrics, 
+                **val_metrics
+            }
+            
+            if model.phase:
+                all_metrics['phase'] = model.phase
+            
             if self.logger:
                 self.logger.log_metrics(all_metrics, step=epoch, phase="epoch")
 

@@ -68,7 +68,7 @@ def main() -> None:
     # Training params
     AE_EPOCHS = 50
     SUP_EPOCHS = 20
-    ADV_EPOCHS = 150
+    ADV_EPOCHS = 100
     # Builder extras
     FORCE_DEVICE = device
 
@@ -99,7 +99,7 @@ def main() -> None:
         # ds.augment()
 
     sample_df = ds1.all_data[0]
-    final_cond_cols = [c for c in sample_df.columns if c != target_col]
+    final_cond_cols = [c for c in sample_df.columns if c != target_col and c not in global_config["schema"]["static_cols"]]
     print(f"   Features Detected: {len(final_cond_cols)} conditional columns.")
 
     # -------------------------------------------------------------------------

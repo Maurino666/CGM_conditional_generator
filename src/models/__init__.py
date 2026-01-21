@@ -6,14 +6,16 @@ from .rnn_vae import ConditionalRnnVaeModule
 
 from .time_gan import TimeGanModule
 from .time_gan import ConditionalTimeGanModule
+from .time_gan import StaticConditionalTimeGanModule
 
 __all__ = [
-    "BaseTrainableModule",
-    "load_any_model",
+    BaseTrainableModule,
+    load_any_model,
 
-    "RnnVaeModule",
-    "ConditionalRnnVaeModule",
+    RnnVaeModule,
+    ConditionalRnnVaeModule,
 
-    "TimeGanModule",
-    "ConditionalTimeGanModule",
+    TimeGanModule,
+    ConditionalTimeGanModule,
+    StaticConditionalTimeGanModule,
 ]

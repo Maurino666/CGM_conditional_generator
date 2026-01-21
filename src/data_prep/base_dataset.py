@@ -103,7 +103,8 @@ class BaseDataset:
             'defaults': self.config['schema'].get('defaults', {}),
             'impulse_cols': self.global_config['schema'].get('impulse_cols', []),
             'time_steps': pd.Timedelta(self.config["sampling"]["target_frequency"]),
-            'max_small_gap': pd.Timedelta(self.global_config["options"].get("max_small_gap", "30min"))
+            'max_small_gap': pd.Timedelta(self.global_config["options"].get("max_small_gap", "30min")),
+            'use_static_cols': patient_metadata_path is not None and patient_metadata_path.exists(),
         }
 
         # 4. Define Pipelines

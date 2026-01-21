@@ -40,7 +40,10 @@ class SchemaStandardizer(DataProcessor):
             # Try to get from global_config inside context
             # context -> global_config -> schema -> cond_cols
             try:
-                cond_cols = context['global_config']['schema']['cond_cols']
+                use_static_cols : bool = context['use_static_cols']
+                global_cond_cols = context['global_config']['schema']['cond_cols']
+                global_static_cols = context['global_config']['schema']['static_cols']
+                cond_cols = [c for c in global_cond_cols if c not in global_static_cols or use_static_cols]
             except KeyError:
                 # If specifically testing without global config, we might skip or warn
                 # For now, we assume it's provided or empty list

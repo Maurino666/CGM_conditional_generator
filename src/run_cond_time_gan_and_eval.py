@@ -36,9 +36,26 @@ def save_results_as_csv_folder(
 
     print(f"   Saving {len(dfs)} CSV files to: {csv_dir}")
 
+
+
     for i, df in enumerate(dfs):
-        # Generate filename (e.g., val_subject_001.csv)
-        filename = f"{prefix}_{i:03d}.csv"
+        unique_id = df.attrs.get("unique_id", None)
+
+        if unique_id:
+            filename = f"{prefix}_{str(unique_id)}.csv"
+        else:
+            subject_id = df.attrs.get("subject_id", None)
+            data_source = df.attrs.get("dataset_source", None)
+
+            if  subject_id:
+                if data_source:
+                    filename = f"{prefix}_{str(data_source)}_{subject_id}.csv"
+                else:
+                    filename = f"{prefix}_{str(subject_id)}.csv"
+            else:
+                filename = f"{prefix}_{i:03d}.csv"
+
+
         save_path = csv_dir / filename
         df.to_csv(save_path, index=True)
 
@@ -131,15 +148,17 @@ def main() -> None:
     print("\n>>> 1. Loading Datasets...")
 
     ds1 = AZT1D2025Dataset(
-        Path("../datasets/AZT1D2025/CGM Records"),
-        Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
+        dataset_root=Path("../datasets/AZT1D2025/CGM Records"),
+        config_file=Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
         global_config_file=global_config_path,
+        patient_metadata_path=Path("../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"),
         logging_dir=Path("../datasets/AZT1D2025/prep_logs"),
     )
     ds2 = HUPA_UCMDataset(
-        Path("../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"),
-        Path("../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"),
+        dataset_root= Path("../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"),
+        config_file= Path("../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"),
         global_config_file=global_config_path,
+        patient_metadata_path= Path("../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"),
         logging_dir=Path("../datasets/HUPA-UCM Diabetes Dataset/prep_logs"),
     )
 
@@ -169,6 +188,8 @@ def main() -> None:
         datasets=all_datasets,
         strategy=SPLIT_STRATEGY
     )
+
+
 
     # -------------------------------------------------------------------------
     # 3. NORMALIZATION (Fit on Train -> Apply to All)
@@ -299,16 +320,21 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 7. SAVING
     # -------------------------------------------------------------------------
-    output_dir = Path("../runs/timegan_chimera_run")
+    output_dir = Path("../runs/time_gan_full_pipeline_test")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n>>> 7. Saving Results to {output_dir}...")
 
+    # Split dfs raw to debug
+    save_results_as_csv_folder(train_dfs_raw, output_dir / "split" / "train", prefix="train")
+    save_results_as_csv_folder(val_dfs_raw, output_dir / "split" / "val", prefix="val")
+
+
     # Save Validation (Test) Results
-    save_results_as_csv_folder(synth_val_dfs, output_dir, prefix="val_subject")
+    save_results_as_csv_folder(synth_val_dfs, output_dir / "val", prefix="val_subject")
 
     # Save TSTR Training Results
-    save_results_as_csv_folder(synth_train_dfs, output_dir, prefix="train_tstr_subject")
+    save_results_as_csv_folder(synth_train_dfs, output_dir / "train", prefix="train_tstr_subject")
 
     # Save Model
     torch.save(model.state_dict(), output_dir / "timegan_model.pth")

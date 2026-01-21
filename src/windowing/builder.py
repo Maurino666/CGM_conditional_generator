@@ -20,7 +20,7 @@ class WindowBuilder:
             cond_cols: list[str],
             batch_size: int = 64,
             num_workers: int = 0,
-            max_missing_ratio: float = 0.05
+            max_missing_ratio: float = 0.0
     ) -> None:
         # Configuration shared across all splits
         self.target_col = target_col
@@ -53,9 +53,25 @@ class WindowBuilder:
         # 1. Build Templates
         templates = {}
         for i, df in enumerate(dfs):
-            # Fallback ID if attribute is missing
-            sid = str(df.attrs.get("subject_id", f"{split_name}_{i}"))
-            templates[sid] = df
+            # Get df information
+            raw_id = str(df.attrs.get("subject_id", f"{split_name}_{i}"))
+            source = df.attrs.get("dataset_source", None)
+
+            # If source is present add it to the id
+            if source:
+                unique_id = f"{source}_{raw_id}"
+            else:
+                unique_id = raw_id
+
+            # Safety check: if already exists does not override
+            if unique_id in templates:
+                print(f"     [Warning] ID Collision detected for {unique_id}. Appending index.")
+                unique_id = f"{unique_id}_{i}"
+
+            # update df attr
+            df.attrs["unique_id"] = unique_id
+
+            templates[unique_id] = df
 
         # 2. Slice Windows
         y_data, c_data, metadata = build_conditional_windows(
@@ -74,7 +90,7 @@ class WindowBuilder:
         if count > 0:
             y_tensor = torch.tensor(y_data, dtype=torch.float32)
             c_tensor = torch.tensor(c_data, dtype=torch.float32)
-            dataset = TensorDataset(c_tensor, y_tensor)
+            dataset = TensorDataset(y_tensor, c_tensor)
 
             loader = DataLoader(
                 dataset,

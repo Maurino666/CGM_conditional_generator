@@ -10,6 +10,7 @@ class OhioT1DMDataset(BaseDataset):
     modifications. If specific cleaning logic is needed in the future,
     implement a DataProcessor and inject it in __init__.
     """
+    name = "ohiot1dmMini"
 
     def __init__(
             self,

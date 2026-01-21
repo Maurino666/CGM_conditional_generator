@@ -181,3 +181,40 @@ def denormalize_numpy_array(
     # Apply inverse transformation
     # We assume 'array' is float32/64.
     return array * span + min_val
+
+
+def denormalize_dataframes(
+        dfs: list[pd.DataFrame],
+        scaling_params: dict[str, tuple[float, float]]
+) -> list[pd.DataFrame]:
+    """
+    Denormalizes a list of DataFrames in-place (or returning copies)
+    using the provided scaling parameters.
+
+    It ignores columns in the DataFrame that are not present in scaling_params.
+    """
+    if not dfs:
+        return []
+
+    # 1. Pre-calculate spans to make the loop faster
+    # map: col_name -> (min, span)
+    params_map = {}
+    for col, (min_v, max_v) in scaling_params.items():
+        params_map[col] = (min_v, max_v - min_v)
+
+    denormalized_dfs = []
+
+    for df in dfs:
+        # Work on a copy to avoid side-effects on the original templates
+        df_out = df.copy()
+
+        for col, (min_v, span) in params_map.items():
+            if col in df_out.columns:
+                # Formula: real = norm * span + min
+                df_out[col] = df_out[col] * span + min_v
+
+        df_out.attrs = df.attrs.copy()
+        denormalized_dfs.append(df_out)
+
+    return denormalized_dfs
+

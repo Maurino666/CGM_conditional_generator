@@ -34,6 +34,7 @@ class HUPA_UCMDataset(BaseDataset):
     It extends BaseDataset by injecting a specific scaling step
     into the cleaning pipeline.
     """
+    name="hupa_ucm"
 
     def __init__(
             self,

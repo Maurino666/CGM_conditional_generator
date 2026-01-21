@@ -48,6 +48,7 @@ class AZT1D2025Dataset(BaseDataset):
     It extends BaseDataset by injecting a specific cleaning step
     into the cleaning pipeline.
     """
+    name = "azt1d2025"
 
     def __init__(
             self,

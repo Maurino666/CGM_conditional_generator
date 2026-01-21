@@ -6,7 +6,7 @@ import pandas as pd
 
 # Imports from your project structure
 from windowing.utils import WindowMetadata
-from data_management.normalization import denormalize_numpy_array
+from data_management.normalization import denormalize_numpy_array, denormalize_dataframes
 from .strategies import ReconstructionStrategy, OverwriteStrategy, AverageStrategy
 
 
@@ -76,7 +76,7 @@ class WindowReconstructor:
         # It is mathematically cleaner to average real values than normalized ones.
         final_y_windows = y_hat_windows
         if scaling_params is not None:
-            print(f"   [Reconstructor] Denormalizing '{self.cfg.target_col}' before reconstruction...")
+            print(f"   [Reconstructor] De-normalizing '{self.cfg.target_col}' before reconstruction...")
             final_y_windows = denormalize_numpy_array(
                 array=y_hat_windows,
                 feature_name=self.cfg.target_col,
@@ -108,7 +108,7 @@ class WindowReconstructor:
             )
 
         # 5. Finalize and Build DataFrames
-        output_dfs = []
+        raw_dfs = []
 
         # Sort keys to ensure deterministic output order
         for sid in sorted(templates.keys()):
@@ -140,8 +140,12 @@ class WindowReconstructor:
             df_out[self.cfg.synth_col] = synth_array.flatten()
 
             # Add metadata for traceability
-            df_out.attrs["subject_id"] = sid
+            df_out.attrs["unique_id"] = sid
 
-            output_dfs.append(df_out)
+            raw_dfs.append(df_out)
 
-        return output_dfs
+        if scaling_params is not None:
+            print(f"   [Reconstructor] Batch de-normalizing {len(raw_dfs)} subjects...")
+            return denormalize_dataframes(raw_dfs, scaling_params)
+
+        return raw_dfs

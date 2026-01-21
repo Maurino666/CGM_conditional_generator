@@ -45,7 +45,7 @@ def test_fill_data_interpolates_target_and_applies_defaults(tmp_path: Path) -> N
     out_dir = tmp_path / "plots"
 
     filled_list = fill_data(
-        all_data=all_data,
+        data=all_data,
         expected=expected,
         max_gap=max_gap,
         target_col=target_col,

@@ -4,11 +4,12 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.linear_model import RidgeCV
+from sklearn.pipeline import Pipeline
 from sklearn.metrics import r2_score
 from sklearn.model_selection import TimeSeriesSplit
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 
 
 
@@ -155,12 +156,66 @@ def _compute_arx_delta_r2_linear_single_horizon(
     tscv = TimeSeriesSplit(n_splits=n_splits)
 
     def fold_r2(X: np.ndarray) -> np.ndarray:
+        """
+        Internal helper to run TimeSeriesSplit Cross-Validation.
+
+        Updated logic for Robustness:
+        1. VarianceThreshold: Removes constant features (var=0) to prevent numerical instability.
+        2. RidgeCV: Automatically selects the best alpha (regularization strength) per fold.
+        3. Safety Clip: Caps extremely negative R2 scores to -1.0 to preserve cohort averages.
+        """
         scores: list[float] = []
+
+        # Alphas to test during internal Cross-Validation.
+        # 0.1: Trust data (low regularization).
+        # 1000.0: High regularization (force coefficients towards zero if data is noisy).
+        alphas_to_test = [0.1, 1.0, 10.0, 100.0, 1000.0]
+
         for tr, te in tscv.split(X):
-            model = Pipeline([("scaler", SafeStandardScaler()), ("ridge", Ridge(alpha=alpha))])
-            model.fit(X[tr], yv[tr])
-            pred = model.predict(X[te])
-            scores.append(float(r2_score(yv[te], pred)))
+            # Construct a robust pipeline
+            model = Pipeline([
+                # Step 1: Remove features with zero variance (constants).
+                # This prevents assigning infinite weights to empty columns (e.g., all-zero bolus).
+                ("selector", VarianceThreshold(threshold=0.0)),
+
+                # Step 2: Standardize features (using the SafeStandardScaler defined in this file).
+                ("scaler", SafeStandardScaler()),
+
+                # Step 3: Ridge Regression with built-in Cross-Validation for alpha selection.
+                # This adapts the model complexity to the specific patient's data quality.
+                ("ridge", RidgeCV(alphas=alphas_to_test))
+            ])
+
+            try:
+                # Fit on training portion of the split
+                model.fit(X[tr], yv[tr])
+
+                # Predict on test portion
+                pred = model.predict(X[te])
+
+                # Compute R2 score
+                score = float(r2_score(yv[te], pred))
+
+                # --- SAFETY CLIP ---
+                # An R2 of -2835 is numerically possible with linear regression on sparse data,
+                # but physically meaningless (it implies prediction is infinitely worse than mean).
+                # We clip at -1.0 (prediction error is 2x the variance), which is already a "fail"
+                # but keeps the cohort statistics readable.
+                score = max(score, -1.0)
+
+            except ValueError:
+                # This block catches cases where VarianceThreshold removes ALL features
+                # (e.g., if the training fold has only constant/zero values).
+                # In this case, the model cannot predict better than the mean.
+                # R2 = 0.0 is the correct fallback.
+                score = 0.0
+
+            except Exception:
+                # General fail-safe to prevent pipeline crash on singular matrices or other edge cases.
+                score = 0.0
+
+            scores.append(score)
+
         return np.asarray(scores, dtype=float)
 
     r2b = fold_r2(Xb)

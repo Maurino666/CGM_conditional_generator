@@ -73,6 +73,17 @@ class Evaluator:
             tables.per_subject.setdefault(str(subject_id), {})
 
             for j, metric in enumerate(self.metrics):
+                # Filter single metrics
+                if metric.requires_synth:
+                    if self.cfg.synth_col is None:
+                        # Skip metric that requires synthetic
+                        continue
+                    if self.cfg.synth_col not in df.columns:
+                        # Defensive Skip: synth column not in df
+                        if self.verbose:
+                            print(f"  [Skip] {metric.name} requires '{self.cfg.synth_col}' (missing).")
+                        continue
+
                 if self.verbose:
                     print(f"  - ({j + 1}/{len(self.metrics)}) {metric.name}... ")
 
@@ -148,13 +159,21 @@ class Evaluator:
     def _ensure_target_lags(self, df: pd.DataFrame, time_index: pd.DatetimeIndex) -> pd.DataFrame:
         dt_min = self._infer_dt_minutes(time_index)
 
-        for m in self.cfg.lag_minutes or []:
-            col = f"{self.cfg.target_col}_lag_{int(m)}m"
-            if col in df.columns:
-                continue
+        # List of columns "to lag"
+        cols_to_lag = [self.cfg.target_col]
 
-            steps = max(1, int(round(float(m) / dt_min)))
-            df[col] = df[self.cfg.target_col].shift(steps)
+        # Add synthetic col only if present
+        if self.cfg.synth_col is not None and self.cfg.synth_col in df.columns:
+            cols_to_lag.append(self.cfg.synth_col)
+
+        for base_col in cols_to_lag:
+            for m in self.cfg.lag_minutes or []:
+                col_name = f"{base_col}_lag_{int(m)}m"
+                if col_name in df.columns:
+                    continue
+
+                steps = max(1, int(round(float(m) / dt_min)))
+                df[col_name] = df[base_col].shift(steps)
 
         return df
 

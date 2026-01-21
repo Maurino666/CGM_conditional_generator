@@ -13,6 +13,8 @@ class EvaluationConfig:
     time_col: str | None = None  # If None, assume the index represents time
     subject_id_col: str | None = None  # If present, assume it is constant within each subject DataFrame
 
+    synth_col: str | None = None
+
     feature_groups: dict[str, list[str]] | None = None
 
     # Shared derived features
@@ -70,6 +72,7 @@ class Metric:
     - artifacts: optional saved files (e.g., PNG plots), usually controlled by cfg
     """
     name: str
+    requires_synth: bool = False
 
     def compute(self, subject_id: int, df: pd.DataFrame, cfg: EvaluationConfig) -> MetricOutput:
         raise NotImplementedError

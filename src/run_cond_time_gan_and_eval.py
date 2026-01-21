@@ -139,7 +139,7 @@ def main() -> None:
     # Configuration Constants
     SEQ_LEN = 24
     VAL_RATIO = 0.2
-    BATCH_SIZE = 64
+    BATCH_SIZE = 2048
     SPLIT_STRATEGY = "subject"  # 'subject' (Stratified) or 'time'
 
     # -------------------------------------------------------------------------
@@ -217,6 +217,7 @@ def main() -> None:
         target_col=target_col,
         cond_cols=final_cond_cols,
         batch_size=BATCH_SIZE,
+        num_workers= 4,
         max_missing_ratio=0.05
     )
 
@@ -253,29 +254,56 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 5. TRAINING
     # -------------------------------------------------------------------------
+
+    output_dir = Path("../runs/full_pipeline_true_training")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     print(f"\n>>> 5. Training ConditionalTimeGAN...")
 
     model = ConditionalTimeGanModule(
         cond_dim=len(final_cond_cols),
-        hidden_dim=32,
-        num_layers=2,
+        hidden_dim=256,
+        num_layers=3,
         g_steps_per_iter=1,
     ).to(device)
 
-    # Short epochs for testing purposes
-    epochs = 2
+
 
     print("   [Phase 1] Autoencoder...")
     model.set_phase("ae")
-    train_module(model, pack.train_split.loader, pack.val_split.loader, epochs, device)
+    train_module(
+        model,
+        pack.train_split.loader,
+        pack.val_split.loader,
+        10,
+        device,
+        tensorboard_dir=output_dir / "tensorboard",
+    )
 
     print("   [Phase 2] Supervisor...")
     model.set_phase("sup")
-    train_module(model, pack.train_split.loader, pack.val_split.loader, epochs, device)
+    train_module(
+        model,
+        pack.train_split.loader,
+        pack.val_split.loader,
+        5,
+        device,
+        tensorboard_dir=output_dir / "tensorboard",
+    )
 
     print("   [Phase 3] Adversarial (Joint)...")
     model.set_phase("adv")
-    train_module(model, pack.train_split.loader, pack.val_split.loader, epochs, device)
+    train_module(
+        model,
+        pack.train_split.loader,
+        pack.val_split.loader,
+        100,
+        device,
+        tensorboard_dir=output_dir / "tensorboard",
+    )
+
+    # Save Model
+    torch.save(model.state_dict(), output_dir / "timegan_model.pth")
 
     # -------------------------------------------------------------------------
     # 6. GENERATION & RECONSTRUCTION (Advanced)
@@ -320,7 +348,7 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 7. SAVING
     # -------------------------------------------------------------------------
-    output_dir = Path("../runs/time_gan_full_pipeline_test")
+    output_dir = Path("../runs/full_pipeline_true_training")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n>>> 7. Saving Results to {output_dir}...")
@@ -336,8 +364,6 @@ def main() -> None:
     # Save TSTR Training Results
     save_results_as_csv_folder(synth_train_dfs, output_dir / "train", prefix="train_tstr_subject")
 
-    # Save Model
-    torch.save(model.state_dict(), output_dir / "timegan_model.pth")
 
     print("\n>>> Pipeline Completed Successfully. 🎉")
     print("    You now have:")

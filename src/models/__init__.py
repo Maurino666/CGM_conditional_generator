@@ -1,5 +1,5 @@
 from .module_interfaces import BaseTrainableModule
-from .trainers import train_module
+from .tensorboard_trainers import train_module
 from .loaders import load_any_model
 
 from .rnn_vae import RnnVaeModule

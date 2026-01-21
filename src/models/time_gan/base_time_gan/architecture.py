@@ -62,16 +62,15 @@ class Encoder(nn.Module):
     ):
         super(Encoder, self).__init__()
         self.rnn = nn.GRU(input_size=z_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
-        # self.norm = nn.BatchNorm1d(opt.hidden_dim)
+        self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
-        self.sigmoid = nn.Sigmoid()
+        self.tanh = nn.Tanh()
         self.apply(_weights_init)
 
     def forward(
             self,
             input: Tensor,
             hidden_state: Tensor | None = None,
-            sigmoid=True
     ):
         """
         Forward pass with optional hidden state propagation.
@@ -79,7 +78,6 @@ class Encoder(nn.Module):
         Args:
             input (torch.Tensor): Input sequence features.
             hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
-            sigmoid (bool): Whether to apply sigmoid activation to the output.
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor]:
@@ -87,9 +85,9 @@ class Encoder(nn.Module):
                 - h_new: Updated hidden state.
         """
         e_outputs, h_new = self.rnn(input, hidden_state)
+        e_outputs = self.norm(e_outputs)
         H = self.fc(e_outputs)
-        if sigmoid:
-            H = self.sigmoid(H)
+        H = self.tanh(H)
         return H, h_new
 
 
@@ -120,7 +118,6 @@ class Recovery(nn.Module):
             self,
             input: Tensor,
             hidden_state: Tensor | None = None,
-            sigmoid=True
     ):
         """
         Forward pass with optional hidden state propagation.
@@ -128,7 +125,6 @@ class Recovery(nn.Module):
         Args:
             input (torch.Tensor): Latent representation.
             hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
-            sigmoid (bool): Whether to apply sigmoid activation to the output.
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor]:
@@ -137,8 +133,7 @@ class Recovery(nn.Module):
         """
         r_outputs, h_new = self.rnn(input, hidden_state)
         X_tilde = self.fc(r_outputs)
-        if sigmoid:
-            X_tilde = self.sigmoid(X_tilde)
+        X_tilde = self.sigmoid(X_tilde)
         return X_tilde, h_new
 
 
@@ -159,16 +154,15 @@ class Generator(nn.Module):
     ):
         super(Generator, self).__init__()
         self.rnn = nn.GRU(input_size=z_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
-        # self.norm = nn.LayerNorm(opt.hidden_dim)
+        self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
-        self.sigmoid = nn.Sigmoid()
+        self.tanh = nn.Tanh()
         self.apply(_weights_init)
 
     def forward(
             self,
             input: Tensor,
             hidden_state: Tensor | None = None,
-            sigmoid=True
     ):
         """
         Forward pass with optional hidden state propagation.
@@ -176,7 +170,6 @@ class Generator(nn.Module):
         Args:
             input (torch.Tensor): Random variables (concatenated with conditions if applicable).
             hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
-            sigmoid (bool): Whether to apply sigmoid activation to the output.
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor]:
@@ -184,10 +177,9 @@ class Generator(nn.Module):
                 - h_new: Updated hidden state.
         """
         g_outputs, h_new = self.rnn(input, hidden_state)
-        #  g_outputs = self.norm(g_outputs)
+        g_outputs = self.norm(g_outputs)
         E = self.fc(g_outputs)
-        if sigmoid:
-            E = self.sigmoid(E)
+        E = self.tanh(E)
         return E, h_new
 
 
@@ -206,16 +198,15 @@ class Supervisor(nn.Module):
     ):
         super(Supervisor, self).__init__()
         self.rnn = nn.GRU(input_size=hidden_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
-        # self.norm = nn.LayerNorm(opt.hidden_dim)
+        self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
-        self.sigmoid = nn.Sigmoid()
+        self.tanh = nn.Tanh()
         self.apply(_weights_init)
 
     def forward(
             self,
             input: Tensor,
             hidden_state: Tensor | None = None,
-            sigmoid=True
     ):
         """
         Forward pass with optional hidden state propagation.
@@ -223,7 +214,6 @@ class Supervisor(nn.Module):
         Args:
             input (torch.Tensor): Latent representation.
             hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
-            sigmoid (bool): Whether to apply sigmoid activation to the output.
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor]:
@@ -231,10 +221,9 @@ class Supervisor(nn.Module):
                 - h_new: Updated hidden state.
         """
         s_outputs, h_new = self.rnn(input, hidden_state)
-        #  s_outputs = self.norm(s_outputs)
+        s_outputs = self.norm(s_outputs)
         S = self.fc(s_outputs)
-        if sigmoid:
-            S = self.sigmoid(S)
+        S = self.tanh(S)
         return S, h_new
 
 
@@ -253,8 +242,8 @@ class Discriminator(nn.Module):
     ):
         super(Discriminator, self).__init__()
         self.rnn = nn.GRU(input_size=hidden_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
-        #  self.norm = nn.LayerNorm(opt.hidden_dim)
-        self.fc = nn.Linear(hidden_dim, hidden_dim)
+        self.norm = nn.LayerNorm(hidden_dim)
+        self.fc = nn.Linear(hidden_dim, 1)
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 
@@ -262,7 +251,6 @@ class Discriminator(nn.Module):
             self,
             input: Tensor,
             hidden_state: Tensor | None = None,
-            sigmoid=True
     ):
         """
         Forward pass with optional hidden state propagation.
@@ -270,7 +258,6 @@ class Discriminator(nn.Module):
         Args:
             input (torch.Tensor): Latent representation.
             hidden_state (torch.Tensor, optional): Previous hidden state. Defaults to None.
-            sigmoid (bool): Whether to apply sigmoid activation to the output.
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor]:
@@ -278,16 +265,16 @@ class Discriminator(nn.Module):
                 - h_new: Updated hidden state.
         """
         d_outputs, h_new = self.rnn(input, hidden_state)
+        d_outputs = self.norm(d_outputs) # to change if discriminator becomes too strong
         Y_hat = self.fc(d_outputs)
-        if sigmoid:
-            Y_hat = self.sigmoid(Y_hat)
+        Y_hat = self.sigmoid(Y_hat)
         return Y_hat, h_new
 
 class TimeGan(nn.Module):
     """
     Pure TimeGAN networks: Encoder, Recovery, Generator, Supervisor, Discriminator.
 
-    This class wraps the sub-modules and provides forward methods that expose
+    This class wraps the submodules and provides forward methods that expose
     hidden state management for stateful generation.
     """
 
@@ -306,8 +293,8 @@ class TimeGan(nn.Module):
             num_layers=num_layers,
         )
         self.recovery = Recovery(
-            hidden_dim=hidden_dim,
             z_dim=recovery_output_dim,
+            hidden_dim=hidden_dim,
             num_layers=num_layers,
         )
         self.generator = Generator(

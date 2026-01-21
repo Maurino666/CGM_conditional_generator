@@ -16,13 +16,13 @@
 
 🔹 basal_rate  [float64]
    • unique values: 407
-   • missing values: 35.4%
-   • min=0.00, median=2.10, max=1910.00
+   • missing values: 34.8%
+   • min=0.00, median=2.11, max=1910.00
    • most frequent values:
        3.00 → 550
        2.20 → 431
        2.10 → 384
-       2.90 → 192
+       2.90 → 246
        1.93 → 156
 ----------------------------------------------------------------------------------------------------
 
@@ -65,23 +65,23 @@
 🔹 carbs  [float64]
    • unique values: 22
    • missing values: 1.9%
-   • min=0.00, median=0.00, max=850.00
+   • min=0.00, median=0.00, max=85.00
    • most frequent values:
        0.00 → 10798
-       250.00 → 31
-       200.00 → 27
-       450.00 → 27
-       500.00 → 18
+       25.00 → 31
+       20.00 → 27
+       45.00 → 27
+       50.00 → 18
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 1
    • missing values: 1.9%
    • most frequent values:
        Unknown → 11018
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 1.9%
    • most frequent values:
@@ -112,7 +112,7 @@
    • missing values: 29.0%
    • min=0.00, median=0.40, max=1.38
    • most frequent values:
-       0.40 → 1034
+       0.40 → 1036
        0.35 → 180
        0.37 → 119
        0.00 → 72
@@ -158,16 +158,16 @@
 🔹 carbs  [float64]
    • unique values: 35
    • missing values: 0.7%
-   • min=0.00, median=0.00, max=620.00
+   • min=0.00, median=0.00, max=62.00
    • most frequent values:
        0.00 → 10908
-       50.00 → 39
-       80.00 → 33
-       100.00 → 25
-       350.00 → 17
+       5.00 → 39
+       8.00 → 33
+       10.00 → 25
+       35.00 → 17
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 0.7%
    • most frequent values:
@@ -176,7 +176,7 @@
        exercise → 60
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 0.7%
    • most frequent values:
@@ -204,11 +204,11 @@
 
 🔹 basal_rate  [float64]
    • unique values: 488
-   • missing values: 34.1%
-   • min=0.00, median=1.88, max=6.16
+   • missing values: 33.2%
+   • min=0.00, median=1.91, max=6.16
    • most frequent values:
-       2.10 → 984
-       1.93 → 157
+       2.10 → 1028
+       1.93 → 169
        1.80 → 96
        1.23 → 56
        0.00 → 50
@@ -253,16 +253,16 @@
 🔹 carbs  [float64]
    • unique values: 41
    • missing values: 3.8%
-   • min=0.00, median=0.00, max=700.00
+   • min=0.00, median=0.00, max=70.00
    • most frequent values:
        0.00 → 10588
-       80.00 → 29
-       60.00 → 21
-       500.00 → 17
-       120.00 → 15
+       8.00 → 29
+       6.00 → 21
+       50.00 → 17
+       12.00 → 15
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 3.8%
    • most frequent values:
@@ -270,7 +270,7 @@
        sleep → 2872
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 3.8%
    • most frequent values:
@@ -298,14 +298,14 @@
 
 🔹 basal_rate  [float64]
    • unique values: 417
-   • missing values: 42.5%
-   • min=0.00, median=0.76, max=1.92
+   • missing values: 40.8%
+   • min=0.00, median=0.77, max=1.92
    • most frequent values:
        0.75 → 484
        0.72 → 385
+       1.52 → 232
        0.80 → 124
        0.75 → 84
-       0.77 → 84
 ----------------------------------------------------------------------------------------------------
 
 🔹 bolus_total  [float64]
@@ -347,16 +347,16 @@
 🔹 carbs  [float64]
    • unique values: 7
    • missing values: 0.8%
-   • min=0.00, median=0.00, max=350.00
+   • min=0.00, median=0.00, max=35.00
    • most frequent values:
        0.00 → 12655
-       150.00 → 44
-       200.00 → 40
-       250.00 → 24
-       100.00 → 12
+       15.00 → 44
+       20.00 → 40
+       25.00 → 24
+       10.00 → 12
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 0.8%
    • most frequent values:
@@ -364,7 +364,7 @@
        sleep → 2575
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 4
    • missing values: 0.8%
    • most frequent values:
@@ -391,10 +391,10 @@
 
 🔹 basal_rate  [float64]
    • unique values: 350
-   • missing values: 40.7%
+   • missing values: 40.6%
    • min=0.00, median=0.61, max=1.89
    • most frequent values:
-       1.05 → 717
+       1.05 → 718
        1.10 → 474
        0.00 → 358
        1.20 → 268
@@ -440,23 +440,23 @@
 🔹 carbs  [float64]
    • unique values: 28
    • missing values: 0.7%
-   • min=0.00, median=0.00, max=750.00
+   • min=0.00, median=0.00, max=75.00
    • most frequent values:
        0.00 → 12981
-       300.00 → 26
-       350.00 → 21
-       450.00 → 19
-       400.00 → 14
+       30.00 → 26
+       35.00 → 21
+       45.00 → 19
+       40.00 → 14
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 1
    • missing values: 0.7%
    • most frequent values:
        Unknown → 13159
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 0.7%
    • most frequent values:
@@ -484,14 +484,14 @@
 
 🔹 basal_rate  [float64]
    • unique values: 401
-   • missing values: 42.3%
-   • min=0.00, median=0.38, max=1.23
+   • missing values: 41.0%
+   • min=0.00, median=0.39, max=1.23
    • most frequent values:
        0.40 → 183
        0.28 → 180
+       0.56 → 179
        0.00 → 120
        0.12 → 96
-       0.45 → 84
 ----------------------------------------------------------------------------------------------------
 
 🔹 bolus_total  [float64]
@@ -533,16 +533,16 @@
 🔹 carbs  [float64]
    • unique values: 20
    • missing values: 0.6%
-   • min=0.00, median=0.00, max=450.00
+   • min=0.00, median=0.00, max=45.00
    • most frequent values:
        0.00 → 12613
-       350.00 → 26
-       300.00 → 19
-       420.00 → 18
-       400.00 → 13
+       35.00 → 26
+       30.00 → 19
+       42.00 → 18
+       40.00 → 13
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 0.6%
    • most frequent values:
@@ -550,7 +550,7 @@
        Unknown → 5424
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 4
    • missing values: 0.6%
    • most frequent values:
@@ -577,14 +577,14 @@
 
 🔹 basal_rate  [float64]
    • unique values: 351
-   • missing values: 43.4%
-   • min=0.00, median=0.54, max=1.80
+   • missing values: 41.3%
+   • min=0.00, median=0.55, max=1.80
    • most frequent values:
        0.55 → 1667
+       0.78 → 300
        0.50 → 180
        0.00 → 108
        0.53 → 60
-       0.46 → 48
 ----------------------------------------------------------------------------------------------------
 
 🔹 bolus_total  [float64]
@@ -626,23 +626,23 @@
 🔹 carbs  [float64]
    • unique values: 12
    • missing values: 0.9%
-   • min=0.00, median=0.00, max=550.00
+   • min=0.00, median=0.00, max=55.00
    • most frequent values:
        0.00 → 12833
-       100.00 → 228
-       50.00 → 144
-       150.00 → 74
-       200.00 → 56
+       10.00 → 228
+       5.00 → 144
+       15.00 → 74
+       20.00 → 56
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 1
    • missing values: 0.9%
    • most frequent values:
        Unknown → 13414
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 4
    • missing values: 0.9%
    • most frequent values:
@@ -718,34 +718,33 @@
 🔹 carbs  [float64]
    • unique values: 29
    • missing values: 0.0%
-   • min=0.00, median=0.00, max=500.00
+   • min=0.00, median=0.00, max=50.00
    • most frequent values:
        0.00 → 7873
-       20.00 → 45
-       100.00 → 19
-       120.00 → 18
-       10.00 → 13
+       2.00 → 45
+       10.00 → 19
+       12.00 → 18
+       1.00 → 13
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
-   • unique values: 4
+🔹 device_mode  [category]
+   • unique values: 3
    • missing values: 0.0%
    • most frequent values:
-       0 → 5229
+       Unknown → 5255
        sleep → 2551
        exercise → 258
-       Unknown → 26
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
-   • unique values: 12
+🔹 bolus_type  [category]
+   • unique values: 11
    • missing values: 0.0%
    • most frequent values:
-       0 → 7694
+       None → 7720
        Standard/Correction → 123
        Automatic Bolus/Correction → 121
        Standard → 90
-       None → 26
+       Extended/Correction 65.00%/3.18 → 3
 ----------------------------------------------------------------------------------------------------
 
 📊 DataFrame summary Subject 9: (11,232 rows, 8 columns)
@@ -814,16 +813,16 @@
 🔹 carbs  [float64]
    • unique values: 14
    • missing values: 4.0%
-   • min=0.00, median=0.00, max=500.00
+   • min=0.00, median=0.00, max=50.00
    • most frequent values:
        0.00 → 10684
-       500.00 → 42
-       450.00 → 33
-       400.00 → 5
-       480.00 → 4
+       50.00 → 42
+       45.00 → 33
+       40.00 → 5
+       48.00 → 4
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 4.0%
    • most frequent values:
@@ -832,7 +831,7 @@
        exercise → 371
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 4.0%
    • most frequent values:
@@ -840,7 +839,7 @@
        Automatic Bolus/Correction → 302
        Standard/Correction → 144
        Standard → 64
-       BLE Standard Bolus/Correction → 1
+       BLE Standard Bolus → 1
 ----------------------------------------------------------------------------------------------------
 
 📊 DataFrame summary Subject 10: (12,095 rows, 8 columns)
@@ -909,16 +908,16 @@
 🔹 carbs  [float64]
    • unique values: 12
    • missing values: 1.1%
-   • min=0.00, median=0.00, max=300.00
+   • min=0.00, median=0.00, max=30.00
    • most frequent values:
        0.00 → 11861
-       200.00 → 26
-       150.00 → 23
-       100.00 → 18
-       180.00 → 17
+       20.00 → 26
+       15.00 → 23
+       10.00 → 18
+       18.00 → 17
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 1.1%
    • most frequent values:
@@ -927,7 +926,7 @@
        exercise → 603
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 4
    • missing values: 1.1%
    • most frequent values:
@@ -954,7 +953,7 @@
 
 🔹 basal_rate  [float64]
    • unique values: 403
-   • missing values: 38.4%
+   • missing values: 38.3%
    • min=0.00, median=1.74, max=5.63
    • most frequent values:
        1.80 → 1356
@@ -1003,23 +1002,23 @@
 🔹 carbs  [float64]
    • unique values: 23
    • missing values: 1.0%
-   • min=0.00, median=0.00, max=1000.00
+   • min=0.00, median=0.00, max=100.00
    • most frequent values:
        0.00 → 12530
-       850.00 → 48
-       500.00 → 37
-       900.00 → 32
-       750.00 → 28
+       85.00 → 48
+       50.00 → 37
+       90.00 → 32
+       75.00 → 28
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 1
    • missing values: 1.0%
    • most frequent values:
        Unknown → 12834
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 11
    • missing values: 1.0%
    • most frequent values:
@@ -1096,16 +1095,16 @@
 🔹 carbs  [float64]
    • unique values: 23
    • missing values: 0.0%
-   • min=0.00, median=0.00, max=1200.00
+   • min=0.00, median=0.00, max=120.00
    • most frequent values:
        0.00 → 12525
-       250.00 → 29
-       450.00 → 28
-       850.00 → 12
-       500.00 → 11
+       25.00 → 29
+       45.00 → 28
+       85.00 → 12
+       50.00 → 11
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 0.0%
    • most frequent values:
@@ -1114,7 +1113,7 @@
        exercise → 279
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 9
    • missing values: 0.0%
    • most frequent values:
@@ -1191,16 +1190,16 @@
 🔹 carbs  [float64]
    • unique values: 27
    • missing values: 1.0%
-   • min=0.00, median=0.00, max=620.00
+   • min=0.00, median=0.00, max=62.00
    • most frequent values:
        0.00 → 12684
-       200.00 → 27
-       220.00 → 25
-       300.00 → 13
-       400.00 → 11
+       20.00 → 27
+       22.00 → 25
+       30.00 → 13
+       40.00 → 11
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 1.0%
    • most frequent values:
@@ -1209,7 +1208,7 @@
        exercise → 89
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 1.0%
    • most frequent values:
@@ -1237,13 +1236,13 @@
 
 🔹 basal_rate  [float64]
    • unique values: 255
-   • missing values: 38.7%
+   • missing values: 38.5%
    • min=0.00, median=0.34, max=2.23
    • most frequent values:
-       0.35 → 1080
+       0.35 → 1092
        0.30 → 912
-       0.85 → 523
-       0.70 → 513
+       0.85 → 527
+       0.70 → 516
        0.00 → 384
 ----------------------------------------------------------------------------------------------------
 
@@ -1286,16 +1285,16 @@
 🔹 carbs  [float64]
    • unique values: 31
    • missing values: 0.9%
-   • min=0.00, median=0.00, max=600.00
+   • min=0.00, median=0.00, max=60.00
    • most frequent values:
        0.00 → 12593
-       300.00 → 41
-       150.00 → 39
-       350.00 → 27
-       200.00 → 21
+       30.00 → 41
+       15.00 → 39
+       35.00 → 27
+       20.00 → 21
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 0.9%
    • most frequent values:
@@ -1304,7 +1303,7 @@
        exercise → 22
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 24
    • missing values: 0.9%
    • most frequent values:
@@ -1312,7 +1311,7 @@
        Standard → 310
        Standard/Correction → 83
        Automatic Bolus/Correction → 15
-       Extended 50.00%/25.00 → 2
+       Extended 50.00%/20.00 → 2
 ----------------------------------------------------------------------------------------------------
 
 📊 DataFrame summary Subject 15: (14,111 rows, 8 columns)
@@ -1381,16 +1380,16 @@
 🔹 carbs  [float64]
    • unique values: 20
    • missing values: 2.1%
-   • min=0.00, median=0.00, max=750.00
+   • min=0.00, median=0.00, max=75.00
    • most frequent values:
        0.00 → 13769
-       300.00 → 9
-       450.00 → 8
-       600.00 → 7
-       750.00 → 4
+       30.00 → 9
+       45.00 → 8
+       60.00 → 7
+       75.00 → 4
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 2.1%
    • most frequent values:
@@ -1398,7 +1397,7 @@
        sleep → 2846
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 14
    • missing values: 2.1%
    • most frequent values:
@@ -1426,10 +1425,10 @@
 
 🔹 basal_rate  [float64]
    • unique values: 477
-   • missing values: 36.0%
+   • missing values: 35.8%
    • min=0.00, median=1.65, max=1917.00
    • most frequent values:
-       1.65 → 1018
+       1.65 → 1021
        1.45 → 254
        1650.00 → 72
        1.51 → 48
@@ -1475,16 +1474,16 @@
 🔹 carbs  [float64]
    • unique values: 19
    • missing values: 0.9%
-   • min=0.00, median=0.00, max=750.00
+   • min=0.00, median=0.00, max=75.00
    • most frequent values:
        0.00 → 12169
-       300.00 → 23
-       250.00 → 14
-       200.00 → 13
-       400.00 → 11
+       30.00 → 23
+       25.00 → 14
+       20.00 → 13
+       40.00 → 11
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 0.9%
    • most frequent values:
@@ -1492,7 +1491,7 @@
        sleep → 2476
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 13
    • missing values: 0.9%
    • most frequent values:
@@ -1524,7 +1523,7 @@
    • min=0.00, median=1.19, max=2.83
    • most frequent values:
        1.25 → 274
-       0.95 → 244
+       0.95 → 243
        1.45 → 203
        1.30 → 126
        1.15 → 48
@@ -1569,16 +1568,16 @@
 🔹 carbs  [float64]
    • unique values: 39
    • missing values: 0.3%
-   • min=0.00, median=0.00, max=600.00
+   • min=0.00, median=0.00, max=60.00
    • most frequent values:
        0.00 → 12542
-       130.00 → 12
-       250.00 → 8
-       350.00 → 7
-       300.00 → 7
+       13.00 → 12
+       25.00 → 8
+       35.00 → 7
+       30.00 → 7
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 0.3%
    • most frequent values:
@@ -1587,7 +1586,7 @@
        sleepsleep → 33
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 0.3%
    • most frequent values:
@@ -1664,16 +1663,16 @@
 🔹 carbs  [float64]
    • unique values: 9
    • missing values: 1.2%
-   • min=0.00, median=0.00, max=450.00
+   • min=0.00, median=0.00, max=45.00
    • most frequent values:
        0.00 → 10444
-       250.00 → 21
-       300.00 → 20
-       200.00 → 19
-       350.00 → 12
+       25.00 → 21
+       30.00 → 20
+       20.00 → 19
+       35.00 → 12
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 1.2%
    • most frequent values:
@@ -1681,7 +1680,7 @@
        sleep → 2591
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 1.2%
    • most frequent values:
@@ -1689,7 +1688,7 @@
        Automatic Bolus/Correction → 137
        Standard → 57
        BLE Standard Bolus → 30
-       Standard/Correction → 1
+       BLE Standard Bolus/Correction → 1
 ----------------------------------------------------------------------------------------------------
 
 📊 DataFrame summary Subject 19: (13,248 rows, 8 columns)
@@ -1758,16 +1757,16 @@
 🔹 carbs  [float64]
    • unique values: 29
    • missing values: 0.8%
-   • min=0.00, median=0.00, max=900.00
+   • min=0.00, median=0.00, max=90.00
    • most frequent values:
        0.00 → 12977
-       600.00 → 26
-       500.00 → 20
-       700.00 → 20
-       800.00 → 12
+       60.00 → 26
+       50.00 → 20
+       70.00 → 20
+       80.00 → 12
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 0.8%
    • most frequent values:
@@ -1776,7 +1775,7 @@
        exercise → 117
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 9
    • missing values: 0.8%
    • most frequent values:
@@ -1853,16 +1852,16 @@
 🔹 carbs  [float64]
    • unique values: 13
    • missing values: 0.2%
-   • min=0.00, median=0.00, max=400.00
+   • min=0.00, median=0.00, max=40.00
    • most frequent values:
        0.00 → 13173
-       350.00 → 33
-       250.00 → 25
-       300.00 → 23
-       150.00 → 20
+       35.00 → 33
+       25.00 → 25
+       30.00 → 23
+       15.00 → 20
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 0.2%
    • most frequent values:
@@ -1870,7 +1869,7 @@
        sleep → 3452
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 0.2%
    • most frequent values:
@@ -1898,14 +1897,14 @@
 
 🔹 basal_rate  [float64]
    • unique values: 502
-   • missing values: 42.0%
+   • missing values: 41.8%
    • min=0.00, median=1.19, max=2.89
    • most frequent values:
-       1.30 → 388
-       1.10 → 225
+       1.30 → 389
+       1.10 → 249
        1.00 → 120
        1.15 → 72
-       1.32 → 48
+       0.87 → 48
 ----------------------------------------------------------------------------------------------------
 
 🔹 bolus_total  [float64]
@@ -1947,16 +1946,16 @@
 🔹 carbs  [float64]
    • unique values: 21
    • missing values: 1.1%
-   • min=0.00, median=0.00, max=480.00
+   • min=0.00, median=0.00, max=48.00
    • most frequent values:
        0.00 → 13245
-       200.00 → 31
-       150.00 → 27
-       100.00 → 17
-       50.00 → 12
+       20.00 → 31
+       15.00 → 27
+       10.00 → 17
+       5.00 → 12
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 1.1%
    • most frequent values:
@@ -1964,7 +1963,7 @@
        sleep → 2452
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 1.1%
    • most frequent values:
@@ -1992,14 +1991,14 @@
 
 🔹 basal_rate  [float64]
    • unique values: 329
-   • missing values: 34.5%
-   • min=0.00, median=0.49, max=2.22
+   • missing values: 32.2%
+   • min=0.00, median=0.50, max=2.22
    • most frequent values:
-       0.55 → 1635
+       0.55 → 1879
        0.40 → 395
-       0.50 → 82
+       0.50 → 83
        0.28 → 60
-       0.57 → 60
+       0.00 → 60
 ----------------------------------------------------------------------------------------------------
 
 🔹 bolus_total  [float64]
@@ -2041,23 +2040,23 @@
 🔹 carbs  [float64]
    • unique values: 16
    • missing values: 1.8%
-   • min=0.00, median=0.00, max=250.00
+   • min=0.00, median=0.00, max=25.00
    • most frequent values:
        0.00 → 11145
-       100.00 → 70
-       200.00 → 24
-       150.00 → 17
-       120.00 → 13
+       10.00 → 70
+       20.00 → 24
+       15.00 → 17
+       12.00 → 13
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 1
    • missing values: 1.8%
    • most frequent values:
        Unknown → 11317
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 8
    • missing values: 1.8%
    • most frequent values:
@@ -2136,7 +2135,7 @@
        0.00 → 13653
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 1.2%
    • most frequent values:
@@ -2144,7 +2143,7 @@
        sleep → 2978
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 3
    • missing values: 1.2%
    • most frequent values:
@@ -2219,16 +2218,16 @@
 🔹 carbs  [float64]
    • unique values: 33
    • missing values: 0.0%
-   • min=0.00, median=0.00, max=800.00
+   • min=0.00, median=0.00, max=80.00
    • most frequent values:
        0.00 → 9940
-       280.00 → 27
-       200.00 → 16
-       290.00 → 10
-       350.00 → 9
+       28.00 → 27
+       20.00 → 16
+       29.00 → 10
+       35.00 → 9
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 3
    • missing values: 0.0%
    • most frequent values:
@@ -2237,7 +2236,7 @@
        exercise → 55
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 8
    • missing values: 0.0%
    • most frequent values:
@@ -2314,16 +2313,16 @@
 🔹 carbs  [float64]
    • unique values: 16
    • missing values: 0.9%
-   • min=0.00, median=0.00, max=750.00
+   • min=0.00, median=0.00, max=75.00
    • most frequent values:
        0.00 → 10694
-       600.00 → 40
-       500.00 → 35
-       150.00 → 29
-       550.00 → 10
+       60.00 → 40
+       50.00 → 35
+       15.00 → 29
+       55.00 → 10
 ----------------------------------------------------------------------------------------------------
 
-🔹 device_mode  [object]
+🔹 device_mode  [category]
    • unique values: 2
    • missing values: 0.9%
    • most frequent values:
@@ -2331,7 +2330,7 @@
        sleep → 2719
 ----------------------------------------------------------------------------------------------------
 
-🔹 bolus_type  [object]
+🔹 bolus_type  [category]
    • unique values: 6
    • missing values: 0.9%
    • most frequent values:

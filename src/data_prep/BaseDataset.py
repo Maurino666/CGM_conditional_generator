@@ -9,7 +9,7 @@ from .utils import load_dataset, load_dataset_config, clean_duplicates, fill_dat
     build_sliding_windows, add_time_of_day_features, add_exponential_decay_feature, build_sliding_windows_conditional
 
 NUMERIC_PREFIXES = ("int", "float")
-GLOBAL_CONFIG_PATH = "global_config.yaml"
+GLOBAL_CONFIG_PATH = "../global_config.yaml"
 
 class BaseDataset:
     """

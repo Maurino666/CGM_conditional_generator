@@ -1,29 +1,32 @@
 import torch
 
-from data_gathering_pipeline import gather_data
+from data_gathering_pipeline import gather_data, gather_data_conditional
 from src.models import *
 
 
 def main():
 
-    train_loader, val_loader = gather_data(
-        ["glucose"],
+    target = "glucose"
+    cond_features = ["basal_rate"]
+
+    train_loader, val_loader = gather_data_conditional(
+        cond_features,
         228,
         12,
         val_ratio = 0.2,
         random_state = 1,
         batch_size = 64,
-        normalize=["glucose"],
+        normalize= cond_features + [target],
     )
 
-    _, input_dim = train_loader.dataset[0].shape
+    input_dim = len(cond_features) + 1
 
     hidden_dim = 64
     latent_dim = 16
     num_layers = 1
 
-    model = RnnVaeModule(
-        input_dim = input_dim,
+    model = ConditionalRnnVaeModule(
+        cond_dim = len(cond_features),
         hidden_dim = hidden_dim,
         latent_dim = latent_dim,
         num_layers = num_layers,
@@ -42,8 +45,8 @@ def main():
     print("History: ", history)
 
     print("Starting TimeGan Training")
-    model2 = TimeGanModule(
-        input_dim = input_dim,
+    model2 = ConditionalTimeGanModule(
+        cond_dim = len(cond_features),
         hidden_dim = hidden_dim,
         num_layers = num_layers,
         g_steps_per_iter=1
@@ -85,7 +88,7 @@ def main():
         device = device,
     )
 
-    print("History vae: ", history)
+    print("History adv: ", history)
 
 if __name__ == "__main__":
     main()

@@ -8,6 +8,33 @@ from tqdm.auto import tqdm
 
 from src.models import BaseTrainableModule
 
+from collections.abc import Mapping, Sequence
+from torch import Tensor
+
+
+def _move_to_device(batch, device):
+    """
+    Recursively move a batch to the given device.
+
+    Supports:
+      - Tensor
+      - sequences (list/tuple) of Tensors / nested structures
+      - mappings (dict-like) with Tensor values
+    """
+    if isinstance(batch, Tensor):
+        return batch.to(device, non_blocking=True)
+
+    if isinstance(batch, Mapping):
+        return {
+            k: _move_to_device(v, device)
+            for k, v in batch.items()
+        }
+
+    if isinstance(batch, Sequence) and not isinstance(batch, (str, bytes)):
+        return type(batch)(_move_to_device(x, device) for x in batch)
+
+    # Fallback: return as is (e.g. scalars, None, etc.)
+    return batch
 
 def _aggregate_metrics(batch_outputs: list[Any]) -> dict[str, float]:
     """
@@ -115,10 +142,10 @@ def train_module(
             for batch in progress_bar:
                 # Here we assume that each batch is directly a Tensor of inputs.
                 # If later you have (inputs, labels), you can unpack here.
-                x: Tensor = batch.to(device, non_blocking=True)
+                batch_on_device = _move_to_device(batch, device)
 
                 # The model performs the optimization step internally.
-                batch_out = model.training_step(x)
+                batch_out = model.training_step(batch_on_device)
                 train_batch_outputs.append(batch_out)
 
                 # Update progress bar:
@@ -147,8 +174,8 @@ def train_module(
 
             with torch.no_grad():
                 for batch in val_loader:  # type: ignore[arg-type]
-                    x = batch.to(device, non_blocking=True)
-                    batch_out = model.validation_step(x)  # type: ignore[attr-defined]
+                    batch_on_device = _move_to_device(batch, device)
+                    batch_out = model.validation_step(batch_on_device)  # type: ignore[attr-defined]
                     val_batch_outputs.append(batch_out)
 
             epoch_val_metrics = _aggregate_metrics(val_batch_outputs)

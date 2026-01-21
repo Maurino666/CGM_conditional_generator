@@ -141,7 +141,8 @@ def main() -> None:
     # Configuration Constants
     SEQ_LEN = 288
     VAL_RATIO = 0.2
-    BATCH_SIZE = 256
+    BATCH_SIZE = 128
+    TRAIN_STEP = 12
     SPLIT_STRATEGY = "subject"  # 'subject' (Stratified) or 'time'
 
     # -------------------------------------------------------------------------
@@ -227,7 +228,7 @@ def main() -> None:
     train_split_optim = builder.build_subset(
         dfs=train_dfs_norm,
         seq_len=SEQ_LEN,
-        step=1,  # Maximum Overlap
+        step=TRAIN_STEP,  # Maximum Overlap
         shuffle=True,  # Shuffle for training
         split_name="Train_Optimized"
     )
@@ -276,6 +277,8 @@ def main() -> None:
         hidden_dim=256,
         num_layers=3,
         g_steps_per_iter=2,
+        noise_std=0.10,
+        soft_label=0.90
     ).to(device)
 
     print("   [Phase 1] Autoencoder...")

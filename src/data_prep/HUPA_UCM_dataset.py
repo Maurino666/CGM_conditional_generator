@@ -8,19 +8,57 @@ from .processors.interface import DataProcessor
 
 class HUPACarbsScaler(DataProcessor):
     """
-    Processor containing data cleaning logic specific to the HUPA_UCM dataset.
+    Processor to standardize carbohydrate units in the HUPA-UCM dataset.
 
-    Operations:
-    1. carbs: Multiplies the carbohydrate values by 10 to correct a unit scaling issue
-       in the raw data source.
+    Problem:
+    The paper states that 'carb_input' is in servings (1 serving = 10g).
+    However, empirical observation shows some files contain values like 130,
+    which would imply 1300g of carbs if treated as servings (physiologically impossible).
+    This suggests some data might have remained in grams during the authors' preprocessing.
+
+    Solution:
+    Apply an adaptive heuristic based on the maximum value found in each patient's file.
     """
 
     def process(self, data_list: list[pd.DataFrame], context: dict[str, Any]) -> list[pd.DataFrame]:
-        print(f"   [HUPACarbsScaler] Rescaling carb values (*10)...")
+        print(f"   [HUPACarbsScaler] Adaptive rescaling (Servings vs Grams)...")
+
+        # Thresholds configuration
+        # If max carbs < 50, it is likely "servings" (e.g., 5 servings = 50g).
+        # If max carbs > 50, it is likely already "grams" (e.g., 60g, 100g).
+        THRESHOLD_SERVINGS = 50.0
+
+        # Physiological safety limit to clip extreme outliers (e.g., typos).
+        # No single meal should realistically exceed 400g of carbs.
+        MAX_PHYSIOLOGICAL_CARBS = 400.0
 
         for i, df in enumerate(data_list):
             if "carbs" in df.columns:
-                df["carbs"] = df["carbs"] * 10
+                # 1. Analyze the current range
+                # We check the maximum value to infer the unit of measurement.
+                max_val = df["carbs"].max()
+
+                # If the column is empty or all zeros, skip processing
+                if max_val == 0:
+                    data_list[i] = df
+                    continue
+
+                # 2. Adaptive Decision Logic
+                if max_val < THRESHOLD_SERVINGS:
+                    # Case A: Small values detected (e.g., 4, 8, 12).
+                    # Consistent with the paper's claim of "servings"[cite: 63].
+                    # Action: Convert to grams (* 10).
+                    df["carbs"] = df["carbs"] * 10
+
+
+                # 3. Safety Clipping
+                # Ensure no value exceeds the physiological maximum.
+                # This fixes potential outliers (e.g., if a user accidentally typed 1300).
+                before_clip_max = df["carbs"].max()
+                df["carbs"] = df["carbs"].clip(upper=MAX_PHYSIOLOGICAL_CARBS)
+
+                if before_clip_max > MAX_PHYSIOLOGICAL_CARBS:
+                     print(f"     -> Subj {i}: Clipped outlier {before_clip_max} to {MAX_PHYSIOLOGICAL_CARBS}")
 
             data_list[i] = df
 

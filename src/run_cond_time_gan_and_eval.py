@@ -251,7 +251,7 @@ def main() -> None:
 
     # A. SAVING (Safety Checkpoint)
     # Save the reconstructed dataframes so evaluation can be run separately
-    output_dir = Path("../results/timegan_chimera_run")
+    output_dir = Path("../runs/timegan_chimera_run")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     save_path = output_dir / "reconstructed_val_data.pkl"

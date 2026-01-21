@@ -148,6 +148,10 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         """
         raise NotImplementedError
 
+    @property
+    def should_validate(self) -> bool:
+        return False # TODO consider validation in ar and sup phases
+
     # -- helpers --
     def _sample_noise_like(self, x: Tensor) -> Tensor:
         """
@@ -170,7 +174,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
     # -- Steps --
     # Auto-Encoder Training Step
-    def autoencoder_step(self, batch: Any) -> float:
+    def autoencoder_step(self, batch: Any) -> dict[str, float]:
         """
         One optimization step for encoder + recovery pretraining (AE phase).
 
@@ -214,10 +218,10 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self.optimizer_e.step()
         self.optimizer_r.step()
 
-        return float(loss_ae.item())
+        return {"er/autoencoder_loss" : float(loss_ae.item())}
 
     # Supervisor Training Step
-    def supervisor_step(self, batch: Any) -> float:
+    def supervisor_step(self, batch: Any) -> dict[str, float]:
         """
         One optimization step for supervisor pretraining (SUP phase).
 
@@ -256,7 +260,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
 
         self.optimizer_s.step()
 
-        return float(loss_s.item())
+        return {"sup/supervisor_loss": float(loss_s.item())}
 
     # Adversary Training Step (All nets)
 
@@ -506,9 +510,9 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         avg_er_loss = float(sum(er_losses) / len(er_losses))
 
         return {
-            "g_loss": avg_g_loss,
-            "er_loss": avg_er_loss,
-            "d_loss": float(d_loss),
+            "adv/g_loss": avg_g_loss,
+            "adv/er_loss": avg_er_loss,
+            "adv/d_loss": float(d_loss),
         }
 
     # Phase-wise Training Step compatible with trainer class

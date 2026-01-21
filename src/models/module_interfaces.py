@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any
 
 import torch
@@ -22,23 +21,39 @@ class BaseTrainableModule(nn.Module, ABC):
         """
         raise NotImplementedError
 
+    def validation_step(self, batch: Any) -> dict[str, float] | None:
+        """
+        Computes validation metrics (optional).
+        If model does not support standard validation,
+        this step can be ignored.
+        """
+        return None
+
+    @property
+    def should_validate(self) -> bool:
+        """
+        Indicates whether this module should validate or not.
+        Subclasses can override this to implement custom checks.
+
+        Default: True.
+        """
+        return True
+
     @abstractmethod
     def get_config(self) -> dict[str, Any]:
         """
-        Restituisce un dict di iperparametri sufficiente per ricostruire il modello
-        con  __class__(**config).
-
-        Ogni sottoclasse deve implementarla.
+        Returns a dictionary of hyperparameters for this model.
+        Every subclass must implement this method.
         """
         raise NotImplementedError
 
     def to_checkpoint(self, extra: dict[str, Any] | None = None) -> dict[str, Any]:
         """
-        Crea un dict pronto per torch.save, con:
-          - info classe
+        Creates a dict ready for torch.save() having:
+          - info class
           - config
           - state_dict
-          - eventuali info extra (es. history)
+          - eventual info extra (es. history)
         """
         if extra is None:
             extra = {}
@@ -59,10 +74,9 @@ class BaseTrainableModule(nn.Module, ABC):
             map_location: str | torch.device | None = None,
     ) -> "BaseTrainableModule":
         """
-        Ricostruisce un'istanza della *stessa classe* a partire da un checkpoint
-        creato con to_checkpoint().
+        Reconstructs an instance of the same class from checkpoint, made with .to_checkpoint().
 
-        Nota: qui si assume che cls sia effettivamente la classe giusta.
+        Note: assumes right class.
         """
         config = checkpoint["config"]
         state_dict = checkpoint["state_dict"]

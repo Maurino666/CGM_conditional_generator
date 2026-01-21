@@ -107,10 +107,10 @@ class Recovery(nn.Module):
             num_layers: int = 1,
     ):
         super(Recovery, self).__init__()
-        self.rnn = nn.GRU(input_size=hidden_dim, hidden_size=z_dim, num_layers=num_layers, batch_first= True)
+        self.rnn = nn.GRU(input_size=hidden_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first= True)
 
         #  self.norm = nn.BatchNorm1d(opt.z_dim)
-        self.fc = nn.Linear(z_dim, z_dim)
+        self.fc = nn.Linear(hidden_dim, z_dim)
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 

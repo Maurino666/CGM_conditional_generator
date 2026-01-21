@@ -1,7 +1,7 @@
 import torch
 
 from data_gathering_pipeline import gather_data, gather_data_conditional
-from src.models import *
+from models import *
 
 
 def main():
@@ -89,6 +89,9 @@ def main():
     )
 
     print("History adv: ", history)
+
+    ckpt = model2.to_checkpoint(extra={"history": history})
+    torch.save(ckpt, "../runs/prova")
 
 if __name__ == "__main__":
     main()

@@ -5,8 +5,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from src.windowing.packs import WindowMeta
-from src.reconstruction.strategies import NonOverlapStrategy
+from windowing import WindowMetadata
+from .strategies import NonOverlapStrategy
 
 
 @dataclass(frozen=True)
@@ -41,7 +41,7 @@ class WindowReconstructor:
         self,
         *,
         templates: dict[int, pd.DataFrame],
-        meta: list[WindowMeta],
+        meta: list[WindowMetadata],
         c_windows: np.ndarray,
         y_hat_windows: np.ndarray,
     ) -> list[pd.DataFrame]:

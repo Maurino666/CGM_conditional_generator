@@ -6,10 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-
-WindowMeta = tuple[int, int]
-# (global_subject_id, start_row)
-
+from .utils import WindowMetadata
 
 @dataclass(frozen=True)
 class ConditionalWindowPack:
@@ -28,8 +25,8 @@ class ConditionalWindowPack:
     c_val: np.ndarray
 
     # Per-window metadata aligned 1:1 with the arrays above
-    meta_train: list[WindowMeta]
-    meta_val: list[WindowMeta]
+    meta_train: list[WindowMetadata]
+    meta_val: list[WindowMetadata]
 
     # Templates for reconstruction (per subject, split-specific)
     # Each df is expected to be time-indexed and contain conditional columns and true target.

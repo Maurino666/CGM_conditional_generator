@@ -4,8 +4,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from src.windowing.packs import WindowMeta
-
 
 @dataclass(frozen=True)
 class NonOverlapStrategy:

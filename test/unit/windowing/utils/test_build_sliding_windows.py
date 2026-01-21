@@ -1,10 +1,8 @@
-# tests/unit/test_build_sliding_windows.py
-
 import numpy as np
 import pandas as pd
 import pytest
 
-from data_prep.utils import build_sliding_windows
+from windowing.utils import build_sliding_windows
 
 
 def test_build_sliding_windows_basic() -> None:

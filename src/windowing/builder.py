@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from src.data import create_conditional_dataloaders, minmax_scale_conditional
-from src.windowing.packs import ConditionalWindowPack, WindowMeta
-from src.data_prep.utils import build_sliding_windows_conditional
+from data import create_conditional_dataloaders, minmax_scale_conditional
+from .packs import ConditionalWindowPack
+from .utils import WindowMetadata, build_sliding_windows_conditional
 
 
 @dataclass(frozen=True)
@@ -87,8 +87,8 @@ class ConditionalWindowBuilder:
         all_y_val: list[np.ndarray] = []
         all_c_val: list[np.ndarray] = []
 
-        all_meta_train: list[WindowMeta] = []
-        all_meta_val: list[WindowMeta] = []
+        all_meta_train: list[WindowMetadata] = []
+        all_meta_val: list[WindowMetadata] = []
 
         train_templates: dict[int, pd.DataFrame] = {}
         val_templates: dict[int, pd.DataFrame] = {}

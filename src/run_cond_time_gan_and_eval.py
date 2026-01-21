@@ -5,14 +5,11 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from src.data_prep import AZT1D2025Dataset, HUPA_UCMDataset, OhioT1DMDataset
-from src.windowing.builder import ConditionalWindowBuilder, ConditionalWindowingConfig
-from src.reconstruction.reconstructor import WindowReconstructor, ReconstructionConfig
+from data_prep import AZT1D2025Dataset, HUPA_UCMDataset, OhioT1DMDataset
+from windowing import ConditionalWindowBuilder, ConditionalWindowingConfig
+from reconstruction import WindowReconstructor, ReconstructionConfig
 
-# Your training utilities / models
-from models import ConditionalTimeGanModule  # example
-from models import train_module               # example
-
+from models import ConditionalTimeGanModule, train_module
 
 def generate_val_target_windows(
     model: torch.nn.Module,
@@ -48,7 +45,7 @@ def main() -> None:
     target_col = "glucose"
     cond_cols = ["basal_rate"]
 
-    # 1) Instantiate and clean BaseDatasets (list[df] world)
+    # Instantiate and clean BaseDatasets (list[df] world)
     ds1 = AZT1D2025Dataset(
         Path("../datasets/AZT1D2025/CGM Records"),
         Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
@@ -90,7 +87,7 @@ def main() -> None:
         target_col=target_col,
     )
 
-    # 3) Train model
+    # Train model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = ConditionalTimeGanModule(
@@ -100,7 +97,7 @@ def main() -> None:
         g_steps_per_iter=1,
     ).to(device)
 
-    # Example training phases (adapt to your module API)
+    # Example training phases
     model.set_phase("ae")
     train_module(model=model, train_loader=train_loader, val_loader=val_loader, num_epochs=3, device=device)
 
@@ -110,10 +107,10 @@ def main() -> None:
     model.set_phase("adv")
     train_module(model=model, train_loader=train_loader, val_loader=val_loader, num_epochs=3, device=device)
 
-    # 4) Generate synthetic windows for VAL (default evaluation split)
+    # Generate synthetic windows for VAL (default evaluation split)
     y_hat_val = generate_val_target_windows(model, c_val=pack.c_val, device=device)
 
-    # 5) Reconstruct list[df] for VAL
+    # Reconstruct list[df] for VAL
     recon = WindowReconstructor(
         ReconstructionConfig(
             target_col=pack.target_col,
@@ -129,7 +126,7 @@ def main() -> None:
         y_hat_windows=y_hat_val,
     )
 
-    # 6) Evaluate (your existing metrics expect list[pd.DataFrame])
+    # Evaluate (your existing metrics expect list[pd.DataFrame])
     # from src.metrics_pipeline.evaluate import evaluate_dataset
     # results = evaluate_dataset(synthetic_val_dfs, target_col=target_col, ...)
     # print(results)

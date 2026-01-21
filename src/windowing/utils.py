@@ -1,181 +1,143 @@
-from typing import Sequence
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
-WindowMetadata = tuple[int, int]
 
-def build_sliding_windows(
-    all_data: list[pd.DataFrame],
-    feature_cols: list[str],
-    seq_len: int,
-    step: int,
-    ids: Sequence[int] | None = None,
-    max_missing_ratio: float = 0.0,
+class WindowMetadata:
+    """
+    Simple container to track the origin of a window.
+    """
+
+    def __init__(self, subject_id: str, start_index: int) -> None:
+        self.subject_id = subject_id
+        self.start_index = start_index
+
+    def __repr__(self) -> str:
+        return f"Meta(id={self.subject_id}, start={self.start_index})"
+
+
+def build_raw_windows(
+        dfs: list[pd.DataFrame],
+        cols: list[str],
+        seq_len: int,
+        step: int,
+        max_missing_ratio: float = 0.05
 ) -> tuple[np.ndarray, list[WindowMetadata]]:
     """
-    Build contiguous sliding windows from a list of patient DataFrames.
+    Base function: extracts generic sliding windows for a specific set of columns.
 
-    Each DataFrame is assumed to contain a time series for a single subject,
-    already cleaned and aligned on a regular time grid (e.g. every 5 minutes).
+    This function does NOT split into target/conditions. It returns a single
+    3D tensor containing all requested columns.
 
-    For each subject, the function extracts windows of length `seq_len` by
-    moving a sliding window with stride `step` over the rows. Windows that
-    contain too many missing values (above `max_missing_ratio`) are discarded.
+    Args:
+        dfs: List of DataFrames (source data).
+        cols: List of column names to include in the window.
+        seq_len: Length of the window (timesteps).
+        step: Stride between windows.
+        max_missing_ratio: Max allowed fraction of NaNs in a window (0.0 to 1.0).
 
-    Parameters
-    ----------
-    all_data : list of pd.DataFrame
-        List of patient DataFrames.
-    feature_cols : sequence of str
-        Column names to use as features in the windows.
-    seq_len : int
-        Length of each window (number of time steps).
-    step : int
-        Sliding window step (number of rows between the start of consecutive windows).
-    ids : sequence of int, optional
-        Sequence of subject IDs for metadata.
-    max_missing_ratio : float, optional
-        Maximum allowed fraction of NaN values inside a window (between 0 and 1).
-        Windows with a higher missing ratio are discarded. Default is 0.0 (no NaNs allowed).
-
-    Returns
-    -------
-    X : np.ndarray
-        3D array of shape (num_windows, seq_len, num_features), dtype float32.
-    metadata : list[WindowMetadata]
-        List of WindowMetadata objects (tuple(id, start)), one for each window.
+    Returns:
+        windows: Numpy array of shape (N_windows, seq_len, N_columns).
+        metadata: List of metadata objects tracking subject and time.
     """
-    if seq_len <= 0:
-        raise ValueError("seq_len must be positive")
-    if step <= 0:
-        raise ValueError("step must be positive")
-    if not 0.0 <= max_missing_ratio <= 1.0:
-        raise ValueError("max_missing_ratio must be between 0.0 and 1.0")
+    all_windows = []
+    metadata = []
 
-    windows: list[np.ndarray] = []
-    metadata: list[WindowMetadata] = []
+    for df in dfs:
+        # 1. Retrieve Subject ID safely from attributes
+        # (Injected by the DataSplitter step)
+        subj_id = str(df.attrs.get("subject_id", "unknown"))
 
-    for df_idx, df in enumerate(all_data):
-        if df.empty:
+        # 2. Check if columns exist
+        if not set(cols).issubset(df.columns):
+            missing = set(cols) - set(df.columns)
+            print(f"   [!] Error: Subject {subj_id} is missing columns: {missing}. Skipping.")
             continue
 
-        if df.index is not None:
-            df = df.sort_index()
+        # 3. Extract raw numpy array for the requested columns only
+        # shape: (n_rows, n_columns)
+        data_matrix = df[cols].to_numpy(dtype=np.float32)
+        n_rows = len(df)
 
-        # Check that all required feature columns are present
-        missing_features = [c for c in feature_cols if c not in df.columns]
-        if missing_features:
-            raise KeyError(
-                f"DataFrame {df_idx} is missing required feature columns: {missing_features}"
-            )
+        # 4. Sliding Window Loop
+        # Range: ensure the last window fits completely
+        for start_idx in range(0, n_rows - seq_len + 1, step):
+            end_idx = start_idx + seq_len
 
-        # Restrict to feature columns
-        sub = df[list(feature_cols)].copy()
-        num_rows = len(sub)
+            # Slice the window
+            window_slice = data_matrix[start_idx:end_idx]
 
-        if num_rows < seq_len:
-            # Not enough data points for a single window
-            continue
+            # Check for Missing Values (NaNs)
+            # Fast check using numpy
+            if np.isnan(window_slice).mean() > max_missing_ratio:
+                continue
 
-        # Slide over the DataFrame rows
-        start = 0
-        while start + seq_len <= num_rows:
-            window = sub.iloc[start : start + seq_len]
+            all_windows.append(window_slice)
+            metadata.append(WindowMetadata(subject_id=subj_id, start_index=start_idx))
 
-            # Compute missing ratio across all features and time steps
-            missing_ratio = window.isna().mean().mean()
+    # 5. Stack results
+    if len(all_windows) == 0:
+        print("   [!] Warning: No windows generated. Check constraints.")
+        return np.empty((0, seq_len, len(cols)), dtype=np.float32), []
 
-            if missing_ratio <= max_missing_ratio:
-                # Convert to numpy array, cast to float32 for efficiency
-                values = window.to_numpy(dtype=np.float32)
-                # values shape: (seq_len, num_features)
-                windows.append(values)
-                if ids is not None:
-                    global_id = int(ids[df_idx])
-                else:
-                    global_id = int(df_idx)
+    # Final Shape: (Total_Windows, Seq_Len, Num_Columns)
+    final_tensor = np.stack(all_windows, axis=0)
 
-                metadata.append((global_id, start))
+    return final_tensor, metadata
 
-            start += step
 
-    if not windows:
-        # No valid windows were found
-        return np.empty((0, seq_len, len(feature_cols)), dtype=np.float32), []
-
-    # Stack all windows into a single 3D array
-    X = np.stack(windows, axis=0)  # shape: (num_windows, seq_len, num_features)
-    return X, metadata
-
-def build_sliding_windows_conditional(
-    all_data: list[pd.DataFrame],
-    seq_len: int,
-    step: int,
-    target_col: str,
-    cond_cols: list[str],
-    ids: Sequence[int] | None = None,
-    max_missing_ratio: float = 0.0,
+def build_conditional_windows(
+        dfs: list[pd.DataFrame],
+        seq_len: int,
+        step: int,
+        target_col: str,
+        cond_cols: list[str],
+        max_missing_ratio: float = 0.05
 ) -> tuple[np.ndarray, np.ndarray, list[WindowMetadata]]:
     """
-    Build sliding windows and split them into target and conditioning parts.
+    Wrapper function specifically for Conditional TimeGAN.
 
-    Parameters
-    ----------
-    all_data : list[pd.DataFrame]
-        Sequence of subject DataFrames.
-    seq_len : int
-        Window length (number of time steps).
-    step : int
-        Stride between consecutive windows.
-    target_col : str
-        Name of the target column (first feature in the windows).
-    cond_cols : list[str]
-        Names of conditioning columns to include in the windows.
-    ids : sequence of int
-        Sequence of subject IDs for metadata.
-    max_missing_ratio: float, optional
-        Max ratio of missing values in window.
+    It uses 'build_raw_windows' to extract data, then splits the tensor
+    into Target (y) and Conditions (c).
 
-    Returns
-    -------
-    X_target : np.ndarray
-        Target windows of shape (num_windows, seq_len, 1).
-    X_cond : np.ndarray
-        Conditioning windows of shape (num_windows, seq_len, num_cond_features).
-    metadata : list[WindowMetadata]
-        List of WindowMetadata objects (tuple(id, start)), one for each window.
+    Args:
+        dfs: List of DataFrames.
+        seq_len: Window length.
+        step: Stride.
+        target_col: The column to predict (y).
+        cond_cols: The columns to condition on (c).
+        max_missing_ratio: Max NaN allowance.
 
+    Returns:
+        y_windows: (N, seq_len, 1)
+        c_windows: (N, seq_len, n_cond_cols)
+        metadata: List of metadata.
     """
-    # Ensure target is not duplicated in cond_cols
-    cond_cols_clean = [c for c in cond_cols if c != target_col]
+    # 1. Define the full list of columns to extract (Order matters!)
+    # We put target first, then conditions.
+    all_cols = [target_col] + cond_cols
 
-    # Complete feature list: target first, then conditioning
-    all_cols: list[str] = [target_col] + cond_cols_clean
-
-    # Sanity check: required columns must exist in all DataFrames
-    for i, df in enumerate(all_data):
-        missing = [c for c in all_cols if c not in df.columns]
-        if missing:
-            raise KeyError(
-                f"DataFrame {i} is missing required columns for sliding windows: {missing}"
-            )
-
-    # Use the existing generic sliding-window builder
-    X_full, metadata = build_sliding_windows(
-        all_data = all_data,
+    # 2. Call the base function
+    raw_tensor, metadata = build_raw_windows(
+        dfs=dfs,
+        cols=all_cols,
         seq_len=seq_len,
         step=step,
-        feature_cols=all_cols,
-        ids=ids,
-        max_missing_ratio=max_missing_ratio,
+        max_missing_ratio=max_missing_ratio
     )
 
-    # X_full shape: (num_windows, seq_len, 1 + len(cond_cols_clean))
+    if len(raw_tensor) == 0:
+        # Return empty arrays with correct feature dimensions
+        return (
+            np.empty((0, seq_len, 1), dtype=np.float32),
+            np.empty((0, seq_len, len(cond_cols)), dtype=np.float32),
+            []
+        )
 
-    # Split into target (first feature) and conditioning (remaining features)
-    X_target = X_full[:, :, :1]        # (N, seq_len, 1)
-    X_cond = X_full[:, :, 1:]          # (N, seq_len, num_cond_features)
+    # 3. Split the tensor back into components
+    # The first column (index 0) is the target because of how we built 'all_columns'
+    y_windows = raw_tensor[:, :, :1]  # Shape: (N, seq_len, 1)
+    c_windows = raw_tensor[:, :, 1:]  # Shape: (N, seq_len, n_cond_cols)
 
-    return X_target, X_cond, metadata
-
+    return y_windows, c_windows, metadata

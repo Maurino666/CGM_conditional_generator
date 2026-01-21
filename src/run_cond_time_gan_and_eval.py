@@ -1,25 +1,27 @@
 from __future__ import annotations
 
-
 from pathlib import Path
-
-import numpy as np
-import torch
 import yaml
+import torch
+import numpy as np
 import pandas as pd
 
-# Import Datasets
-from data_prep import AZT1D2025Dataset, HUPA_UCMDataset#, OhioT1DMDataset
-# Import Windowing
-from windowing import ConditionalWindowBuilder, ConditionalWindowingConfig
-# Import Reconstruction
+# --- 1. Import Datasets ---
+from data_prep import AZT1D2025Dataset, HUPA_UCMDataset
+
+# --- 2. Import New Data Manager Components ---
+from data_management.splitter import DataSplitter
+from data_management.normalization import MinMaxNormalizer
+
+# --- 3. Import New Windowing Components ---
+from windowing import WindowBuilder, ConditionalWindowPack, WindowSplit
+
+# --- 4. Import Reconstruction Components ---
 from reconstruction import WindowReconstructor, ReconstructionConfig
-# Import Model and Trainer
+
+# --- 5. Import Model and Trainer ---
 from models import ConditionalTimeGanModule, train_module
 
-
-# Optional: Import Evaluation Pipeline if available
-# from metrics_pipeline.evaluate import evaluate_reconstructed_data
 
 def save_results_as_csv_folder(
         dfs: list[pd.DataFrame],
@@ -27,59 +29,78 @@ def save_results_as_csv_folder(
         prefix: str = "synthetic_subject"
 ) -> None:
     """
-    Saves a list of DataFrames as individual CSV files in a specific folder.
-
-    Args:
-        dfs: List of reconstructed DataFrames.
-        output_dir: Root directory where the 'csv_data' folder will be created.
-        prefix: Filename prefix (e.g., 'synthetic_subject').
+    Saves a list of DataFrames as individual CSV files.
     """
-    # Create a dedicated sub-folder for CSVs
     csv_dir = output_dir / "csv_data"
     csv_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"   Saving {len(dfs)} CSV files to: {csv_dir}")
 
     for i, df in enumerate(dfs):
-        # We assume the index (timestamp) is important, so index=True
-        filename = f"{prefix}_{i:03d}.csv"  # e.g., synthetic_subject_000.csv
+        # Generate filename (e.g., val_subject_001.csv)
+        filename = f"{prefix}_{i:03d}.csv"
         save_path = csv_dir / filename
-
         df.to_csv(save_path, index=True)
 
     print("   CSV saving complete.")
 
+
 def generate_val_target_windows(
         model: torch.nn.Module,
-        *,
         c_val: np.ndarray,
         device: torch.device,
 ) -> np.ndarray:
     """
-    Generates synthetic target windows (y_hat) based on validation conditions (c_val).
-
-    Args:
-        model: Trained generative model.
-        c_val: Numpy array of validation condition windows.
-        device: Torch device.
-
-    Returns:
-        np.ndarray: Synthetic target windows.
+    Runs model inference to generate synthetic target windows.
     """
     model.eval()
-    # Convert numpy to tensor
     c = torch.as_tensor(c_val, dtype=torch.float32, device=device)
 
     with torch.no_grad():
-        # Handle models returning tuples (e.g., (output, hidden_state))
         out = model.generate(c)
-
         if isinstance(out, tuple):
-            y_hat = out[0]  # Extract sequence, ignore hidden state
+            y_hat = out[0]
         else:
             y_hat = out
 
     return y_hat.detach().cpu().numpy().astype(np.float32)
+
+
+def process_split_generation(
+        model: torch.nn.Module,
+        split: WindowSplit,
+        reconstructor: WindowReconstructor,
+        scaling_params: dict[str, tuple[float, float]],
+        device: torch.device,
+        split_name: str
+) -> list[pd.DataFrame]:
+    """
+    Helper function to:
+    1. Take a specific WindowSplit (Train or Val).
+    2. Generate synthetic data using the Model.
+    3. Reconstruct the data into DataFrames.
+    """
+    print(f"\n   [Processing Generation: {split_name.upper()}]")
+
+    if len(split) == 0:
+        print("   [!] Warning: Split is empty. Skipping.")
+        return []
+
+    # 1. Generate Synthetic Targets
+    print(f"   Generating synthetic data for {len(split)} windows...")
+    y_hat = generate_val_target_windows(model, split.c, device=device)
+
+    # 2. Reconstruct
+    # We pass the metadata and templates contained within the Split object
+    print(f"   Reconstructing into DataFrames...")
+    dfs = reconstructor.reconstruct(
+        templates=split.templates,
+        meta=split.metadata,
+        y_hat_windows=y_hat,
+        scaling_params=scaling_params
+    )
+
+    return dfs
 
 
 def main() -> None:
@@ -94,19 +115,21 @@ def main() -> None:
     with open(global_config_path) as f:
         global_config = yaml.safe_load(f)
 
-    # Read target column from global schema (e.g., "glucose")
     target_col = global_config["schema"]["target_col"]
-
-    # Detect device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Running on device: {device}")
 
-    # -------------------------------------------------------------------------
-    # 1. DATA PREPARATION (The "Chimera" Pipeline)
-    # -------------------------------------------------------------------------
-    print("\n>>> 1. Initializing and Preparing Datasets...")
+    # Configuration Constants
+    SEQ_LEN = 24
+    VAL_RATIO = 0.2
+    BATCH_SIZE = 64
+    SPLIT_STRATEGY = "subject"  # 'subject' (Stratified) or 'time'
 
-    # Initialize datasets (Running INIT Phase: Mapping -> Indexing)
+    # -------------------------------------------------------------------------
+    # 1. DATA INGESTION (Load & Clean)
+    # -------------------------------------------------------------------------
+    print("\n>>> 1. Loading Datasets...")
+
     ds1 = AZT1D2025Dataset(
         Path("../datasets/AZT1D2025/CGM Records"),
         Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
@@ -120,165 +143,180 @@ def main() -> None:
         logging_dir=Path("../datasets/HUPA-UCM Diabetes Dataset/prep_logs"),
     )
 
-    # ds3 = OhioT1DMDataset(
-    #     Path("../datasets/OhioT1DMmini"),
-    #     Path("../datasets/OhioT1DMmini/ohiot1dmmini.yaml"),
-    #     global_config_file=global_config_path,
-    #     logging_dir=Path("../datasets/OhioT1DMmini/prep_logs"),
-    # )
-
     all_datasets = [ds1, ds2]
 
-    # Execute the 3-Stage Pipeline for each dataset
+    # Clean, Standardize, Augment
     for ds in all_datasets:
-        dataset_name = ds.config['dataset'].get('name', 'Unnamed')
-        print(f"   Processing {dataset_name}...")
-
-        # A. Clean: Repair types, remove duplicates, fill small gaps
+        print(f"   Processing {ds.config['dataset'].get('name')}...")
         ds.clean()
-
-        # B. Standardize: CRITICAL for mixed datasets.
-        #    - Adds missing columns (filled with 0.0) based on global schema.
-        #    - Creates '_mask' columns (1.0 if present, 0.0 if missing).
         ds.standardize()
-
-        # C. Augment: Adds synthetic features (Time sin/cos, IOB/COB decay curves).
         ds.augment()
 
-    # -------------------------------------------------------------------------
-    # 2. DYNAMIC COLUMN DISCOVERY
-    # -------------------------------------------------------------------------
-    # Since augmentation adds new columns, we must inspect the dataframe
-    # to find the final list of conditional features.
-    # We take the first dataset as reference (standardize() ensures schema consistency).
+    # Dynamic Column Discovery (from first dataset)
     sample_df = ds1.all_data[0]
-
-    # The conditional columns are ALL columns except the target
     final_cond_cols = [c for c in sample_df.columns if c != target_col]
-
-    print(f"\n>>> Column Discovery Complete:")
-    print(f"   Target Column: {target_col}")
-    print(f"   Conditionals Detected ({len(final_cond_cols)}): {final_cond_cols}")
-    # Example output: ['basal_rate', 'basal_rate_mask', 'tod_sin_24h', 'bolus_decay', ...]
+    print(f"   Features Detected: {len(final_cond_cols)} conditional columns.")
 
     # -------------------------------------------------------------------------
-    # 3. WINDOWING
+    # 2. SPLITTING (Explicit & Stratified)
     # -------------------------------------------------------------------------
-    print("\n>>> 2. Building Windows...")
+    print("\n>>> 2. Splitting Datasets...")
 
-    cfg = ConditionalWindowingConfig(
-        train_seq_len=24,  # Short length for quick testing (use 228 for production)
-        train_step=12,
-        val_seq_len=24,  # Short length for quick testing
-        val_step=24,
-        val_ratio=0.2,
-        split_by="subject",
-        random_state=42,
-        batch_size=64,
-        num_workers=0,  # Set to 0 on Windows to avoid multiprocessing issues
-        normalize=[target_col] + final_cond_cols,  # Normalize everything (including masks)
-        freq_minutes=5,
+    splitter = DataSplitter(val_ratio=VAL_RATIO, random_state=42)
+
+    # Returns pure lists of DataFrames (with injected IDs in df.attrs)
+    train_dfs_raw, val_dfs_raw = splitter.split_data(
+        datasets=all_datasets,
+        strategy=SPLIT_STRATEGY
     )
 
-    builder = ConditionalWindowBuilder(cfg)
+    # -------------------------------------------------------------------------
+    # 3. NORMALIZATION (Fit on Train -> Apply to All)
+    # -------------------------------------------------------------------------
+    print("\n>>> 3. Normalizing Data...")
 
-    # Build pack and loaders using the dynamically detected columns
-    pack, train_loader, val_loader = builder.build_from_datasets(
-        all_datasets,
-        cond_cols=final_cond_cols,
+    normalizer = MinMaxNormalizer(
+        cols_to_normalize=final_cond_cols + [target_col],
+        fixed_ranges=global_config.get("normalization_ranges", None)
+    )
+
+    # A. Fit only on Training data (Prevents Leakage)
+    normalizer.fit(train_dfs_raw)
+
+    # B. Transform both sets
+    train_dfs_norm = normalizer.transform(train_dfs_raw)
+    val_dfs_norm = normalizer.transform(val_dfs_raw)
+
+    # -------------------------------------------------------------------------
+    # 4. WINDOWING (The Agnostic Builder)
+    # -------------------------------------------------------------------------
+    print("\n>>> 4. Building Windows...")
+
+    builder = WindowBuilder(
         target_col=target_col,
+        cond_cols=final_cond_cols,
+        batch_size=BATCH_SIZE,
+        max_missing_ratio=0.05
+    )
+
+    # A. TRAIN SPLIT (Optimized for Learning)
+    # High overlap (step=1) to maximize training examples.
+    train_split_optim = builder.build_subset(
+        dfs=train_dfs_norm,
+        seq_len=SEQ_LEN,
+        step=1,  # Maximum Overlap
+        shuffle=True,  # Shuffle for training
+        split_name="Train_Optimized"
+    )
+
+    # B. VAL SPLIT (Optimized for Evaluation)
+    # No overlap (step=SEQ_LEN) or minimal overlap.
+    val_split = builder.build_subset(
+        dfs=val_dfs_norm,
+        seq_len=SEQ_LEN,
+        step=SEQ_LEN,  # Non-Overlapping
+        shuffle=False,  # Keep order for reconstruction
+        split_name="Validation"
+    )
+
+    # C. CREATE PACK (For Trainer)
+    # Links the optimized training data and validation data
+    pack = ConditionalWindowPack(
+        train_split=train_split_optim,
+        val_split=val_split,
+        target_col=target_col,
+        cond_cols=final_cond_cols,
+        scaling_params=normalizer.get_params()
     )
 
     # -------------------------------------------------------------------------
-    # 4. TRAINING (TimeGAN)
+    # 5. TRAINING
     # -------------------------------------------------------------------------
-    print(f"\n>>> 3. Training ConditionalTimeGAN...")
-    print(f"   Input Dim: {len(final_cond_cols)} (Conditionals) -> Output Dim: 1 (Glucose)")
+    print(f"\n>>> 5. Training ConditionalTimeGAN...")
 
     model = ConditionalTimeGanModule(
-        cond_dim=len(final_cond_cols),  # Input dimension matches detected features
-        hidden_dim=32,  # Small hidden dim for testing
+        cond_dim=len(final_cond_cols),
+        hidden_dim=32,
         num_layers=2,
         g_steps_per_iter=1,
     ).to(device)
 
-    # Training Phases
-    epochs = 2  # Few epochs for testing
+    # Short epochs for testing purposes
+    epochs = 2
 
     print("   [Phase 1] Autoencoder...")
     model.set_phase("ae")
-    train_module(model, train_loader, val_loader, num_epochs=epochs, device=device)
+    train_module(model, pack.train_split.loader, pack.val_split.loader, epochs, device)
 
     print("   [Phase 2] Supervisor...")
     model.set_phase("sup")
-    train_module(model, train_loader, val_loader, num_epochs=epochs, device=device)
+    train_module(model, pack.train_split.loader, pack.val_split.loader, epochs, device)
 
     print("   [Phase 3] Adversarial (Joint)...")
     model.set_phase("adv")
-    train_module(model, train_loader, val_loader, num_epochs=epochs, device=device)
+    train_module(model, pack.train_split.loader, pack.val_split.loader, epochs, device)
 
     # -------------------------------------------------------------------------
-    # 5. GENERATION & RECONSTRUCTION
+    # 6. GENERATION & RECONSTRUCTION (Advanced)
     # -------------------------------------------------------------------------
-    print("\n>>> 4. Generating & Reconstructing Validation Set...")
+    print("\n>>> 6. Generation & Reconstruction...")
 
-    # A. Generate synthetic windows (Normalized Tensors)
-    y_hat_val = generate_val_target_windows(model, c_val=pack.c_val, device=device)
-
-    # B. Reconstruct DataFrames (Denormalize and reassemble)
-    recon = WindowReconstructor(
-        ReconstructionConfig(
-            target_col=pack.target_col,
-            cond_cols=pack.cond_cols,
-            synth_col="glucose_synth",
-            include_true_target=True,  # Critical for evaluation (Real vs Synth comparison)
-        )
+    # We use 'overwrite' strategy because we will generate non-overlapping data
+    reconstructor = WindowReconstructor(
+        cfg=ReconstructionConfig(
+            target_col=target_col,
+            cond_cols=final_cond_cols,
+            include_true_target=True
+        ),
+        strategy="overwrite"
     )
 
-    synthetic_val_dfs = recon.reconstruct_subject_dfs(
-        templates=pack.val_templates,
-        meta=pack.meta_val,
-        c_windows=pack.c_val,
-        y_hat_windows=y_hat_val,
-        scaling_params=pack.extra.get("scaling_params", None)
+    # A. VALIDATION GENERATION (Standard Inference)
+    # Generates synthetic data for the held-out patients (Patient E)
+    synth_val_dfs = process_split_generation(
+        model, val_split, reconstructor,
+        pack.scaling_params, device, "Validation"
     )
 
-    print(f"   Reconstructed {len(synthetic_val_dfs)} validation subject DataFrames.")
+    # B. TSTR GENERATION (Train on Synthetic, Test on Real)
+    # We need to generate a synthetic version of the TRAINING set.
+    # CRITICAL: We create a NEW split with NO OVERLAP to avoid "flattening" metrics.
+
+    print("\n   [TSTR Prep] Re-building Training Windows (Non-Overlapping)...")
+    train_split_tstr = builder.build_subset(
+        dfs=train_dfs_norm,
+        seq_len=SEQ_LEN,
+        step=SEQ_LEN,  # <--- STRIDE = SEQ_LEN (No Overlap)
+        shuffle=False,  # Keep order
+        split_name="Train_TSTR_Subset"
+    )
+
+    synth_train_dfs = process_split_generation(
+        model, train_split_tstr, reconstructor,
+        pack.scaling_params, device, "Train_TSTR_Synth"
+    )
 
     # -------------------------------------------------------------------------
-    # 6. SAVING & EVALUATION
+    # 7. SAVING
     # -------------------------------------------------------------------------
-
-    # A. SAVING (Safety Checkpoint)
-    # Save the reconstructed dataframes so evaluation can be run separately
     output_dir = Path("../runs/timegan_chimera_run")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    save_path = output_dir / "reconstructed_val_data.pkl"
-    print(f"\n>>> 5. Saving results to {save_path}...")
+    print(f"\n>>> 7. Saving Results to {output_dir}...")
 
-    save_results_as_csv_folder(
-        dfs=synthetic_val_dfs,
-        output_dir=output_dir,
-        prefix="val_subject"
-    )
+    # Save Validation (Test) Results
+    save_results_as_csv_folder(synth_val_dfs, output_dir, prefix="val_subject")
 
-    # Save the model state dict
+    # Save TSTR Training Results
+    save_results_as_csv_folder(synth_train_dfs, output_dir, prefix="train_tstr_subject")
+
+    # Save Model
     torch.save(model.state_dict(), output_dir / "timegan_model.pth")
 
-    # B. EVALUATION (Placeholder)
-    print("\n>>> 6. Running Evaluation Metrics...")
-
-    try:
-        # Future integration point for metrics pipeline
-        # results = evaluate_dataset(synthetic_val_dfs, target_col="glucose", synth_col="glucose_synth")
-        # print(results)
-        print("   (Evaluation pipeline not yet attached - Data saved successfully)")
-    except Exception as e:
-        print(f"   [WARNING] Evaluation failed: {e}")
-        print("   Don't worry, results are saved in .pkl for later analysis.")
-
     print("\n>>> Pipeline Completed Successfully. 🎉")
+    print("    You now have:")
+    print("    1. 'val_subject_*.csv': Synthetic data for new patients (Generalization).")
+    print("    2. 'train_tstr_subject_*.csv': Synthetic data replacing real training data (Utility).")
 
 
 if __name__ == "__main__":

@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-
 import numpy as np
 import pandas as pd
 
-from windowing import WindowMetadata
-from .strategies import NonOverlapStrategy
-from data import denormalize_numpy_array
+# Imports from your project structure
+from windowing.utils import WindowMetadata
+from data_management.normalization import denormalize_numpy_array
+from .strategies import ReconstructionStrategy, OverwriteStrategy, AverageStrategy
 
 
 @dataclass(frozen=True)
 class ReconstructionConfig:
     """
-    Configuration for windows -> list[df] reconstruction.
+    Configuration for window -> DataFrame reconstruction.
     """
     target_col: str
     cond_cols: list[str]
@@ -23,112 +23,125 @@ class ReconstructionConfig:
 
 class WindowReconstructor:
     """
-    Reconstruct per-subject DataFrames from generated target windows + conditional windows + metadata.
+    Reconstructs full-length DataFrames from windowed model outputs.
 
-    The reconstructor does NOT assume access to DataLoader (which may shuffle).
-    It expects windows and metadata to be aligned and deterministic (from the WindowPack).
+    It supports different strategies (Overwrite vs Average) to handle
+    overlapping windows correctly.
     """
 
     def __init__(
-        self,
-        cfg: ReconstructionConfig,
-        *,
-        strategy: NonOverlapStrategy | None = None,
+            self,
+            cfg: ReconstructionConfig,
+            strategy: str = "overwrite"  # "overwrite" or "average"
     ) -> None:
         self.cfg = cfg
-        self.strategy = strategy if strategy is not None else NonOverlapStrategy()
 
-    def reconstruct_subject_dfs(
-        self,
-        *,
-        templates: dict[int, pd.DataFrame],
-        meta: list[WindowMetadata],
-        c_windows: np.ndarray,
-        y_hat_windows: np.ndarray,
-        scaling_params: dict[str, tuple[float, float]] | None = None,
+        # Strategy Factory
+        if strategy == "average":
+            self.strategy: ReconstructionStrategy = AverageStrategy()
+        elif strategy == "overwrite":
+            self.strategy = OverwriteStrategy()
+        else:
+            raise ValueError(f"Unknown reconstruction strategy: {strategy}")
+
+    def reconstruct(
+            self,
+            *,
+            templates: dict[str, pd.DataFrame],
+            meta: list[WindowMetadata],
+            # c_windows: np.ndarray, # useless for now, but can be useful in the future
+            y_hat_windows: np.ndarray,
+            scaling_params: dict[str, tuple[float, float]] | None = None,
     ) -> list[pd.DataFrame]:
         """
-        Reconstruct a list of DataFrames (one per subject) using templates as backbone.
+        Main reconstruction loop.
 
-        Output columns:
-          - cond columns (copied from template)
-          - true target column (optional, copied from template)
-          - synth target column (always present)
+        Args:
+            templates: Dict mapping subject_id (str) to original DataFrame.
+            meta: Metadata list matching the windows.
+            # c_windows: Conditional input windows (N, seq, F).
+            y_hat_windows: Generated target windows (N, seq, 1).
+            scaling_params: Denormalization parameters (from Normalizer/Pack).
 
-        Parameters
-        ----------
-        templates:
-            dict[subject_id -> df] representing the split segment.
-        meta:
-            list[(subject_id, start_row)] aligned with windows.
-        c_windows:
-            Conditional windows aligned with meta. Shape (N, seq_len, cond_dim).
-        y_hat_windows:
-            Generated target windows aligned with meta. Shape (N, seq_len, 1).
-        scaling_params: optional
-            Dictionary {feature_name: (min, max)} for denormalization.
-            If provided, 'y_hat_windows' is assumed to be in [0, 1] range.
-
-        Returns
-        -------
-        list[pd.DataFrame]
-            Sorted by subject_id for determinism.
+        Returns:
+            List of reconstructed DataFrames, sorted by subject ID.
         """
-        if len(meta) != int(y_hat_windows.shape[0]):
-            raise ValueError("meta and y_hat_windows must be aligned (same number of windows).")
-        if len(meta) != int(c_windows.shape[0]):
-            raise ValueError("meta and c_windows must be aligned (same number of windows).")
+        # 1. Validation
+        if len(meta) != len(y_hat_windows):
+            raise ValueError("Length mismatch: Metadata vs Y_hat")
+        #if len(meta) != len(c_windows):
+        #    raise ValueError("Length mismatch: Metadata vs Conditional input")
 
+        # 2. Denormalization (Optional but recommended BEFORE averaging)
+        # It is mathematically cleaner to average real values than normalized ones.
+        final_y_windows = y_hat_windows
         if scaling_params is not None:
-            print(f"   [WindowReconstructor] Delegating denormalization for '{self.cfg.target_col}'...")
-
-            y_hat_windows = denormalize_numpy_array(
+            print(f"   [Reconstructor] Denormalizing '{self.cfg.target_col}' before reconstruction...")
+            final_y_windows = denormalize_numpy_array(
                 array=y_hat_windows,
                 feature_name=self.cfg.target_col,
                 scaling_params=scaling_params
             )
 
-        # Build per-subject buffers for the synthetic target
-        synth_buffers: dict[int, np.ndarray] = {}
+        # 3. Initialize Buffers per Subject
+        # We need a dedicated buffer set for each subject in the templates
+        subject_buffers = {}
         for sid, df in templates.items():
-            # Synthetic target buffer: one column
-            synth_buffers[sid] = np.full((len(df), 1), np.nan, dtype=np.float32)
+            subject_buffers[sid] = self.strategy.initialize_buffers(len(df))
 
-        # Place each window into its subject buffer
-        for i, (sid, start_row) in enumerate(meta):
-            if sid not in synth_buffers:
-                # This can happen if templates were not built consistently with metadata.
-                raise KeyError(f"Subject id {sid} not found in templates.")
+        # 4. Place Windows into Buffers
+        for i, m in enumerate(meta):
+            sid = m.subject_id
+            start = m.start_index
 
-            y_win = y_hat_windows[i]  # (seq_len, 1)
-            self.strategy.place(synth_buffers[sid], y_win, start_row=start_row)
+            if sid not in subject_buffers:
+                # This might happen if 'templates' is a subset (e.g. only Val)
+                # but 'meta' contains everything. Usually an error.
+                print(f"   [!] Warning: Window for subject {sid} has no template. Skipping.")
+                continue
 
-        # Build final df per subject
-        out: list[pd.DataFrame] = []
+            # Delegate placement to the strategy
+            self.strategy.place(
+                buffers=subject_buffers[sid],
+                window=final_y_windows[i],
+                start_row=start
+            )
+
+        # 5. Finalize and Build DataFrames
+        output_dfs = []
+
+        # Sort keys to ensure deterministic output order
         for sid in sorted(templates.keys()):
-            template = templates[sid]
+            df_template = templates[sid]
+            buffers = subject_buffers[sid]
 
-            # Start from a copy to avoid mutating templates
-            df_out = pd.DataFrame(index=template.index)
+            # Compute final array (e.g. perform division for average)
+            synth_array = self.strategy.finalize(buffers)
 
-            # Copy conditional columns if present
+            # Create new DataFrame based on template index
+            df_out = pd.DataFrame(index=df_template.index)
+
+            # A. Copy Conditionals (Cloning from template)
             for col in self.cfg.cond_cols:
-                if col in template.columns:
-                    df_out[col] = template[col]
+                if col in df_template.columns:
+                    df_out[col] = df_template[col]
                 else:
-                    # Keep it explicit: templates should contain cond cols for evaluation.
                     df_out[col] = np.nan
 
-            # Optional true target
+            # B. Copy True Target (if requested)
             if self.cfg.include_true_target:
-                if self.cfg.target_col in template.columns:
-                    df_out[self.cfg.target_col] = template[self.cfg.target_col]
+                if self.cfg.target_col in df_template.columns:
+                    df_out[self.cfg.target_col] = df_template[self.cfg.target_col]
                 else:
                     df_out[self.cfg.target_col] = np.nan
 
-            # Synthetic target
-            df_out[self.cfg.synth_col] = synth_buffers[sid][:, 0]
+            # C. Insert Synthetic Target
+            # synth_array is (N, 1), we flatten to (N,)
+            df_out[self.cfg.synth_col] = synth_array.flatten()
 
-            out.append(df_out)
+            # Add metadata for traceability
+            df_out.attrs["subject_id"] = sid
 
-        return out
+            output_dfs.append(df_out)
+
+        return output_dfs

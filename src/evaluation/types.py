@@ -13,7 +13,7 @@ class EvaluationConfig:
     time_col: str | None = None  # If None, assume the index represents time
     subject_id_col: str | None = None  # If present, assume it is constant within each subject DataFrame
 
-    synth_col: str | None = None
+    comparison_target_col: str | None = None
 
     masked_dataframes: bool = False # if True, assume cond columns may come with mask columns
     feature_groups: dict[str, list[str]] | None = None

@@ -1,11 +1,10 @@
-from .builder import ConditionalWindowingConfig, ConditionalWindowBuilder
-from .packs import ConditionalWindowPack
 from .utils import WindowMetadata
+from .packs import ConditionalWindowPack, WindowSplit
+from .builder import WindowBuilder
 
 __all__ = [
-    "WindowMetadata",
-    "ConditionalWindowPack",
-
-    "ConditionalWindowingConfig",
-    "ConditionalWindowBuilder",
+    WindowMetadata,
+    WindowSplit,
+    ConditionalWindowPack,
+    WindowBuilder,
 ]

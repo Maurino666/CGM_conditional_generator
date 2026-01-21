@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from torch import nn, Tensor
 
@@ -143,9 +145,7 @@ class ConditionalRnnVaeModule(BaseTrainableModule):
         loss = self._compute_loss(y, y_recon, mu, logvar)
         return loss
 
-    # ------------------------------------------------------------------
     # Sampling interface
-    # ------------------------------------------------------------------
     def sample(self, num_samples: int, seq_len: int) -> Tensor:
         """
         Sample from the latent prior and decode to target space.
@@ -159,3 +159,20 @@ class ConditionalRnnVaeModule(BaseTrainableModule):
         z = torch.randn(num_samples, latent_dim, device=device)
         y_hat = self.model.decode(z, seq_len=seq_len)
         return y_hat
+
+    def get_config(self) -> dict[str, Any]:
+        """
+        Return a serializable configuration dictionary for this conditional RNN-VAE.
+
+        It describes architecture (dims, layers, rnn type) and training hyperparameters.
+        """
+        return {
+            "cond_dim": self.cond_dim,
+            "hidden_dim": self.hidden_dim,
+            "latent_dim": self.latent_dim,
+            "num_layers": self.num_layers,
+            "rnn_type": self.rnn_type,
+            "beta": self.beta,
+            "lr": self.lr,
+            "grad_clip": self.grad_clip,
+        }

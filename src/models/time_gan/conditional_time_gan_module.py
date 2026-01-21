@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from torch import Tensor
 
@@ -124,3 +126,19 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
             y_hat = self._generate_from_tensor(generator_input)
 
         return y_hat
+
+    def get_config(self) -> dict[str, Any]:
+        return {
+            "cond_dim": self.cond_dim,
+            "hidden_dim": self.hidden_dim,
+            "num_layers": self.num_layers,
+            "noise_dim": self.noise_dim,
+            "lr": self.lr,
+            "beta1": self.beta1,
+            "gamma": self.gamma,
+            "moment_weight": self.moment_weight,
+            "grad_clip_G": self.grad_clip_G,
+            "grad_clip_D": self.grad_clip_D,
+            "g_steps_per_iter": self.g_steps_per_iter,
+            "d_loss_threshold": self.d_loss_threshold,
+        }

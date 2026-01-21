@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from torch import nn, Tensor
 
@@ -218,3 +220,15 @@ class RnnVaeModule(BaseTrainableModule):
         # Decode using the underlying VAE
         x_recon = self.model.decode(z, seq_len=seq_len)
         return x_recon
+
+    def get_config(self) -> dict[str, Any]:
+        return {
+            "input_dim": self.input_dim,
+            "hidden_dim": self.hidden_dim,
+            "latent_dim": self.latent_dim,
+            "num_layers": self.num_layers,
+            "rnn_type": self.rnn_type,
+            "beta": self.beta,
+            "lr": self.lr,
+            "grad_clip": self.grad_clip,
+        }

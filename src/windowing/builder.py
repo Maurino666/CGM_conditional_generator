@@ -20,7 +20,8 @@ class WindowBuilder:
             cond_cols: list[str],
             batch_size: int = 64,
             num_workers: int = 0,
-            max_missing_ratio: float = 0.0
+            max_missing_ratio: float = 0.0,
+            allow_target_nan: bool = False,
     ) -> None:
         # Configuration shared across all splits
         self.target_col = target_col
@@ -28,6 +29,7 @@ class WindowBuilder:
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.max_missing_ratio = max_missing_ratio
+        self.allow_target_nan = allow_target_nan
 
     def build_subset(
             self,
@@ -80,7 +82,8 @@ class WindowBuilder:
             step=step,
             target_col=self.target_col,
             cond_cols=self.cond_cols,
-            max_missing_ratio=self.max_missing_ratio
+            max_missing_ratio=self.max_missing_ratio,
+            allow_target_nan=self.allow_target_nan,
         )
 
         count = y_data.shape[0]

@@ -189,8 +189,6 @@ def main() -> None:
         strategy=SPLIT_STRATEGY
     )
 
-
-
     # -------------------------------------------------------------------------
     # 3. NORMALIZATION (Fit on Train -> Apply to All)
     # -------------------------------------------------------------------------
@@ -218,7 +216,6 @@ def main() -> None:
         cond_cols=final_cond_cols,
         batch_size=BATCH_SIZE,
         num_workers= 4,
-        max_missing_ratio=0.05
     )
 
     # A. TRAIN SPLIT (Optimized for Learning)
@@ -267,8 +264,6 @@ def main() -> None:
         g_steps_per_iter=1,
     ).to(device)
 
-
-
     print("   [Phase 1] Autoencoder...")
     model.set_phase("ae")
     train_module(
@@ -310,6 +305,24 @@ def main() -> None:
     # -------------------------------------------------------------------------
     print("\n>>> 6. Generation & Reconstruction...")
 
+    # New builder for generation
+    builder = WindowBuilder(
+        target_col=target_col,
+        cond_cols=final_cond_cols,
+        batch_size=BATCH_SIZE,
+        num_workers=4,
+        max_missing_ratio=0.05,
+        allow_target_nan=True,
+    )
+
+    val_gen_split = builder.build_subset(
+        dfs=val_dfs_norm,
+        seq_len=SEQ_LEN,
+        step=SEQ_LEN,  # Non-Overlapping
+        shuffle=False,  # Keep order for reconstruction
+        split_name="Val_generation"
+    )
+
     # We use 'overwrite' strategy because we will generate non-overlapping data
     reconstructor = WindowReconstructor(
         cfg=ReconstructionConfig(
@@ -323,8 +336,12 @@ def main() -> None:
     # A. VALIDATION GENERATION (Standard Inference)
     # Generates synthetic data for the held-out patients (Patient E)
     synth_val_dfs = process_split_generation(
-        model, val_split, reconstructor,
-        pack.scaling_params, device, "Validation"
+        model,
+        val_gen_split,
+        reconstructor,
+        pack.scaling_params,
+        device,
+        "Validation"
     )
 
     # B. TSTR GENERATION (Train on Synthetic, Test on Real)
@@ -341,8 +358,12 @@ def main() -> None:
     )
 
     synth_train_dfs = process_split_generation(
-        model, train_split_tstr, reconstructor,
-        pack.scaling_params, device, "Train_TSTR_Synth"
+        model,
+        train_split_tstr,
+        reconstructor,
+        pack.scaling_params,
+        device,
+        "Train_TSTR_Synth"
     )
 
     # -------------------------------------------------------------------------
@@ -354,8 +375,8 @@ def main() -> None:
     print(f"\n>>> 7. Saving Results to {output_dir}...")
 
     # Split dfs raw to debug
-    save_results_as_csv_folder(train_dfs_raw, output_dir / "split" / "train", prefix="train")
-    save_results_as_csv_folder(val_dfs_raw, output_dir / "split" / "val", prefix="val")
+    # save_results_as_csv_folder(train_dfs_raw, output_dir / "split" / "train", prefix="train")
+    # save_results_as_csv_folder(val_dfs_raw, output_dir / "split" / "val", prefix="val")
 
 
     # Save Validation (Test) Results

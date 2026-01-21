@@ -22,7 +22,8 @@ def build_conditional_windows(
         step: int,
         target_col: str,
         cond_cols: list[str],
-        max_missing_ratio: float = 0.0
+        max_missing_ratio: float = 0.0,
+        allow_target_nan: bool = False,
 ) -> tuple[np.ndarray, np.ndarray, list[WindowMetadata]]:
     """
     Function specifically to extract windows from list of dfs.
@@ -34,6 +35,7 @@ def build_conditional_windows(
         target_col: The column to predict (y).
         cond_cols: The columns to condition on (c).
         max_missing_ratio: Max NaN allowance.
+        allow_target_nan: whether to allow target NaN.
 
     Returns:
         y_windows: (N, seq_len, 1)
@@ -67,7 +69,7 @@ def build_conditional_windows(
             c_window = c_data[start_idx:end_idx]
 
             # Check: target can't be NaN
-            if np.isnan(y_window).any():
+            if np.isnan(y_window).any() and not allow_target_nan:
                 continue
 
             # Discard window if NaN values above threshold

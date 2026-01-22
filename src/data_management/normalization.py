@@ -201,7 +201,8 @@ def denormalize_numpy_array(
 # TODO can be part of class
 def denormalize_dataframes(
         dfs: list[pd.DataFrame],
-        scaling_params: dict[str, tuple[float, float]]
+        scaling_params: dict[str, tuple[float, float]],
+        feature_range: tuple[float, float] = (0.0, 1.0)
 ) -> list[pd.DataFrame]:
     """
     Denormalizes a list of DataFrames in-place (or returning copies)
@@ -212,7 +213,7 @@ def denormalize_dataframes(
     if not dfs:
         return []
 
-    range_min, range_max = self.feature_range
+    range_min, range_max = feature_range
     range_span = range_max - range_min
 
     # 1. Pre-calculate spans to make the loop faster

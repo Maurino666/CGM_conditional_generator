@@ -51,6 +51,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self,
         encoder_input_dim: int,
         generator_input_dim: int,
+        discriminator_input_dim: int,
         recovery_output_dim: int,
         hidden_dim: int,
         num_layers: int = 1,
@@ -91,6 +92,7 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         self.core = TimeGan(
             encoder_input_dim=encoder_input_dim,
             hidden_dim=hidden_dim,
+            discriminator_input_dim=discriminator_input_dim,
             generator_input_dim=generator_input_dim,
             recovery_output_dim=recovery_output_dim,
             num_layers=num_layers,
@@ -127,8 +129,12 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         """Tensor to feed into encoder for the real path."""
         raise NotImplementedError
     @abstractmethod
-    def _build_generator_input(self, info: dict[str, Tensor], Z: Tensor) -> Tensor:
-        """Tensor to feed into generator (pure Z or [Z, c])."""
+    def _build_discriminator_input(self, info: dict[str, Tensor], input: Tensor) -> Tensor:
+        """Tensor to feed into discriminator."""
+        raise NotImplementedError
+    @abstractmethod
+    def _build_generator_input(self, info: dict[str, Tensor], input: Tensor) -> Tensor:
+        """Tensor to feed into generator."""
         raise NotImplementedError
     @abstractmethod
     def _get_reconstruction_target(self, info: dict[str, Tensor]) -> Tensor:
@@ -343,15 +349,15 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
         Z = self._sample_noise_like(x_enc)
         z_input: Tensor = self._build_generator_input(info, Z)
 
-
-
         E_hat, _ = self.core.g_forward(z_input, hidden_state=h_g_init) # h_g_init can be initialized
         H_hat, _ = self.core.s_forward(E_hat)
         Y_hat, _ = self.core.r_forward(H_hat)  # output in target space
 
         # Adversarial losses: fool D with H_hat and E_hat
-        Y_fake, _ = self.core.d_forward(H_hat, hidden_state=h_d_init)
-        Y_fake_e, _ = self.core.d_forward(E_hat, hidden_state=h_d_init)
+        d_input_fake = self._build_discriminator_input(info, H_hat)
+        d_input_fake_e = self._build_discriminator_input(info, E_hat)
+        Y_fake, _ = self.core.d_forward(d_input_fake, hidden_state=h_d_init)
+        Y_fake_e, _ = self.core.d_forward(d_input_fake_e, hidden_state=h_d_init)
 
         ones_like_Y_fake = torch.ones_like(Y_fake)
         ones_like_Y_fake_e = torch.ones_like(Y_fake_e)
@@ -495,9 +501,12 @@ class BaseTimeGanModule(BaseTrainableModule, ABC):
             E_hat = E_hat + torch.randn_like(E_hat) * self.noise_std
 
         # Discriminator outputs
-        Y_real, _ = self.core.d_forward(H_real, hidden_state=h_d_init)
-        Y_fake, _ = self.core.d_forward(H_hat, hidden_state=h_d_init)
-        Y_fake_e, _ = self.core.d_forward(E_hat, hidden_state=h_d_init)
+        d_input_real = self._build_discriminator_input(info, H_real)
+        d_input_fake = self._build_discriminator_input(info, H_hat)
+        d_input_fake_e = self._build_discriminator_input(info, E_hat)
+        Y_real, _ = self.core.d_forward(d_input_real, hidden_state=h_d_init)
+        Y_fake, _ = self.core.d_forward(d_input_fake, hidden_state=h_d_init)
+        Y_fake_e, _ = self.core.d_forward(d_input_fake_e, hidden_state=h_d_init)
 
         ones_real = torch.ones_like(Y_real) * self.soft_label
         zeros_fake = torch.zeros_like(Y_fake)

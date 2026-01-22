@@ -33,6 +33,7 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         noise_std: float = 0.0,
         soft_label: float = 1.0,
         g_cond_noise_std: float = 0.0,
+        d_cond_noise_std: float = 0.0,
     ) -> None:
         """
         Parameters
@@ -48,11 +49,13 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         """
         encoder_input_dim = 1 + cond_dim          # [y, c]
         generator_input_dim = noise_dim + cond_dim  # [Z, c]
+        discriminator_input_dim = hidden_dim + cond_dim
         recovery_output_dim = 1                   # only y
 
         super().__init__(
             encoder_input_dim=encoder_input_dim,
             generator_input_dim=generator_input_dim,
+            discriminator_input_dim=discriminator_input_dim,
             recovery_output_dim=recovery_output_dim,
             hidden_dim=hidden_dim,
             num_layers=num_layers,
@@ -71,6 +74,7 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         )
 
         self.g_cond_noise_std = g_cond_noise_std
+        self.d_cond_noise_std = d_cond_noise_std
         self.cond_dim = cond_dim
 
     # Hooks required by BaseTimeGanModule (conditional case)
@@ -87,7 +91,7 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         """
         return torch.cat([info["y"], info["c"]], dim=-1)
 
-    def _build_generator_input(self, info: dict[str, Tensor], Z: Tensor) -> Tensor:
+    def _build_generator_input(self, info: dict[str, Tensor], input: Tensor) -> Tensor:
         """
         Generator input is [Z, c] in the conditional case.
         Z has shape (B, T, noise_dim), c has shape (B, T, cond_dim).
@@ -96,7 +100,16 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
 
         if self.training and self.phase == "adv":
             cond = cond + torch.randn_like(cond) * self.g_cond_noise_std
-        return torch.cat([Z, cond], dim=-1)
+        return torch.cat([input, cond], dim=-1)
+
+    def _build_discriminator_input(self, info: dict[str, Tensor], input: Tensor) -> Tensor:
+        """
+        Discriminator input is [H, c] in the conditional case.
+        """
+        cond = info["c"]
+        if self.training and self.phase == "adv":
+            cond = cond + torch.randn_like(cond) * self.d_cond_noise_std
+        return torch.cat([input, cond], dim=-1)
 
     def _get_reconstruction_target(self, info: dict[str, Tensor]) -> Tensor:
         """

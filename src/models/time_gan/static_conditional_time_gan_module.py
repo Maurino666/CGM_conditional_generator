@@ -5,11 +5,10 @@ import torch.nn as nn
 import torch.nn.init as init
 from torch import Tensor
 
-# Adjust this import path based on your actual file structure
-from .base_time_gan.module import BaseTimeGanModule
+from .. import ConditionalTimeGanModule
 
 
-class StaticConditionalTimeGanModule(BaseTimeGanModule):
+class StaticConditionalTimeGanModule(ConditionalTimeGanModule):
     """
     TimeGAN implementation with Static Variable Injection via Hidden State Initialization.
 
@@ -52,7 +51,9 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
             g_steps_per_iter: int = 2,
             d_loss_threshold: float = 0.15,
             noise_std: float = 0.0,
-            soft_label: float = 1.0
+            soft_label: float = 1.0,
+            g_cond_noise_std: float = 0.0,
+            d_cond_noise_std: float = 0.0,
     ) -> None:
         """
         Args:
@@ -64,21 +65,8 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
             ... (other standard TimeGAN hyperparameters)
         """
 
-        # 1. Define input dimensions for the Core Networks
-        # Encoder Input: Target (1) + Dynamic Conditions (cond_dim)
-        # Note: Static variables are NOT part of the input dimension here.
-        encoder_input_dim = 1 + cond_dim
-
-        # Generator Input: Noise (noise_dim) + Dynamic Conditions (cond_dim)
-        generator_input_dim = noise_dim + cond_dim
-
-        # Recovery Output: Target only (Glucose)
-        recovery_output_dim = 1
-
         super().__init__(
-            encoder_input_dim=encoder_input_dim,
-            generator_input_dim=generator_input_dim,
-            recovery_output_dim=recovery_output_dim,
+            cond_dim=cond_dim,
             hidden_dim=hidden_dim,
             num_layers=num_layers,
             noise_dim=noise_dim,
@@ -93,9 +81,10 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
             d_loss_threshold=d_loss_threshold,
             noise_std=noise_std,
             soft_label=soft_label,
+            g_cond_noise_std=g_cond_noise_std,
+            d_cond_noise_std=d_cond_noise_std,
         )
 
-        self.cond_dim = cond_dim
         self.static_dim = static_dim
 
         # 2. Static Embedding Network (Projector)
@@ -127,7 +116,7 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
             if len(batch) == 3:
                 # Standard case with static variables
                 y, c_dyn, c_stat = batch
-                return {"y": y, "c_dyn": c_dyn, "c_stat": c_stat}
+                return {"y": y, "c": c_dyn, "c_stat": c_stat}
 
             elif len(batch) == 2:
                 # Fallback case: No static variables provided by loader.
@@ -137,7 +126,7 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
                 batch_size = y.shape[0]
                 # Warning: Implicit zero-filling
                 c_stat = torch.zeros(batch_size, self.static_dim, device=device)
-                return {"y": y, "c_dyn": c_dyn, "c_stat": c_stat}
+                return {"y": y, "c": c_dyn, "c_stat": c_stat}
 
         raise ValueError(f"Batch format not recognized. Expected tuple of length 3, got {type(batch)}")
 
@@ -146,14 +135,14 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
         Constructs input for the Encoder: [Target_t, Dynamic_Cond_t]
         Static variables are NOT concatenated here.
         """
-        return torch.cat([info["y"], info["c_dyn"]], dim=-1)
+        return torch.cat([info["y"], info["c"]], dim=-1)
 
     def _build_generator_input(self, info: dict[str, Tensor], Z: Tensor) -> Tensor:
         """
         Constructs input for the Generator: [Noise_t, Dynamic_Cond_t]
         Static variables are NOT concatenated here.
         """
-        return torch.cat([Z, info["c_dyn"]], dim=-1)
+        return torch.cat([Z, info["c"]], dim=-1)
 
     def _get_reconstruction_target(self, info: dict[str, Tensor]) -> Tensor:
         """The model attempts to reconstruct the target variable (Glucose)."""
@@ -212,34 +201,34 @@ class StaticConditionalTimeGanModule(BaseTimeGanModule):
 
         # 3. Preparing the arguments required by self.generate()
         gen_kwargs = {
-            "cond_dynamic": data_dict["c_dyn"],
+            "cond_seq": data_dict["c"],
             "cond_static": data_dict["c_stat"]
         }
 
         return real_X, gen_kwargs
 
-    def generate(self, cond_dynamic: Tensor, cond_static: Tensor) -> Tensor:
+    def generate(self, cond_seq: Tensor, cond_static: Tensor | None = None) -> Tensor:
         """
         Generate synthetic time-series data conditioned on both dynamic and static variables.
 
         Args:
-            cond_dynamic (Tensor): Time-varying conditions. Shape (Batch, Seq_Len, cond_dim).
+            cond_seq (Tensor): Time-varying conditions. Shape (Batch, Seq_Len, cond_dim).
             cond_static (Tensor): Static patient attributes. Shape (Batch, static_dim).
 
         Returns:
             Tensor: Generated sequences. Shape (Batch, Seq_Len, 1).
         """
         # Input Validation
-        if cond_dynamic.ndim != 3 or cond_dynamic.shape[-1] != self.cond_dim:
-            raise ValueError(f"cond_dynamic shape mismatch. Expected (B, T, {self.cond_dim}), got {cond_dynamic.shape}")
+        if cond_seq.ndim != 3 or cond_seq.shape[-1] != self.cond_dim:
+            raise ValueError(f"cond_dynamic shape mismatch. Expected (B, T, {self.cond_dim}), got {cond_seq.shape}")
 
         if cond_static.ndim != 2 or cond_static.shape[-1] != self.static_dim:
             raise ValueError(f"cond_static shape mismatch. Expected (B, {self.static_dim}), got {cond_static.shape}")
 
-        batch_size, seq_len, _ = cond_dynamic.shape
+        batch_size, seq_len, _ = cond_seq.shape
         device = next(self.parameters()).device
 
-        cond_dynamic = cond_dynamic.to(device)
+        cond_dynamic = cond_seq.to(device)
         cond_static = cond_static.to(device)
 
         # 1. Prepare Initial State (Context)

@@ -49,19 +49,19 @@ class Encoder(nn.Module):
     """Embedding network between original feature space to latent space.
 
     Args:
-        z_dim (int): Input dimension (e.g. features + condition).
+        input_dim (int): Input dimension (e.g. features + condition).
         hidden_dim (int): Hidden dimension size.
         num_layers (int): Number of RNN layers.
     """
 
     def __init__(
             self,
-            z_dim: int,
+            input_dim: int,
             hidden_dim: int,
             num_layers: int = 1,
     ):
         super(Encoder, self).__init__()
-        self.rnn = nn.GRU(input_size=z_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
+        self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
         self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
         self.tanh = nn.Tanh()
@@ -95,22 +95,22 @@ class Recovery(nn.Module):
     """Recovery network from latent space to original space.
 
     Args:
-        z_dim (int): Output dimension (original space).
         hidden_dim (int): Hidden dimension size.
+        output_dim (int): Output dimension (original space).
         num_layers (int): Number of RNN layers.
     """
 
     def __init__(
             self,
-            z_dim: int,
             hidden_dim: int,
+            output_dim: int,
             num_layers: int = 1,
     ):
         super(Recovery, self).__init__()
         self.rnn = nn.GRU(input_size=hidden_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first= True)
 
         #  self.norm = nn.BatchNorm1d(opt.z_dim)
-        self.fc = nn.Linear(hidden_dim, z_dim)
+        self.fc = nn.Linear(hidden_dim, output_dim)
         self.sigmoid = nn.Sigmoid()
         self.apply(_weights_init)
 
@@ -141,19 +141,19 @@ class Generator(nn.Module):
     """Generator function: Generate time-series data in latent space.
 
     Args:
-        z_dim (int): Input dimension (noise + condition).
+        input_dim (int): Input dimension (noise + condition).
         hidden_dim (int): Hidden dimension size.
         num_layers (int): Number of RNN layers.
     """
 
     def __init__(
             self,
-            z_dim: int,
+            input_dim: int,
             hidden_dim: int,
             num_layers: int = 1,
     ):
         super(Generator, self).__init__()
-        self.rnn = nn.GRU(input_size=z_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
+        self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
         self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
         self.tanh = nn.Tanh()
@@ -237,11 +237,12 @@ class Discriminator(nn.Module):
 
     def __init__(
             self,
+            input_dim: int,
             hidden_dim: int,
             num_layers: int = 1,
     ):
         super(Discriminator, self).__init__()
-        self.rnn = nn.GRU(input_size=hidden_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
+        self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
         self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, 1)
         self.sigmoid = nn.Sigmoid()
@@ -283,22 +284,23 @@ class TimeGan(nn.Module):
         encoder_input_dim: int,
         hidden_dim: int,
         generator_input_dim: int,
+        discriminator_input_dim: int,
         recovery_output_dim: int,
         num_layers: int = 1,
     ) -> None:
         super().__init__()
         self.encoder = Encoder(
-            z_dim=encoder_input_dim,
+            input_dim=encoder_input_dim,
             hidden_dim=hidden_dim,
             num_layers=num_layers,
         )
         self.recovery = Recovery(
-            z_dim=recovery_output_dim,
+            output_dim=recovery_output_dim,
             hidden_dim=hidden_dim,
             num_layers=num_layers,
         )
         self.generator = Generator(
-            z_dim=generator_input_dim,
+            input_dim=generator_input_dim,
             hidden_dim=hidden_dim,
             num_layers=num_layers,
         )
@@ -307,6 +309,7 @@ class TimeGan(nn.Module):
             num_layers=num_layers,
         )
         self.discriminator = Discriminator(
+            input_dim=discriminator_input_dim,
             hidden_dim=hidden_dim,
             num_layers=num_layers,
         )

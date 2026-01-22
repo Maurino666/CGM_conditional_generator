@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.init as init
 from torch import Tensor
 
-from .. import ConditionalTimeGanModule
+from .conditional_time_gan_module import ConditionalTimeGanModule
 
 
 class StaticConditionalTimeGanModule(ConditionalTimeGanModule):

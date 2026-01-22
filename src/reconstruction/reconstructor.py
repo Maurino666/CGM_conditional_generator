@@ -52,6 +52,7 @@ class WindowReconstructor:
             # c_windows: np.ndarray, # useless for now, but can be useful in the future
             y_hat_windows: np.ndarray,
             scaling_params: dict[str, tuple[float, float]] | None = None,
+            # TODO change with the actual scaler class
     ) -> list[pd.DataFrame]:
         """
         Main reconstruction loop.

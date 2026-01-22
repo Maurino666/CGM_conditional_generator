@@ -150,6 +150,44 @@ class MinMaxNormalizer:
 
         return out_dfs
 
+    def inverse_transform(self, dfs: list[pd.DataFrame]) -> list[pd.DataFrame]:
+        """
+            Denormalizes a list of DataFrames in-place (or returning copies)
+            using the fitted scaling parameters.
+
+            It ignores columns in the DataFrame that are not present in fitted data.
+            """
+        if not dfs:
+            return []
+
+        range_min, range_max = self.feature_range
+        range_span = range_max - range_min
+
+        # 1. Pre-calculate spans to make the loop faster
+        # map: col_name -> (min, span)
+        params_map = {}
+        for col, (min_v, max_v) in self.scaling_params.items():
+            params_map[col] = (min_v, max_v - min_v)
+
+        denormalized_dfs = []
+
+        for df in dfs:
+            # Work on a copy to avoid side-effects on the original templates
+            df_out = df.copy()
+
+            for col, (min_v, span) in params_map.items():
+                if col in df_out.columns:
+                    std_val = (df_out[col] - range_min) / range_span
+                    # Formula: real = norm * span + min
+                    df_out[col] = std_val * span + min_v
+
+            df_out.attrs = df.attrs.copy()
+            denormalized_dfs.append(df_out)
+
+        return denormalized_dfs
+
+
+
     def get_params(self) -> dict[str, tuple[float, float]]:
         """
         Returns the dictionary of learned ranges.
@@ -198,7 +236,7 @@ def denormalize_numpy_array(
     # We assume 'array' is float32/64.
     return std_val * span + min_val
 
-# TODO can be part of class
+# function now included in class, left in for legacy
 def denormalize_dataframes(
         dfs: list[pd.DataFrame],
         scaling_params: dict[str, tuple[float, float]],

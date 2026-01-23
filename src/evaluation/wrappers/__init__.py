@@ -1,3 +1,4 @@
+from .clinical import ClinicalStatsParams, ClinicalStatsMetric
 from .mage import MageMetric
 from .agp import AgpParams, AgpMetric
 from .arx_delta_r2 import ArxDeltaR2LinearParams, ArxDeltaR2LinearMetric
@@ -10,15 +11,16 @@ from .cmi import CmiKsgParams, CmiKsgMetric
 from .cmi_decomposition import CmiKsgDecompositionParams, CmiKsgDecompositionMetric
 
 __all__ = [
-    "MageMetric",
-    "AgpParams", "AgpMetric",
-    "ArxDeltaR2LinearParams", "ArxDeltaR2LinearMetric",
-    "ArxDeltaR2LinearABParams", "ArxDeltaR2LinearABMetric",
-    "TemporalCVSpec","RegressorFactory",
-    "DeltaR2NonlinearParams", "DeltaR2NonlinearMetric",
-    "NonlinearDeltaR2ABParams", "NonlinearDeltaR2ABDecompositionMetric",
-    "GrangerBlockParams", "GrangerBlockFTestMetric",
-    "GrangerABDecompositionParams", "GrangerABDecompositionMetric",
-    "CmiKsgParams", "CmiKsgMetric",
-    "CmiKsgDecompositionParams", "CmiKsgDecompositionMetric",
+    ClinicalStatsParams, ClinicalStatsMetric,
+    MageMetric,
+    AgpParams, AgpMetric,
+    ArxDeltaR2LinearParams, ArxDeltaR2LinearMetric,
+    ArxDeltaR2LinearABParams, ArxDeltaR2LinearABMetric,
+    TemporalCVSpec, RegressorFactory,
+    DeltaR2NonlinearParams, DeltaR2NonlinearMetric,
+    NonlinearDeltaR2ABParams, NonlinearDeltaR2ABDecompositionMetric,
+    GrangerBlockParams, GrangerBlockFTestMetric,
+    GrangerABDecompositionParams, GrangerABDecompositionMetric,
+    CmiKsgParams, CmiKsgMetric,
+    CmiKsgDecompositionParams, CmiKsgDecompositionMetric,
 ]

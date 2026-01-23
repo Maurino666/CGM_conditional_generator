@@ -57,7 +57,7 @@ def main() -> None:
     HIDDEN_DIM = 128
     NUM_LAYERS = 2
     NOISE_DIM = 64
-    G_STEPS_PER_ITER = 2
+    G_STEPS_PER_ITER = 3
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
     SUPERVISED_WEIGHT = 1.0

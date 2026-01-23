@@ -2,6 +2,8 @@ import pandas as pd
 import yaml
 from pathlib import Path
 
+from sklearn.ensemble import RandomForestRegressor
+
 from evaluation import CmiKsgMetric, DeltaR2NonlinearMetric, DeltaR2NonlinearParams, CmiKsgParams
 # --- Import your existing pipeline components ---
 from evaluation.evaluator import Evaluator
@@ -18,14 +20,14 @@ from evaluation.wrappers import (
 # =============================================================================
 
 # Run Identifiers
-RUN_NAME = "20260121_170027_LowLR_HighThreshold_SW_1_MW_001"
+RUN_NAME = "20260122_145150_Fixed_Static_SW1_MW1"
 
 # Paths
 # Assuming global_config.yaml is in the parent directory or the run directory.
 # Adjust this path to where your YAML file actually lives.
 GLOBAL_CONFIG_PATH = Path("../global_config.yaml")
 
-DATA_DIR = Path(f"../runs/{RUN_NAME}/val")  # Folder containing per-subject CSVs
+DATA_DIR = Path(f"../runs/{RUN_NAME}/val/csv_data")  # Folder containing per-subject CSVs
 OUTPUT_DIR = Path(f"../reports/{RUN_NAME}/val")  # Folder where results/plots will be saved
 
 # Synthetic Column Name
@@ -96,7 +98,13 @@ def get_metrics() -> list:
                 freq_min=5,
                 add_time_of_day=True,
                 min_samples=200,
-                flatten_all_horizons=True
+                flatten_all_horizons=True,
+                regressor_factory = lambda seed: RandomForestRegressor(
+                    n_estimators=100,
+                    max_depth=10,
+                    n_jobs=-1,
+                    random_state=42
+                )
             ),
             name="delta_r2_nonlinear"
         ),

@@ -57,14 +57,14 @@ def main() -> None:
     HIDDEN_DIM = 128
     NUM_LAYERS = 2
     NOISE_DIM = 64
-    G_STEPS_PER_ITER = 2
+    G_STEPS_PER_ITER = 3
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
-    SUPERVISED_WEIGHT = 0.1
-    MOMENT_WEIGHT = 0.001
+    SUPERVISED_WEIGHT = 1.0
+    MOMENT_WEIGHT = 1.0
     GAMMA = 1.0
     LR = 1e-4
-    D_LOSS_THRESHOLD = 1.4
+    D_LOSS_THRESHOLD = 0.5
     # Training params
     AE_EPOCHS = 50
     SUP_EPOCHS = 20
@@ -72,7 +72,7 @@ def main() -> None:
     # Builder extras
     FORCE_DEVICE = device
 
-    RUN_NAME = "LowLR_HighThreshold_SW_1_MW_001"
+    RUN_NAME = "Fixed_Static_SW1_MW1"
 
     # configs for logging
     config = {
@@ -199,9 +199,7 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 5. TRAINING
     # -------------------------------------------------------------------------
-    base_dir = Path("../runs")
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    experiment_name = f"{timestamp}_LowLR_HighThreshold_SW_1_MW_001"
+
     output_dir = base_dir / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
 

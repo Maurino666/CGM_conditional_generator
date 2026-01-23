@@ -27,11 +27,21 @@ class ProjectedStaticTimeGanModule(StaticConditionalTimeGanModule):
             num_layers=self.num_layers,
         )
 
-        # Re-Initializing the optimizer
+        # Re-Initializing the optimizers
+        self.optimizer_e = torch.optim.Adam(
+            self.core.encoder.parameters(), lr=self.lr, betas=(self.beta1, 0.999)
+        )
+        self.optimizer_r = torch.optim.Adam(
+            self.core.recovery.parameters(), lr=self.lr, betas=(self.beta1, 0.999)
+        )
+        self.optimizer_g = torch.optim.Adam(
+            self.core.generator.parameters(), lr=self.lr, betas=(self.beta1, 0.999)
+        )
+        self.optimizer_s = torch.optim.Adam(
+            self.core.supervisor.parameters(), lr=self.lr, betas=(self.beta1, 0.999)
+        )
         self.optimizer_d = torch.optim.Adam(
-            self.core.discriminator.parameters(),
-            lr=self.lr,
-            betas=(self.beta1, 0.999)
+            self.core.discriminator.parameters(), lr=self.lr, betas=(self.beta1, 0.999)
         )
 
     def _build_discriminator_input(self, info: dict[str, Tensor], input: Tensor) -> tuple[Tensor, Tensor]:

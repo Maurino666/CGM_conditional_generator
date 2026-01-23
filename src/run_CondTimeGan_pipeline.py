@@ -23,8 +23,8 @@ from models import ConditionalTimeGanModule
 
 # --- 6. Import NEW Training Components ---
 from training import Trainer
-from training.loggers import TensorBoardLogger
-from training.callbacks import GenerativeVisualizer
+from training.loggers import TensorBoardLogger, WandBLogger
+from training.callbacks import GenerativeVisualizer, GenerativeMomentsMetric, GenerativePCAVisualizer
 
 # --- 7. Import Inference Component ---
 from inference import InferenceOrchestrator
@@ -57,11 +57,11 @@ def main() -> None:
     HIDDEN_DIM = 128
     NUM_LAYERS = 2
     NOISE_DIM = 64
-    G_STEPS_PER_ITER = 2
+    G_STEPS_PER_ITER = 3
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
-    SUPERVISED_WEIGHT = 0.1
-    MOMENT_WEIGHT = 0.001
+    SUPERVISED_WEIGHT = 1.0
+    MOMENT_WEIGHT = 1.0
     GAMMA = 1.0
     LR = 1e-4
     D_LOSS_THRESHOLD = 1.4
@@ -72,6 +72,36 @@ def main() -> None:
     # Builder extras
     FORCE_DEVICE = device
 
+    RUN_NAME = "Fixed_SW1_MW1"
+
+    base_dir = Path("../runs")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    experiment_name = f"{timestamp}_{RUN_NAME}"
+
+    # configs for logging
+    config = {
+        "seq_len": SEQ_LEN,
+        "val_ratio": VAL_RATIO,
+        "batch_size": BATCH_SIZE,
+        "num_workers": NUM_WORKERS,
+        "train_steps": TRAIN_STEP,
+        "split_strategy": SPLIT_STRATEGY,
+        "hidden_dim": HIDDEN_DIM,
+        "num_layers": NUM_LAYERS,
+        "noise_dim": NOISE_DIM,
+        "g_steps_per_iter": G_STEPS_PER_ITER,
+        "noise_std": NOISE_STD,
+        "soft_label": SOFT_LABEL,
+        "supervised_weight": SUPERVISED_WEIGHT,
+        "moment_weight": MOMENT_WEIGHT,
+        "gamma": GAMMA,
+        "lr": LR,
+        "d_loss_threshold": D_LOSS_THRESHOLD,
+        "ae_epochs": AE_EPOCHS,
+        "sup_epochs": SUP_EPOCHS,
+        "adv_epochs": ADV_EPOCHS,
+    }
+
     # -------------------------------------------------------------------------
     # 1. DATA INGESTION (Load & Clean)
     # -------------------------------------------------------------------------
@@ -80,14 +110,14 @@ def main() -> None:
         dataset_root=Path("../datasets/AZT1D2025/CGM Records"),
         config_file=Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
         global_config_file=global_config_path,
-        # patient_metadata_path=Path("../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"),
+        patient_metadata_path=Path("../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"),
         logging_dir=Path("../datasets/AZT1D2025/prep_logs"),
     )
     ds2 = HUPA_UCMDataset(
         dataset_root=Path("../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"),
         config_file=Path("../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"),
         global_config_file=global_config_path,
-        # patient_metadata_path=Path("../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"),
+        patient_metadata_path=Path("../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"),
         logging_dir=Path("../datasets/HUPA-UCM Diabetes Dataset/prep_logs"),
     )
 
@@ -99,7 +129,7 @@ def main() -> None:
         # ds.augment()
 
     sample_df = ds1.all_data[0]
-    final_cond_cols = [c for c in sample_df.columns if c != target_col and c not in global_config["schema"]["static_cols"]]
+    final_cond_cols = [c for c in sample_df.columns if c != target_col]
     print(f"   Features Detected: {len(final_cond_cols)} conditional columns.")
 
     # -------------------------------------------------------------------------
@@ -145,7 +175,7 @@ def main() -> None:
         dfs=val_dfs_norm,
         seq_len=SEQ_LEN,
         step=SEQ_LEN,
-        shuffle=False,
+        shuffle=True,
         split_name="Validation"
     )
 
@@ -160,9 +190,6 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 5. TRAINING
     # -------------------------------------------------------------------------
-    base_dir = Path("../runs")
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    experiment_name = f"{timestamp}_LowLR_HighThreshold_SW_1_MW_001"
     output_dir = base_dir / experiment_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -170,7 +197,12 @@ def main() -> None:
     print(f"\n>>> 5. Training ConditionalTimeGAN (Modular Trainer)...")
 
     # A. Setup Logger
-    tb_logger = TensorBoardLogger(log_dir=output_dir / "tensorboard")
+    logger = WandBLogger(
+        project_name="CGM_conditional_generation",
+        run_name=experiment_name,
+        config=config,
+        log_dir=output_dir,
+    )
 
     # B. Setup Visualizer Callback
     try:
@@ -180,14 +212,8 @@ def main() -> None:
         print("   [Setup] WARNING: Validation loader is empty! Visualization disabled.")
         fixed_vis_batch = None
 
-    visualizer = GenerativeVisualizer(
-        fixed_batch=fixed_vis_batch,
-        device=device,
-        every_n_epochs=5
-    )
 
     # C. Instantiate Model
-    # TODO problem: discriminator is too strong. experiment: higher noise_std
     model = ConditionalTimeGanModule(
         cond_dim=len(final_cond_cols),
         hidden_dim=HIDDEN_DIM,
@@ -206,7 +232,7 @@ def main() -> None:
     # --- Phase 1: Autoencoder ---
     print("\n   [Phase 1] Autoencoder...")
     model.set_phase("ae")
-    trainer = Trainer(device=device, logger=tb_logger, log_every_n_steps= 50)
+    trainer = Trainer(device=device, logger=logger, log_every_n_steps= 50)
     trainer.fit(model, AE_EPOCHS, pack.train_split.loader, pack.val_split.loader)
 
     # --- Phase 2: Supervisor ---
@@ -217,11 +243,34 @@ def main() -> None:
     # --- Phase 3: Adversarial (Joint) ---
     print("\n   [Phase 3] Adversarial (Joint)...")
     model.set_phase("adv")
-    trainer.fit(model, ADV_EPOCHS, pack.train_split.loader, pack.val_split.loader, callbacks=[visualizer])
+    trainer.fit(
+        model,
+        ADV_EPOCHS,
+        pack.train_split.loader,
+        pack.val_split.loader,
+        callbacks=[
+            GenerativeVisualizer(
+                fixed_batch=fixed_vis_batch,
+                device=device,
+                every_n_epochs=5
+            ),
+            GenerativeMomentsMetric(
+                device=device,
+                every_n_epochs=5,
+                max_batches=10,
+            ),
+            GenerativePCAVisualizer(
+                device=device,
+                every_n_epochs=5,
+                max_batches=10,
+                n_components=2
+            )
+        ]
+    )
 
     print(f"\n   Saving final model to {output_dir}...")
     torch.save(model.state_dict(), output_dir / "timegan_model.pth")
-    tb_logger.close()
+    logger.close()
 
     # -------------------------------------------------------------------------
     # 6. GENERATION & RECONSTRUCTION (New Inference Orchestrator)

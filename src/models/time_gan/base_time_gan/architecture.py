@@ -25,7 +25,7 @@ import torch.nn.init as init
 from torch import Tensor
 
 
-def _weights_init(m):
+def weights_init(m):
     classname = m.__class__.__name__
     if isinstance(m, nn.Linear):
         init.xavier_uniform_(m.weight)
@@ -65,7 +65,7 @@ class Encoder(nn.Module):
         self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
         self.tanh = nn.Tanh()
-        self.apply(_weights_init)
+        self.apply(weights_init)
 
     def forward(
             self,
@@ -112,7 +112,7 @@ class Recovery(nn.Module):
         #  self.norm = nn.BatchNorm1d(opt.z_dim)
         self.fc = nn.Linear(hidden_dim, output_dim)
         self.sigmoid = nn.Sigmoid()
-        self.apply(_weights_init)
+        self.apply(weights_init)
 
     def forward(
             self,
@@ -157,7 +157,7 @@ class Generator(nn.Module):
         self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
         self.tanh = nn.Tanh()
-        self.apply(_weights_init)
+        self.apply(weights_init)
 
     def forward(
             self,
@@ -201,7 +201,7 @@ class Supervisor(nn.Module):
         self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, hidden_dim)
         self.tanh = nn.Tanh()
-        self.apply(_weights_init)
+        self.apply(weights_init)
 
     def forward(
             self,
@@ -246,7 +246,7 @@ class Discriminator(nn.Module):
         self.norm = nn.LayerNorm(hidden_dim)
         self.fc = nn.Linear(hidden_dim, 1)
         self.sigmoid = nn.Sigmoid()
-        self.apply(_weights_init)
+        self.apply(weights_init)
 
     def forward(
             self,

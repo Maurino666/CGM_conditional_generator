@@ -235,7 +235,7 @@ class MinMaxNormalizer(Normalizer):
         if not self._is_fitted:
             raise RuntimeError("Cannot save parameters: Normalizer is not fitted yet.")
 
-        save_path = Path(save_path)
+        save_path = Path(save_path) / "scaling_params.json"
         save_path.parent.mkdir(parents=True, exist_ok=True)
 
         # JSON handles tuples as lists automatically.

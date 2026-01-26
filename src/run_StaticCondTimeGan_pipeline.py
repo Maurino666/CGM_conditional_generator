@@ -157,7 +157,7 @@ def main() -> None:
         fixed_ranges=global_config.get("normalization_ranges", None)
     )
     normalizer.fit(train_dfs_raw)
-    normalizer.save_params(output_dir / "normalization")
+    normalizer.save_params(output_dir)
     train_dfs_norm = normalizer.transform(train_dfs_raw)
     val_dfs_norm = normalizer.transform(val_dfs_raw)
     print(f"Normalization parameters: {normalizer.get_params()}")

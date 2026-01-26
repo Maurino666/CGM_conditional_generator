@@ -168,7 +168,7 @@ class ConditionalTimeGanModule(BaseTimeGanModule):
         generator_input = torch.cat([Z, cond_seq], dim=-1)
 
         with torch.no_grad():
-            y_hat = self._generate_from_tensor(generator_input)
+            y_hat, _= self._generate_from_tensor(generator_input)
 
         return y_hat
 

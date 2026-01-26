@@ -207,14 +207,21 @@ class StaticConditionalTimeGanModule(ConditionalTimeGanModule):
 
         return real_X, gen_kwargs
 
-    def generate(self, cond_seq: Tensor, cond_static: Tensor | None = None) -> Tensor:
+    def generate(
+            self,
+            cond_seq: Tensor,
+            cond_static: Tensor | None = None,
+            prev_hidden_state: Tensor | None = None,
+            return_state = False,
+    ) -> Tensor | tuple[Tensor, Tensor]:
         """
         Generate synthetic time-series data conditioned on both dynamic and static variables.
 
         Args:
             cond_seq (Tensor): Time-varying conditions. Shape (Batch, Seq_Len, cond_dim).
             cond_static (Tensor): Static patient attributes. Shape (Batch, static_dim).
-
+            prev_hidden_state (Tensor, optional): The hidden state that can be injected from a previous step.
+            return_state (bool, optional): Whether to return the last hidden state. Defaults to False.
         Returns:
             Tensor: Generated sequences. Shape (Batch, Seq_Len, 1).
         """
@@ -225,14 +232,22 @@ class StaticConditionalTimeGanModule(ConditionalTimeGanModule):
         if cond_static.ndim != 2 or cond_static.shape[-1] != self.static_dim:
             raise ValueError(f"cond_static shape mismatch. Expected (B, {self.static_dim}), got {cond_static.shape}")
 
+
         batch_size, seq_len, _ = cond_seq.shape
         device = next(self.parameters()).device
 
         cond_dynamic = cond_seq.to(device)
-        cond_static = cond_static.to(device)
 
         # 1. Prepare Initial State (Context)
-        h0 = self._project_static_to_h0(cond_static, batch_size)
+        if prev_hidden_state is not None:
+            h0 = prev_hidden_state
+        else:
+            if cond_static is None:
+                if self.static_dim > 0: raise ValueError("cond_static required if no prev_state")
+                h0 = None
+            else:
+                cond_static = cond_static.to(device)
+                h0 = self._project_static_to_h0(cond_static, batch_size)
 
         # 2. Prepare Dynamic Input (Noise + Dynamic Conditions)
         Z = torch.randn(batch_size, seq_len, self.noise_dim, device=device)
@@ -241,10 +256,54 @@ class StaticConditionalTimeGanModule(ConditionalTimeGanModule):
         # 3. Generate using the context
         with torch.no_grad():
             # Pass h0 to the modified base method
-            y_hat = self._generate_from_tensor(gen_input, hidden_state=h0)
+            y_hat, h_final = self._generate_from_tensor(gen_input, hidden_state=h0)
 
+        if return_state:
+            return y_hat, h_final
         return y_hat
 
+    def generate_rolling(
+            self,
+            cond_seq: Tensor,
+            cond_static: Tensor,
+            window_size: int,
+            static_refresh_rate: float,
+    ) -> Tensor:
+
+        batch_size, total_len, _ = cond_seq.shape
+        device = next(self.parameters()).device
+
+        cond_seq = cond_seq.to(device)
+        cond_static = cond_static.to(device)
+
+        h_static_baseline = self._project_static_to_h0(cond_static, batch_size)
+        generated_segments = []
+
+        current_hidden_state = h_static_baseline
+
+        for i in range(0, total_len, window_size):
+            end = min(i + window_size, total_len)
+            cond_window = cond_seq[:, i:end, :]
+
+            y_window, h_final = self.generate(
+                cond_seq = cond_window,
+                cond_static = cond_static,
+                prev_hidden_state = current_hidden_state,
+                return_state = True
+            )
+
+            generated_segments.append(y_window)
+
+            if static_refresh_rate > 0:
+                current_hidden_state = (1 - static_refresh_rate) * h_final + static_refresh_rate * h_static_baseline
+            else:
+                current_hidden_state = h_final
+
+            current_hidden_state = current_hidden_state.detach()
+
+        full_sequence = torch.cat(generated_segments, dim=1)
+
+        return full_sequence
     def get_config(self) -> dict[str, Any]:
         """Returns the configuration dictionary for logging purposes."""
         base_config = super().get_config() if hasattr(super(), "get_config") else {}

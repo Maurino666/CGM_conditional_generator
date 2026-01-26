@@ -49,7 +49,7 @@ def main() -> None:
     # Configuration Constants
     SEQ_LEN = 288
     VAL_RATIO = 0.15
-    BATCH_SIZE = 400
+    BATCH_SIZE = 512
     NUM_WORKERS = 4
     TRAIN_STEP = 12
     SPLIT_STRATEGY = "subject"
@@ -60,19 +60,19 @@ def main() -> None:
     G_STEPS_PER_ITER = 3
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
-    SUPERVISED_WEIGHT = 2.0
+    SUPERVISED_WEIGHT = 5.0
     MOMENT_WEIGHT = 1.0
     GAMMA = 1.0
     LR = 1e-4
     D_LOSS_THRESHOLD = 0.5
     # Training params
-    AE_EPOCHS = 50
+    AE_EPOCHS = 40
     SUP_EPOCHS = 20
-    ADV_EPOCHS = 100
+    ADV_EPOCHS = 150
     # Builder extras
     FORCE_DEVICE = device
 
-    RUN_NAME = "Projected_Static_SW1_MW1"
+    RUN_NAME = "smoketest"
 
     # configs for logging
     config = {
@@ -158,7 +158,7 @@ def main() -> None:
         fixed_ranges=global_config.get("normalization_ranges", None)
     )
     normalizer.fit(train_dfs_raw)
-    normalizer.save_params(output_dir / "normalization")
+    normalizer.save_params(output_dir)
     train_dfs_norm = normalizer.transform(train_dfs_raw)
     val_dfs_norm = normalizer.transform(val_dfs_raw)
     print(f"Normalization parameters: {normalizer.get_params()}")

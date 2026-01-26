@@ -23,7 +23,7 @@ from models import ConditionalTimeGanModule
 
 # --- 6. Import NEW Training Components ---
 from training import Trainer
-from training.loggers import TensorBoardLogger, WandBLogger
+from training.loggers import WandBLogger
 from training.callbacks import GenerativeVisualizer, GenerativeMomentsMetric, GenerativePCAVisualizer
 
 # --- 7. Import Inference Component ---
@@ -297,6 +297,7 @@ def main() -> None:
             cond_cols=final_cond_cols,
             include_true_target=True
         ),
+        normalizer= normalizer,
         strategy="overwrite"
     )
 
@@ -317,7 +318,6 @@ def main() -> None:
         seq_len=SEQ_LEN,
         output_dir=output_dir / "val",
         file_prefix="val_subject",
-        scaling_params=pack.scaling_params,
         split_name="Validation"
     )
 
@@ -330,7 +330,6 @@ def main() -> None:
         seq_len=SEQ_LEN,
         output_dir=output_dir / "train",
         file_prefix="train_tstr_subject",
-        scaling_params=pack.scaling_params,
         split_name="Train_TSTR"
     )
 

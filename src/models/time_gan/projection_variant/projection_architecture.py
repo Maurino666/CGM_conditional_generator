@@ -91,6 +91,7 @@ class ProjectedTimeGan(TimeGan):
             num_layers=num_layers
         )
 
+
     def d_forward(self, inputs, hidden_state=None):
         """
         d_forward override.

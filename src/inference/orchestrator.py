@@ -56,7 +56,6 @@ class InferenceOrchestrator:
             seq_len: int,
             output_dir: Path | None = None,
             file_prefix: str | None = None,
-            scaling_params: dict[str, tuple[float, float]] | None = None,
             split_name: str = "Inference"
     ) -> list[pd.DataFrame]:
         """
@@ -67,7 +66,6 @@ class InferenceOrchestrator:
             seq_len: Length of extracted windows.
             output_dir: Directory where the resulting CSV files will be saved.
             file_prefix: Prefix for the generated filenames (e.g., 'val_subject').
-            scaling_params: Params for de-normalization (passed to Reconstructor).
             split_name: Name of the current split (used for logging).
 
         Returns:
@@ -116,7 +114,6 @@ class InferenceOrchestrator:
             templates=window_split.templates,
             meta=window_split.metadata,
             y_hat_windows=y_hat_np,
-            scaling_params=scaling_params
         )
 
         # -----------------------------------------------------------

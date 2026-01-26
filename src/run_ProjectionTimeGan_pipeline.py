@@ -49,18 +49,18 @@ def main() -> None:
     # Configuration Constants
     SEQ_LEN = 288
     VAL_RATIO = 0.15
-    BATCH_SIZE = 384
+    BATCH_SIZE = 400
     NUM_WORKERS = 4
     TRAIN_STEP = 12
     SPLIT_STRATEGY = "subject"
     # TimeGan params
     HIDDEN_DIM = 128
-    NUM_LAYERS = 2
+    NUM_LAYERS = 3
     NOISE_DIM = 64
     G_STEPS_PER_ITER = 3
     NOISE_STD = 0.1
     SOFT_LABEL = 0.9
-    SUPERVISED_WEIGHT = 1.0
+    SUPERVISED_WEIGHT = 2.0
     MOMENT_WEIGHT = 1.0
     GAMMA = 1.0
     LR = 1e-4
@@ -102,6 +102,8 @@ def main() -> None:
     base_dir = Path("../runs")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     experiment_name = f"{timestamp}_{RUN_NAME}"
+    output_dir = base_dir / experiment_name
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # -------------------------------------------------------------------------
     # 1. DATA INGESTION (Load & Clean)
@@ -156,6 +158,7 @@ def main() -> None:
         fixed_ranges=global_config.get("normalization_ranges", None)
     )
     normalizer.fit(train_dfs_raw)
+    normalizer.save_params(output_dir / "normalization")
     train_dfs_norm = normalizer.transform(train_dfs_raw)
     val_dfs_norm = normalizer.transform(val_dfs_raw)
     print(f"Normalization parameters: {normalizer.get_params()}")
@@ -199,8 +202,7 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 5. TRAINING
     # -------------------------------------------------------------------------
-    output_dir = base_dir / experiment_name
-    output_dir.mkdir(parents=True, exist_ok=True)
+
 
     print(f"\n>>> Run info will be saved in: {output_dir}")
     print(f"\n>>> 5. Training ConditionalTimeGAN (Modular Trainer)...")
@@ -308,6 +310,7 @@ def main() -> None:
             cond_cols=all_feature_cols,
             include_true_target=True
         ),
+        normalizer=normalizer,
         strategy="overwrite"
     )
 
@@ -328,7 +331,6 @@ def main() -> None:
         seq_len=SEQ_LEN,
         output_dir=output_dir / "val",
         file_prefix="val_subject",
-        scaling_params=pack.scaling_params,
         split_name="Validation"
     )
 
@@ -341,7 +343,6 @@ def main() -> None:
         seq_len=SEQ_LEN,
         output_dir=output_dir / "train",
         file_prefix="train_tstr_subject",
-        scaling_params=pack.scaling_params,
         split_name="Train_TSTR"
     )
 

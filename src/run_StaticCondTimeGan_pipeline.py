@@ -309,6 +309,7 @@ def main() -> None:
             cond_cols=all_feature_cols,
             include_true_target=True
         ),
+        normalizer=normalizer,
         strategy="overwrite"
     )
 
@@ -329,7 +330,6 @@ def main() -> None:
         seq_len=SEQ_LEN,
         output_dir=output_dir / "val",
         file_prefix="val_subject",
-        scaling_params=pack.scaling_params,
         split_name="Validation"
     )
 
@@ -342,7 +342,6 @@ def main() -> None:
         seq_len=SEQ_LEN,
         output_dir=output_dir / "train",
         file_prefix="train_tstr_subject",
-        scaling_params=pack.scaling_params,
         split_name="Train_TSTR"
     )
 

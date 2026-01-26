@@ -102,7 +102,8 @@ def main() -> None:
     base_dir = Path("../runs")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     experiment_name = f"{timestamp}_{RUN_NAME}"
-
+    output_dir = base_dir / experiment_name
+    output_dir.mkdir(parents=True, exist_ok=True)
     # -------------------------------------------------------------------------
     # 1. DATA INGESTION (Load & Clean)
     # -------------------------------------------------------------------------
@@ -156,6 +157,7 @@ def main() -> None:
         fixed_ranges=global_config.get("normalization_ranges", None)
     )
     normalizer.fit(train_dfs_raw)
+    normalizer.save_params(output_dir / "normalization")
     train_dfs_norm = normalizer.transform(train_dfs_raw)
     val_dfs_norm = normalizer.transform(val_dfs_raw)
     print(f"Normalization parameters: {normalizer.get_params()}")
@@ -199,10 +201,6 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # 5. TRAINING
     # -------------------------------------------------------------------------
-
-    output_dir = base_dir / experiment_name
-    output_dir.mkdir(parents=True, exist_ok=True)
-
     print(f"\n>>> Run info will be saved in: {output_dir}")
     print(f"\n>>> 5. Training ConditionalTimeGAN (Modular Trainer)...")
 

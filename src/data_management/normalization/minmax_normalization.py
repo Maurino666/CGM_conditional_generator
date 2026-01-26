@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 
+from data_management.normalization.normalization_interface import Normalizer
 
-class MinMaxNormalizer:
+
+class MinMaxNormalizer(Normalizer):
     """
     Stateful Normalizer for lists of Pandas DataFrames.
 
@@ -185,6 +190,80 @@ class MinMaxNormalizer:
             denormalized_dfs.append(df_out)
 
         return denormalized_dfs
+
+    def inverse_transform_array(
+            self,
+            array: np.ndarray,
+            feature_name: str
+    ) -> np.ndarray:
+        """
+        Method used to reverse normalization on a Numpy array.
+
+        Formula: x_real = x_norm * (max - min) + min
+
+        Args:
+            array: Normalized numpy array (in feature_range).
+            feature_name: Name of the feature (key to look up in params).
+
+        Returns:
+            Denormalized array in physical units.
+            If feature_name is not found in scaling_params, returns the array unchanged.
+        """
+        if feature_name not in self.scaling_params:
+            print("[NORMALIZER WARNING] feature_name not found in scaling_params." )
+            return array
+
+        min_val, max_val = self.scaling_params[feature_name]
+        span = max_val - min_val
+
+        range_min, range_max = self.feature_range
+        range_span = range_max - range_min
+
+        std_val = (array - range_min) / range_span
+
+        # Apply inverse transformation
+        # We assume 'array' is float32/64.
+        return std_val * span + min_val
+
+    def save_params(self, save_path: str | Path) -> None:
+        """
+        Saves the learned scaling parameters to a JSON file.
+
+        Args:
+            save_path: Path to the output JSON file.
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Cannot save parameters: Normalizer is not fitted yet.")
+
+        save_path = Path(save_path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # JSON handles tuples as lists automatically.
+        with open(save_path, "w") as f:
+            json.dump(self.scaling_params, f, indent=4)
+
+        print(f"   [Normalizer] Parameters saved to {save_path}")
+
+    def load_params(self, load_path: str | Path) -> None:
+        """
+        Loads scaling parameters from a JSON file and sets the normalizer as fitted.
+
+        Args:
+            load_path: Path to the JSON file containing parameters.
+        """
+        load_path = Path(load_path)
+        if not load_path.exists():
+            raise FileNotFoundError(f"Scaling parameters file not found at: {load_path}")
+
+        with open(load_path, "r") as f:
+            data = json.load(f)
+
+        # JSON loads tuples as lists, convert them back to tuples for consistency
+        # Format in file: {"col": [min, max]} -> Internal: {"col": (min, max)}
+        self.scaling_params = {k: tuple(v) for k, v in data.items()}
+
+        self._is_fitted = True
+        print(f"   [Normalizer] Parameters loaded from {load_path} ({len(self.scaling_params)} features).")
 
 
 

@@ -4,9 +4,9 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from data_management.normalization import Normalizer
 # Imports from your project structure
 from windowing.utils import WindowMetadata
-from data_management.normalization import denormalize_numpy_array, denormalize_dataframes
 from .strategies import ReconstructionStrategy, OverwriteStrategy, AverageStrategy
 
 
@@ -51,8 +51,7 @@ class WindowReconstructor:
             meta: list[WindowMetadata],
             # c_windows: np.ndarray, # useless for now, but can be useful in the future
             y_hat_windows: np.ndarray,
-            scaling_params: dict[str, tuple[float, float]] | None = None,
-            # TODO change with the actual scaler class
+            normalizer: Normalizer | None = None,
     ) -> list[pd.DataFrame]:
         """
         Main reconstruction loop.
@@ -62,7 +61,7 @@ class WindowReconstructor:
             meta: Metadata list matching the windows.
             # c_windows: Conditional input windows (N, seq, F).
             y_hat_windows: Generated target windows (N, seq, 1).
-            scaling_params: Denormalization parameters (from Normalizer/Pack).
+            normalizer: Fitted normalizer to de-normalize data.
 
         Returns:
             List of reconstructed DataFrames, sorted by subject ID.
@@ -76,12 +75,11 @@ class WindowReconstructor:
         # 2. Denormalization (Optional but recommended BEFORE averaging)
         # It is mathematically cleaner to average real values than normalized ones.
         final_y_windows = y_hat_windows
-        if scaling_params is not None:
+        if normalizer is not None:
             print(f"   [Reconstructor] De-normalizing '{self.cfg.target_col}' before reconstruction...")
-            final_y_windows = denormalize_numpy_array(
+            final_y_windows = normalizer.inverse_transform_array(
                 array=y_hat_windows,
                 feature_name=self.cfg.target_col,
-                scaling_params=scaling_params
             )
 
         # 3. Initialize Buffers per Subject
@@ -145,8 +143,8 @@ class WindowReconstructor:
 
             raw_dfs.append(df_out)
 
-        if scaling_params is not None:
+        if normalizer is not None:
             print(f"   [Reconstructor] Batch de-normalizing {len(raw_dfs)} subjects...")
-            return denormalize_dataframes(raw_dfs, scaling_params)
+            return normalizer.inverse_transform(raw_dfs)
 
         return raw_dfs

@@ -14,6 +14,7 @@ from .strategies import ReconstructionStrategy, OverwriteStrategy, AverageStrate
 class ReconstructionConfig:
     """
     Configuration for window -> DataFrame reconstruction.
+
     """
     target_col: str
     cond_cols: list[str]

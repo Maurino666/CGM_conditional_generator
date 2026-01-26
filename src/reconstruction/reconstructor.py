@@ -32,9 +32,11 @@ class WindowReconstructor:
     def __init__(
             self,
             cfg: ReconstructionConfig,
+            normalizer: Normalizer | None = None,
             strategy: str = "overwrite"  # "overwrite" or "average"
     ) -> None:
         self.cfg = cfg
+        self.normalizer = normalizer
 
         # Strategy Factory
         if strategy == "average":
@@ -51,7 +53,6 @@ class WindowReconstructor:
             meta: list[WindowMetadata],
             # c_windows: np.ndarray, # useless for now, but can be useful in the future
             y_hat_windows: np.ndarray,
-            normalizer: Normalizer | None = None,
     ) -> list[pd.DataFrame]:
         """
         Main reconstruction loop.
@@ -75,9 +76,9 @@ class WindowReconstructor:
         # 2. Denormalization (Optional but recommended BEFORE averaging)
         # It is mathematically cleaner to average real values than normalized ones.
         final_y_windows = y_hat_windows
-        if normalizer is not None:
+        if self.normalizer is not None:
             print(f"   [Reconstructor] De-normalizing '{self.cfg.target_col}' before reconstruction...")
-            final_y_windows = normalizer.inverse_transform_array(
+            final_y_windows = self.normalizer.inverse_transform_array(
                 array=y_hat_windows,
                 feature_name=self.cfg.target_col,
             )
@@ -143,8 +144,8 @@ class WindowReconstructor:
 
             raw_dfs.append(df_out)
 
-        if normalizer is not None:
+        if self.normalizer is not None:
             print(f"   [Reconstructor] Batch de-normalizing {len(raw_dfs)} subjects...")
-            return normalizer.inverse_transform(raw_dfs)
+            return self.normalizer.inverse_transform(raw_dfs)
 
         return raw_dfs

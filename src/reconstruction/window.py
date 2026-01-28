@@ -1,28 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from data_management.normalization import Normalizer
-# Imports from your project structure
 from windowing.utils import WindowMetadata
 from .strategies import ReconstructionStrategy, OverwriteStrategy, AverageStrategy
+from .base import BaseReconstructor
 
-
-@dataclass(frozen=True)
-class ReconstructionConfig:
-    """
-    Configuration for window -> DataFrame reconstruction.
-
-    """
-    target_col: str
-    cond_cols: list[str]
-    synth_col: str = "glucose_synth"
-    include_true_target: bool = True
-
-
-class WindowReconstructor:
+class WindowReconstructor(BaseReconstructor):
     """
     Reconstructs full-length DataFrames from windowed model outputs.
 
@@ -32,12 +17,11 @@ class WindowReconstructor:
 
     def __init__(
             self,
-            cfg: ReconstructionConfig,
-            normalizer: Normalizer | None = None,
-            strategy: str = "overwrite"  # "overwrite" or "average"
+            strategy: str = "overwrite",
+            **kwargs
     ) -> None:
-        self.cfg = cfg
-        self.normalizer = normalizer
+
+        super().__init__(**kwargs)
 
         # Strategy Factory
         if strategy == "average":
@@ -63,7 +47,6 @@ class WindowReconstructor:
             meta: Metadata list matching the windows.
             # c_windows: Conditional input windows (N, seq, F).
             y_hat_windows: Generated target windows (N, seq, 1).
-            normalizer: Fitted normalizer to de-normalize data.
 
         Returns:
             List of reconstructed DataFrames, sorted by subject ID.

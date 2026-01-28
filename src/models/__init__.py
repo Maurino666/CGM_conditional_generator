@@ -8,6 +8,8 @@ from .time_gan import TimeGanModule, ProjectedStaticTimeGanModule
 from .time_gan import ConditionalTimeGanModule
 from .time_gan import StaticConditionalTimeGanModule
 
+from .diffusion import DiffWaveDiffusionModule
+
 __all__ = [
     BaseTrainableModule,
     load_any_model,
@@ -19,4 +21,6 @@ __all__ = [
     ConditionalTimeGanModule,
     StaticConditionalTimeGanModule,
     ProjectedStaticTimeGanModule,
+
+    DiffWaveDiffusionModule,
 ]

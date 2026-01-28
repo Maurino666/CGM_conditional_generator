@@ -65,12 +65,34 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         """Pass-through to the backbone."""
         return self.backbone(x, t, cond)
 
+    def _parse_batch (self, batch: tuple[torch.Tensor, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Method that defines custom behavior to adapt standard dataloader batch (of shape B, L, C)
+        to backbone implementation needs.
+        Base implementation returns tensors of shape (B, C, L).
+
+        Expects batch to be a tuple containing y and c tensors
+        """
+        if len(batch) != 2:
+            raise ValueError(
+                f"Batch format error: Expected strictly 2 tensors (Target, Condition), "
+                f"but received {len(batch)} elements. "
+                f"Check your WindowBuilder/Loader configuration."
+            )
+
+        y, c = batch
+
+        y = y.transpose(1, 2)
+        c = c.transpose(1, 2)
+
+        return y, c
+
     def training_step(self, batch: tuple[torch.Tensor, torch.Tensor]) -> dict[str, float]:
         """
         STANDARD DDPM TRAINING LOOP.
         This logic is 'standardized' and rarely changes.
         """
-        x_real, c_cond = batch
+        x_real, c_cond = self._parse_batch(batch)
         batch_size = x_real.shape[0]
         device = x_real.device
 

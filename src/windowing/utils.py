@@ -92,3 +92,80 @@ def build_conditional_windows(
     c_windows = np.stack(all_c, axis=0)
 
     return y_windows, c_windows, metadata
+
+
+def extract_full_sequences(
+        dfs: list[pd.DataFrame],
+        target_col: str,
+        cond_cols: list[str],
+        allow_target_nan: bool = True
+) -> tuple[list[np.ndarray], list[np.ndarray], list[WindowMetadata]]:
+    """
+    Extracts the entire time series from a list of DataFrames without slicing.
+
+    Unlike 'build_conditional_windows', this function does not apply sliding windows
+    or padding. It preserves the original length of each DataFrame.
+    Consequently, it returns lists of numpy arrays (ragged arrays) instead of
+    a single stacked numpy array, as the lengths may vary between subjects.
+
+    Args:
+        dfs: List of source DataFrames (usually normalized).
+        target_col: The name of the target column (y).
+        cond_cols: List of names of the conditional columns (c).
+        allow_target_nan: If True, fills the target array with NaNs if the
+                          target column is missing from the DataFrame (useful for
+                          pure inference/generation scenarios).
+
+    Returns:
+        A tuple containing three lists:
+        1. List of Target Arrays [(L1, 1), (L2, 1), ...]
+        2. List of Conditional Arrays [(L1, C), (L2, C), ...]
+        3. List of Metadata objects (one per subject).
+    """
+
+    all_y = []
+    all_c = []
+    metadata = []
+
+    # 1. Iterate over each subject DataFrame
+    for df in dfs:
+        # Retrieve unique identifier (default to 'unknown' if missing)
+        subj_id = str(df.attrs.get("unique_id", "unknown"))
+        n_rows = len(df)
+
+        # 2. Extract Target (y)
+        if target_col in df.columns:
+            # Extract existing target as float32
+            y_curr = df[[target_col]].to_numpy(dtype=np.float32)
+        else:
+            # Handle missing target
+            if not allow_target_nan:
+                print(f"[Utils] Skipping {subj_id}: Target column '{target_col}' missing.")
+                continue
+
+            # Create a placeholder array full of NaNs
+            y_curr = np.full((n_rows, 1), np.nan, dtype=np.float32)
+
+        # 3. Extract Conditions (c)
+        # Verify that all required conditional columns are present
+        if not set(cond_cols).issubset(df.columns):
+            missing = list(set(cond_cols) - set(df.columns))
+            print(f"[Utils] Skipping {subj_id}: Missing conditional columns {missing}")
+            continue
+
+        c_curr = df[cond_cols].to_numpy(dtype=np.float32)
+
+        # 4. Consistency Check
+        # Ensure target and condition arrays have the same length (row count)
+        if len(y_curr) != len(c_curr):
+            print(f"[Utils] Skipping {subj_id}: Length mismatch (y={len(y_curr)}, c={len(c_curr)})")
+            continue
+
+        # 5. Append to lists
+        all_y.append(y_curr)
+        all_c.append(c_curr)
+
+        # Start index is always 0 for full sequences
+        metadata.append(WindowMetadata(subject_id=subj_id, start_index=0))
+
+    return all_y, all_c, metadata

@@ -5,43 +5,27 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
+from .base import BaseDataBuilder
 from .utils import build_conditional_windows
 from .packs import WindowSplit
 
 
-class WindowBuilder:
+class WindowBuilder(BaseDataBuilder):
     """
-    Agnostic Builder: Transforms ANY list of DataFrames into a WindowSplit.
-    It does not know about 'Train' or 'Validation' roles.
+    Builder strategy: SLIDING WINDOWS.
+
+    Transforms DataFrames into a dataset of fixed-length overlapping windows.
+    Returns stacked Tensors suitable for standard batched training.
     """
 
     def __init__(
             self,
-            target_col: str,
-            cond_cols: list[str],
-            static_cols: list[str] | None = None,
-            batch_size: int = 64,
-            num_workers: int = 0,
             max_missing_ratio: float = 0.0,
-            allow_target_nan: bool = False,
-            force_device: torch.device = None,
+            **kwargs,
     ) -> None:
-        # Configuration shared across all splits
-        self.target_col = target_col
-        self.cond_cols = cond_cols
-        self.batch_size = batch_size
-        self.num_workers = num_workers
+
+        super().__init__(**kwargs)
         self.max_missing_ratio = max_missing_ratio
-        self.allow_target_nan = allow_target_nan
-        self.force_device = force_device
-
-        self.static_cols = static_cols if static_cols else []
-
-        # Calculate feature indices
-        self.static_indices = [i for i, c in enumerate(cond_cols) if c in self.static_cols]
-        self.dynamic_indices = [i for i, c in enumerate(cond_cols) if c not in self.static_cols]
-
-        print(f"   [Builder Config] Static indices: {self.static_indices}")
 
     def build_subset(
             self,

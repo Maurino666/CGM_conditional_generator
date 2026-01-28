@@ -107,3 +107,19 @@ class ConditionalWindowPack:
             f"  - Val Windows:   {len(self.val_split)}\n"
             f"  - Features:      {len(self.cond_cols)}"
         )
+
+@dataclass
+class SequenceSplit:
+    """
+    Container object for variable-length sequence datasets.
+
+    Unlike WindowSplit, this does NOT hold stacked numpy arrays (e.g., [N, L, C])
+    because each subject/sequence has a different length 'L'.
+    Instead, it holds a DataLoader configured to yield one sequence at a time.
+    """
+    loader: DataLoader
+    metadata: list[WindowMetadata]
+    templates: dict[str, pd.DataFrame]
+
+    def __len__(self) -> int:
+        return len(self.metadata)

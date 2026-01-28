@@ -1,5 +1,7 @@
-from .orchestrator import InferenceOrchestrator
+from .window import InferenceOrchestrator
+from .sequence import SequenceInferenceOrchestrator
 
 __all__ = [
-    InferenceOrchestrator
+    InferenceOrchestrator,
+    SequenceInferenceOrchestrator,
 ]

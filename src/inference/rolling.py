@@ -4,7 +4,7 @@ import numpy as np
 from pathlib import Path
 from tqdm.auto import tqdm
 
-from .orchestrator import InferenceOrchestrator
+from .window import InferenceOrchestrator
 
 class RollingInferenceOrchestrator(InferenceOrchestrator):
     """
@@ -27,7 +27,6 @@ class RollingInferenceOrchestrator(InferenceOrchestrator):
     def run(
             self,
             dfs: list[pd.DataFrame],
-            seq_len: int,
             output_dir: Path | None = None,
             file_prefix: str | None = None,
             split_name: str = "Rolling_Inference",
@@ -38,8 +37,6 @@ class RollingInferenceOrchestrator(InferenceOrchestrator):
 
         Args:
             dfs: list of input DataFrames (one per subject/session).
-            seq_len: The length of the windows (e.g., 288 for 24h). 
-                     This dictates the size of the rolling block.
             output_dir: Directory where CSV results will be saved.
             file_prefix: Prefix for generated filenames.
             split_name: Name used for logging purposes.
@@ -55,7 +52,7 @@ class RollingInferenceOrchestrator(InferenceOrchestrator):
 
         if self.verbose:
             print(f"\n[RollingOrchestrator] Starting Stateful Run: '{split_name.upper()}'")
-            print(f"   > Sequence Length: {seq_len}")
+            print(f"   > Sequence Length: {self.seq_len}")
             print(f"   > Static Refresh Rate: {static_refresh_rate}")
 
         generated_dfs = []
@@ -75,8 +72,8 @@ class RollingInferenceOrchestrator(InferenceOrchestrator):
             # step=seq_len ensures no overlap (Chain of Days).
             window_split = self.builder.build_subset(
                 dfs=[df],
-                seq_len=seq_len,
-                step=seq_len,
+                seq_len=self.seq_len,
+                step=self.seq_len,
                 shuffle=False,
                 split_name="single_subj_temp"
             )
@@ -103,7 +100,7 @@ class RollingInferenceOrchestrator(InferenceOrchestrator):
                 y_hat_long = self.model.generate_rolling(
                     cond_seq_long=c_dyn_long,
                     cond_static=c_stat_ref,
-                    window_size=seq_len,
+                    window_size=self.seq_len,
                     static_refresh_rate=static_refresh_rate
                 )
 
@@ -116,7 +113,7 @@ class RollingInferenceOrchestrator(InferenceOrchestrator):
             # We reshape the long sequence back into windows.
             # Note: We rely on the fact that Total_Time = Num_Windows * Seq_Len
             # (enforced by the builder logic and _extract_continuous_tensors).
-            y_hat_np = y_hat_long.view(-1, seq_len, 1).cpu().numpy().astype(np.float32)
+            y_hat_np = y_hat_long.view(-1, self.seq_len, 1).cpu().numpy().astype(np.float32)
 
             # Safety check: ensure we match the number of templates created by the builder.
             # (Rare edge case: if builder dropped a partial batch, reshape might be tricky,

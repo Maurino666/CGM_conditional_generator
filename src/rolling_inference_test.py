@@ -4,7 +4,7 @@ from pathlib import Path
 import logging
 
 from data_management.normalization import MinMaxNormalizer
-from inference.rolling_orchestrator import RollingInferenceOrchestrator
+from inference.rolling import RollingInferenceOrchestrator
 from models import ProjectedStaticTimeGanModule
 from reconstruction import WindowReconstructor, ReconstructionConfig
 from windowing import WindowBuilder
@@ -136,7 +136,7 @@ def main():
 
     builder = WindowBuilder(
         target_col=TARGET_COL,
-        cond_cols=DYNAMIC_COLS + STATIC_COLS,
+        cond_cols=STATIC_COLS + DYNAMIC_COLS,
         static_cols=STATIC_COLS,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
@@ -145,7 +145,7 @@ def main():
     )
 
     reconstructor = WindowReconstructor(
-        ReconstructionConfig(
+        cfg= ReconstructionConfig(
             target_col=TARGET_COL,
             cond_cols=STATIC_COLS+DYNAMIC_COLS,
 
@@ -158,6 +158,7 @@ def main():
         window_builder=builder,
         reconstructor=reconstructor,
         device=DEVICE,
+        seq_len=SEQ_LEN,
         verbose=True
     )
 
@@ -165,7 +166,6 @@ def main():
 
     generated_dfs = orchestrator.run(
         dfs=test_dfs,
-        seq_len=SEQ_LEN,  # 288 (24 hours)
         static_refresh_rate=STATIC_REFRESH_RATE,
         output_dir=OUTPUT_DIR,
         file_prefix="Synth_Rolling",

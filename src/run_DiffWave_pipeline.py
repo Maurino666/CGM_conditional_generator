@@ -13,10 +13,10 @@ from data_management.splitter import DataSplitter
 from data_management.normalization import MinMaxNormalizer
 
 # --- 3. Import Windowing Components ---
-from windowing import WindowBuilder
+from windowing import WindowBuilder, FullSequenceBuilder
 
 # --- 4. Import Reconstruction Components ---
-from reconstruction import WindowReconstructor, ReconstructionConfig
+from reconstruction import ReconstructionConfig, FullSequenceReconstructor
 
 # --- 5. Import Model (DIFFUSION) ---
 # Ensure this imports the updated DiffWave module we discussed
@@ -28,7 +28,7 @@ from training.loggers import WandBLogger
 from training.callbacks import GenerativeVisualizer
 
 # --- 7. Import Inference Component ---
-from inference import InferenceOrchestrator
+from inference import SequenceInferenceOrchestrator
 
 
 def main() -> None:
@@ -270,34 +270,31 @@ def main() -> None:
     print("\n>>> 6. Generation & Reconstruction...")
 
     # 1. Inference Builder
-    # Must match the training configuration (static_cols=[]).
-    gen_builder = WindowBuilder(
+    gen_builder = FullSequenceBuilder(
         target_col=target_col,
         cond_cols=all_feature_cols,
-        batch_size=BATCH_SIZE,
-        num_workers=NUM_WORKERS,
-        allow_target_nan=True,  # Allows generation even if target is missing
+        batch_size=1,
+        num_workers=0,
+        allow_target_nan=True
     )
 
     # 2. Reconstructor
     # Handles denormalization and dataframe creation.
-    reconstructor = WindowReconstructor(
+    reconstructor = FullSequenceReconstructor(
         cfg=ReconstructionConfig(
             target_col=target_col,
             cond_cols=all_feature_cols,
             include_true_target=True
         ),
-        normalizer=normalizer,
-        strategy="overwrite"
+        normalizer=normalizer
     )
 
     # 3. Inference Orchestrator
-    orchestrator = InferenceOrchestrator(
+    orchestrator = SequenceInferenceOrchestrator(
         model=model,
-        window_builder=gen_builder,
+        builder=gen_builder,
         reconstructor=reconstructor,
         device=device,
-        seq_len=SEQ_LEN,
         verbose=True
     )
 

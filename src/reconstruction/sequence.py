@@ -46,8 +46,8 @@ class FullSequenceReconstructor(BaseReconstructor):
             y_hat = generated_outputs[i].flatten()
 
             # 2. Retrieve the template DataFrame
-            template_df = templates.get(sid)
-            if template_df is None:
+            template_norm_df = templates.get(sid)
+            if template_norm_df is None:
                 print(f"[Reconstructor] Warning: No template found for {sid}. Skipping.")
                 continue
 
@@ -56,6 +56,7 @@ class FullSequenceReconstructor(BaseReconstructor):
 
             # 3. Denormalization
             if self.normalizer is not None:
+                template_real_df = self.normalizer.inverse_transform([template_norm_df])[0]
                 # We pass the array and the name of the column.
                 # The normalizer handles the math using the specific min/max for this feature.
                 # Note: We reshape to (Length, 1) because inverse_transform_array usually expects 2D
@@ -64,19 +65,20 @@ class FullSequenceReconstructor(BaseReconstructor):
                     feature_name=self.cfg.target_col
                 ).flatten()
             else:
+                template_real_df = template_norm_df
                 final_y = y_hat
             # 4. Build the Result DataFrame
             # We use the index from the template
-            df_out = pd.DataFrame(index=template_df.index[:gen_len])
+            df_out = pd.DataFrame(index=template_real_df.index[:gen_len])
 
-            # A. Copy True Target (if configured)
-            if self.cfg.include_true_target and self.cfg.target_col in template_df.columns:
-                df_out[self.cfg.target_col] = template_df[self.cfg.target_col].iloc[:gen_len].values
-
-            # B. Copy Conditional Columns
+            # A. Copy Conditional Columns
             for col in self.cfg.cond_cols:
-                if col in template_df.columns:
-                    df_out[col] = template_df[col].iloc[:gen_len].values
+                if col in template_real_df.columns:
+                    df_out[col] = template_real_df[col].iloc[:gen_len].values
+
+            # B. Copy True Target (if configured)
+            if self.cfg.include_true_target and self.cfg.target_col in template_real_df.columns:
+                df_out[self.cfg.target_col] = template_real_df[self.cfg.target_col].iloc[:gen_len].values
 
             # C. Add Synthetic Target
             df_out[self.cfg.synth_col] = final_y

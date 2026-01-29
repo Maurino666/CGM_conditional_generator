@@ -68,9 +68,10 @@ class Trainer:
                 **train_metrics, 
                 **val_metrics
             }
-            
-            if model.phase:
-                all_metrics['phase'] = model.phase
+
+            current_phase = getattr(model, "phase", None)
+            if current_phase:
+                all_metrics['phase'] = current_phase
             
             if self.logger:
                 self.logger.log_metrics(all_metrics, step=epoch, phase="epoch")

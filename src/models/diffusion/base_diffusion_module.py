@@ -120,7 +120,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
 
     def validation_step(self, batch: tuple[torch.Tensor, torch.Tensor]) -> dict[str, float]:
         """Standard validation loop."""
-        x_real, c_cond = batch
+        x_real, c_cond = self._parse_batch(batch)
         batch_size = x_real.shape[0]
         device = x_real.device
 
@@ -140,6 +140,11 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         Standard DDPM Sampling Loop.
         Uses the scheduler math and the backbone prediction.
         """
+        if cond.ndim == 2:
+            cond = cond.unsqueeze(0)
+
+        cond = cond.transpose(1, 2)
+
         self.eval()
         from tqdm.auto import tqdm
         device = cond.device
@@ -168,7 +173,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             else:
                 img = mean
 
-        return img
+        return img.transpose(1, 2)
 
     def get_config(self) -> dict[str, Any]:
         """Base config. Subclasses should extend this."""

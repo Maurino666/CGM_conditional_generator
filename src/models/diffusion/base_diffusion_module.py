@@ -26,7 +26,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             timesteps: int = 1000,
             beta_start: float = 1e-4,
             beta_end: float = 0.02,
-            learning_rate: float = 1e-3,
+            lr: float = 1e-3,
     ):
         super().__init__()
 
@@ -36,7 +36,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         self.timesteps = timesteps
         self.beta_start = beta_start
         self.beta_end = beta_end
-        self.learning_rate = learning_rate
+        self.lr = lr
 
         # 1. Physics (Standard Gaussian Schedule)
         # Almost all models use this, so we define it in the base.
@@ -51,7 +51,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         self.backbone = self._build_backbone()
 
         # 3. Optimizer
-        self.optimizer = torch.optim.AdamW(self.parameters(), lr=learning_rate)
+        self.optimizer = torch.optim.AdamW(self.parameters(), lr=lr)
 
     @abstractmethod
     def _build_backbone(self) -> nn.Module:
@@ -178,5 +178,5 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             "timesteps": self.timesteps,
             "beta_start": self.beta_start,
             "beta_end": self.beta_end,
-            "learning_rate": self.learning_rate,
+            "lr": self.lr,
         }

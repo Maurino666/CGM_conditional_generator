@@ -123,7 +123,7 @@ class GaussianNoiseScheduler(nn.Module):
         batch_size = t.shape[0]
 
         # Gather values: out[i] = a[t[i]]
-        out = a.gather(-1, t.cpu())  # Move t to CPU for gather if needed, usually safer
+        out = a.gather(-1, t)  # Move t to CPU for gather if needed, usually safer
 
         # Move back to correct device
         out = out.to(t.device)

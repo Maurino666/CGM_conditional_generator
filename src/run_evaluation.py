@@ -20,15 +20,15 @@ from evaluation.wrappers import (
 # =============================================================================
 
 # Run Identifiers
-RUN_NAME = "20260122_145150_Fixed_Static_SW1_MW1"
+RUN_NAME = "runs_diffusion/20260129_145903_diffwave_1"
 
 # Paths
 # Assuming global_config.yaml is in the parent directory or the run directory.
 # Adjust this path to where your YAML file actually lives.
 GLOBAL_CONFIG_PATH = Path("../global_config.yaml")
 
-DATA_DIR = Path(f"../runs/{RUN_NAME}/val/csv_data")  # Folder containing per-subject CSVs
-OUTPUT_DIR = Path(f"../reports/{RUN_NAME}/val")  # Folder where results/plots will be saved
+DATA_DIR = Path(f"../runs/{RUN_NAME}/val_gen/csv_data")  # Folder containing per-subject CSVs
+OUTPUT_DIR = Path(f"../reports/{RUN_NAME}/val_gen")  # Folder where results/plots will be saved
 
 # Synthetic Column Name
 # This is usually specific to the model output and not in the global schema.
@@ -248,6 +248,8 @@ def run_pipeline():
     print("\n" + "=" * 40)
     print(" STARTING PASS 2: SYNTHETIC DATA (Model)")
     print("=" * 40)
+
+    print(all_cond_cols)
 
     cfg_synth = EvaluationConfig(
         target_col=COL_TARGET_SYNTH,  # Hardcoded/Defined in script

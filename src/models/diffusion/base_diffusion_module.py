@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .. import BaseTrainableModule
+from ..module_interfaces import BaseTrainableModule
 from .scheduler import GaussianNoiseScheduler
 
 
@@ -133,6 +133,15 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             loss = F.mse_loss(noise_pred, noise)
 
         return {"val_loss": loss.item()}
+
+    def prepare_generation_inputs(self, batch: tuple[torch.Tensor, torch.Tensor]) -> tuple[torch.Tensor, dict[str, Any]]:
+        y_real, c_cond = batch
+
+        device = next(self.parameters()).device
+        y_real = y_real.to(device)
+        c_cond = c_cond.to(device)
+
+        return y_real, {"cond": c_cond}
 
     @torch.no_grad()
     def generate(self, cond: torch.Tensor, n_samples: int | None = None, verbose: bool = False) -> torch.Tensor:

@@ -48,7 +48,7 @@ def main() -> None:
     print(f"Running on device: {device}")
 
     # --- Configuration Constants (Diffusion Specific) ---
-    RUN_NAME = "DiffWave_v1"
+    RUN_NAME = "diffwave_1"
 
     # Data Params
     SEQ_LEN = 288
@@ -56,15 +56,15 @@ def main() -> None:
 
     # CNN-based models (DiffWave) usually consume less VRAM than RNNs,
     # so we might increase the batch size compared to TimeGAN.
-    BATCH_SIZE = 128
+    BATCH_SIZE = 384
     NUM_WORKERS = 4
     TRAIN_STEP = 12  # Stride for data augmentation
     SPLIT_STRATEGY = "subject"
 
     # Diffusion Model Architecture Params
     RESIDUAL_CHANNELS = 64
-    NUM_LAYERS = 12
-    CYCLE_LENGTH = 4  # Dilation cycle (1, 2, 4, 8, ...)
+    NUM_LAYERS = 30
+    CYCLE_LENGTH = 10  # Dilation cycle (1, 2, 4, 8, ...)
     TIMESTEPS = 1000  # T steps for the Forward/Reverse process
     LR = 2e-4  # Standard Learning Rate for DDPM
 

@@ -5,16 +5,16 @@ import logging
 
 from data_management.normalization import MinMaxNormalizer
 from inference.rolling import RollingInferenceOrchestrator
-from models import ProjectedStaticTimeGanModule
+from models import ProjectedStaticTimeGanModule, StaticConditionalTimeGanModule
 from reconstruction import WindowReconstructor, ReconstructionConfig
 from windowing import WindowBuilder
 
 
-RUN_NAME = ""
+RUN_NAME = "20260122_145150_Fixed_Static_SW1_MW1"
 INPUT_DATA_DIR = Path(f"../runs/{RUN_NAME}/val/csv_data")
-OUTPUT_DIR = Path(f"../runs/{RUN_NAME}/val_rolling/csv_data")
+OUTPUT_DIR = Path(f"../runs/{RUN_NAME}/val_rolling")
 MODEL_WEIGHTS = Path(f"../runs/{RUN_NAME}/timegan_model.pth")
-NORMALIZATION_PARAMS_FILE = Path(f"../runs/{RUN_NAME}/normalization_params.yaml")
+NORMALIZATION_PARAMS_FILE = Path(f"../runs/{RUN_NAME}/normalization_params.json")
 
 # Configuration Constants
 SEQ_LEN = 288
@@ -25,7 +25,7 @@ TRAIN_STEP = 12
 SPLIT_STRATEGY = "subject"
 # TimeGan params
 HIDDEN_DIM = 128
-NUM_LAYERS = 3
+NUM_LAYERS = 2
 NOISE_DIM = 64
 G_STEPS_PER_ITER = 3
 NOISE_STD = 0.1
@@ -62,7 +62,9 @@ STATIC_COLS = ["age", "sex_m", "hba1c", "age_mask", "sex_m_mask", "hba1c_mask"]
 
 ALL_COLS = STATIC_COLS + DYNAMIC_COLS
 
-STATIC_REFRESH_RATE = 0.2
+STATIC_REFRESH_RATE = 0.3
+
+TIME_COL = "timestamp"
 
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -82,7 +84,7 @@ def load_data(data_dir: Path) -> list[pd.DataFrame]:
     logging.info(f"Found {len(files)} CSV files in {data_dir}")
     for f in files:
         try:
-            df = pd.read_csv(f)
+            df = pd.read_csv(f, parse_dates=[TIME_COL], index_col=TIME_COL)
             df.attrs['subject_id'] = f.stem
             dfs.append(df)
         except Exception as e:
@@ -98,7 +100,7 @@ def main():
     test_dfs = load_data(INPUT_DATA_DIR)
 
     # initializing model
-    model = ProjectedStaticTimeGanModule(
+    model = StaticConditionalTimeGanModule(
         cond_dim=len(DYNAMIC_COLS),
         static_dim=len(STATIC_COLS),
         hidden_dim=HIDDEN_DIM,

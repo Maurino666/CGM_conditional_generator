@@ -249,3 +249,129 @@ class CohortComparator:
             fname = out_path / f"error_dist__{metric}.png"
             plt.savefig(fname, dpi=150, bbox_inches="tight")
             plt.close()
+
+    def plot_horizon_comparison(
+            self,
+            metric_config: dict[str, str],
+            horizons: list[int],
+            output_dir: Path | str
+    ):
+        """
+        Generates line plots to visualize how metrics evolve or decay over prediction horizons.
+        It compares Real vs Synthetic data for each specified metric family (e.g., ARX, Granger).
+
+        The method performs a "wide-to-long" transformation internally to enable Seaborn
+        to aggregate data across subjects and plot confidence intervals.
+
+        Args:
+            metric_config: A dictionary mapping the metric prefix (class name) to the specific suffix (field).
+                           Example: {"arx_linear": "delta_r2_mean", "granger": "partial_r2_is"}
+                           This allows reconstructing column names like 'arx_linear__h15m__delta_r2_mean_real'.
+            horizons: List of integer horizons in minutes (e.g., [15, 30, 60, 120]).
+                      These must match the horizons used during evaluation.
+            output_dir: The directory where the plots will be saved.
+        """
+        out_path = Path(output_dir) / "horizon_dynamics"
+        out_path.mkdir(parents=True, exist_ok=True)
+
+        # 1. Iterate over each metric family defined in the config
+        for prefix, suffix in metric_config.items():
+
+            # Prepare a list to collect rows for the long-format DataFrame
+            long_rows = []
+
+            # 2. Identify available feature groups for stratification.
+            #    If 'feature_set' is missing, treat the whole cohort as one group "All".
+            feature_groups = self.paired_df["feature_set"].unique() if "feature_set" in self.paired_df.columns else [
+                "All"]
+
+            # 3. Iterate through groups to prepare plotting data
+            for group in feature_groups:
+                # Filter data for the current group
+                if group == "All":
+                    subset = self.paired_df
+                else:
+                    subset = self.paired_df[self.paired_df["feature_set"] == group]
+
+                if subset.empty:
+                    continue
+
+                # 4. Extract data for each horizon
+                for h in horizons:
+                    # Construct the expected column names in the paired DataFrame.
+                    # Naming convention: {prefix}__h{minutes}m__{suffix}_{source}
+                    # Example: arx_linear__h30m__delta_r2_mean_real
+                    col_base = f"{prefix}__h{h}m__{suffix}"
+                    col_real = f"{col_base}_real"
+                    col_synth = f"{col_base}_synth"
+
+                    # Skip if columns are missing (e.g., if a specific horizon wasn't computed)
+                    if col_real not in subset.columns or col_synth not in subset.columns:
+                        continue
+
+                    # Extract Real values and add to the list
+                    vals_real = subset[col_real].dropna().values
+                    for v in vals_real:
+                        long_rows.append({
+                            "feature_set": group,
+                            "horizon": h,
+                            "value": v,
+                            "type": "Real"
+                        })
+
+                    # Extract Synthetic values and add to the list
+                    vals_synth = subset[col_synth].dropna().values
+                    for v in vals_synth:
+                        long_rows.append({
+                            "feature_set": group,
+                            "horizon": h,
+                            "value": v,
+                            "type": "Synth"
+                        })
+
+            # Check if we actually collected any data
+            if not long_rows:
+                print(f"[Comparator] Warning: No data found for horizon plot of {prefix} (suffix={suffix}). Skipping.")
+                continue
+
+            # Create the Long DataFrame for Seaborn
+            df_long = pd.DataFrame(long_rows)
+
+            # 5. Generate one plot per feature group
+            for group in df_long["feature_set"].unique():
+                group_data = df_long[df_long["feature_set"] == group]
+
+                plt.figure(figsize=(8, 5))
+
+                # Plot Lines: Horizon (X) vs Value (Y), split by Type (Color/Style)
+                # Seaborn automatically calculates the mean and 95% confidence interval (shaded band)
+                sns.lineplot(
+                    data=group_data,
+                    x="horizon",
+                    y="value",
+                    hue="type",
+                    style="type",
+                    markers=True,
+                    dashes=False,
+                    palette=["#1f77b4", "#ff7f0e"]  # Blue for Real, Orange for Synth
+                )
+
+                # Formatting the plot
+                # Truncate very long group names for the title
+                short_group = (group[:40] + '..') if len(str(group)) > 40 else group
+
+                plt.title(f"Horizon Dynamics: {prefix}\nMetric: {suffix} | Group: {short_group}")
+                plt.xlabel("Forecast Horizon (minutes)")
+                plt.ylabel(suffix.replace("_", " ").title())  # Prettify y-label (e.g., "Delta R2 Mean")
+                plt.grid(True, alpha=0.3)
+
+                # Force X-axis ticks to match exactly the requested horizons
+                plt.xticks(horizons)
+
+                # Save the figure
+                # Create a safe filename by removing special characters from the group name
+                safe_group = "".join([c if c.isalnum() else "_" for c in str(group)])[:50]
+                fname = out_path / f"horizon_{prefix}__{suffix}__{safe_group}.png"
+
+                plt.savefig(fname, dpi=150, bbox_inches="tight")
+                plt.close()

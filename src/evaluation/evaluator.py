@@ -67,10 +67,23 @@ class Evaluator:
 
             df = restore_nans_from_masks_global(df, self.cfg)
 
+            # Checks which features are valid in current subject
+            valid_feats = []
+            if self.cfg.cond_cols:
+                for col in self.cfg.cond_cols:
+                    # Checks if column exists and has at least 1 not NaN value
+                    if col in df.columns and df[col].notna().any():
+                        valid_feats.append(col)
+            # Creates a string value which contains valid features
+            feature_set_id = "+".join(sorted(valid_feats)) if valid_feats else "target_only"
             # Ensure shared derived features exist once per subject
             df_feat = self._ensure_derived_features(df)
 
-            row: dict[str, object] = {"subject_id": subject_id}
+            row: dict[str, object] = {
+                "subject_id": subject_id,
+                "feature_set": feature_set_id,
+                "n_valid_features": len(valid_feats),
+            }
 
             artifacts.per_subject.setdefault(str(subject_id), {})
             tables.per_subject.setdefault(str(subject_id), {})

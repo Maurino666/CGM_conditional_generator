@@ -4,10 +4,9 @@ from pathlib import Path
 
 from sklearn.ensemble import RandomForestRegressor
 
-from evaluation import CmiKsgMetric, DeltaR2NonlinearMetric, DeltaR2NonlinearParams, CmiKsgParams
-# --- Import your existing pipeline components ---
+from evaluation import CmiKsgMetric, DeltaR2NonlinearMetric, DeltaR2NonlinearParams, CmiKsgParams, CohortComparator
 from evaluation.evaluator import Evaluator
-from evaluation.types import EvaluationConfig, EvaluationResult
+from evaluation.types import EvaluationConfig
 from evaluation.wrappers import (
     ClinicalStatsMetric, ClinicalStatsParams,
     AgpMetric, AgpParams,
@@ -20,7 +19,7 @@ from evaluation.wrappers import (
 # =============================================================================
 
 # Run Identifiers
-RUN_NAME = "runs_diffusion/20260129_145903_diffwave_1"
+RUN_NAME = "runs_diffusion/20260129_181816_diffwave_1"
 
 # Paths
 # Assuming global_config.yaml is in the parent directory or the run directory.
@@ -146,36 +145,6 @@ def load_series(path: Path, time_col: str | None) -> list[pd.DataFrame]:
 
     return series
 
-
-def save_comparison_report(real_res: EvaluationResult, synth_res: EvaluationResult) -> None:
-    """
-    Merges the summary statistics from Real and Synthetic runs and saves a side-by-side comparison.
-    """
-    # Prepare individual summaries
-    s_real = real_res.summary.set_index("metric").add_suffix("_real")
-    s_synth = synth_res.summary.set_index("metric").add_suffix("_synth")
-
-    # Merge on metric name
-    merged = s_real.join(s_synth, how="outer")
-
-    # Calculate absolute error/difference
-    if "mean_real" in merged.columns and "mean_synth" in merged.columns:
-        merged["diff_mean"] = merged["mean_synth"] - merged["mean_real"]
-        merged["abs_error_mean"] = merged["diff_mean"].abs()
-
-    # Save to disk
-    out_path = OUTPUT_DIR / "comparison_summary.csv"
-    merged.to_csv(out_path)
-
-    print("-" * 60)
-    print(f"Comparison report saved to: {out_path}")
-    print("-" * 60)
-
-    # Print a preview of key metrics
-    preview_cols = ["mean_real", "mean_synth", "diff_mean"]
-    print(merged[preview_cols].dropna().head(10))
-
-
 # =============================================================================
 # MAIN PIPELINE
 # =============================================================================
@@ -269,7 +238,44 @@ def run_pipeline():
     # -------------------------------------------------------------------------
     # COMPARE AND FINALIZE
     # -------------------------------------------------------------------------
-    save_comparison_report(results_real, results_synth)
+    comparator = CohortComparator(
+        real_res= results_real,
+        synth_res= results_synth,
+    )
+
+    print(f"Found feature groups: {comparator.get_feature_groups()}")
+
+    summary = comparator.get_summary_by_group()
+
+    print(f"Summary:\n{summary}")
+
+    summary.to_csv(OUTPUT_DIR / "comparison_by_feature_group.csv")
+
+    key_metrics = [
+        # --- Fisiologia Base (Distribution Matching) ---
+        "basic_stats__mean",  # Il glucosio medio è realistico?
+        "basic_stats__std",  # La variabilità è corretta?
+        "basic_stats__tir",  # Time in Range (70-180): Fondamentale
+        "basic_stats__tbr",  # Time Below Range (<70): Critico per la sicurezza (Ipoglicemia)
+        "basic_stats__tar",  # Time Above Range (>180)
+
+        # --- Stabilità Giornaliera (AGP) ---
+        "agp__iqr_mean",  # Variabilità intra-giornaliera media
+        "agp__median_mean",  # Livello mediano del glucosio
+
+        # --- Dinamica e Condizionamento (Aggregate) ---
+        # Usiamo le medie su tutti gli orizzonti per avere un singolo boxplot riassuntivo
+        "arx_linear__delta_r2_mean__avg_over_horizons",  # Quanto linearmente predicibile è il segnale grazie all'input?
+        "delta_r2_nonlinear__delta_r2_mean__avg_over_horizons",  # Quanto NON-linearmente predicibile è?
+        "granger__partial_r2_is__avg_over_horizons",  # Causalità di Granger media
+        "cmi_ksg__cmi_bits__avg_over_horizons"  # Conditional Mutual Information (Information flow)
+    ]
+
+    print("[Comparator] Generating distribution plots...")
+    comparator.plot_metric_distributions(key_metrics, output_dir=OUTPUT_DIR)
+
+    print("[Comparator] Generating error analysis plots...")
+    comparator.plot_errors_by_group(key_metrics, output_dir=OUTPUT_DIR)
 
 
 if __name__ == "__main__":

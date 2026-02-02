@@ -8,6 +8,7 @@ from .types import (
     EvaluationArtifacts,
     EvaluationTables
 )
+from .cohort_comparator import CohortComparator
 
 from .wrappers import (
     MageMetric,
@@ -46,4 +47,6 @@ __all__ = [
 
     "CmiKsgParams", "CmiKsgMetric",
     "CmiKsgDecompositionParams", "CmiKsgDecompositionMetric",
+
+    "CohortComparator",
 ]

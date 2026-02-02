@@ -3,6 +3,9 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
 from .types import EvaluationResult
 
 
@@ -124,3 +127,83 @@ class CohortComparator:
         grouped = self.paired_df.groupby("feature_set")[abs_err_cols].agg(["mean", "std"])
 
         return grouped
+
+    def plot_metric_distributions(
+            self,
+            metrics: list[str],
+            output_dir: Path,
+    ):
+        """
+        Generates coupled plot of metric distributions.
+        Creates a separated plot for every feature group.
+        """
+
+        out_path = Path(output_dir) / "distributions"
+        out_path.mkdir(parents=True, exist_ok=True)
+
+        # We only keep the metrics we are interested in
+        cols_to_keep = ["subject_id", "feature_set"]
+        for m in metrics:
+            cols_to_keep.append(f"{m}_real")
+            cols_to_keep.append(f"{m}_synth")
+
+        subset = self.paired_df[cols_to_keep].copy()
+
+        for metric in metrics:
+            real_data = subset[["feature_set", f"{metric}_real"]].rename(columns={f"{metric}_real": "value"})
+            real_data["type"] = "Real"
+
+            synth_data = subset[["feature_set", f"{metric}_synth"]].rename(columns={f"{metric}_synth": "value"})
+            synth_data["type"] = "Synth"
+
+            long_df = pd.concat([real_data, synth_data], axis=0)
+
+            unique_groups = long_df["feature_set"].unique()
+
+            # We plot every unique feature group
+            for group in unique_groups:
+                group_data = long_df[long_df["feature_set"] == group]
+
+                plt.figure(figsize=(6, 5))
+                sns.boxplot(data=group_data, x="type", y="value", palette=["#1f77b4", "#ff7f0e"], showfliers=False)
+                sns.stripplot(data=group_data, x="type", y="value", color="black", alpha=0.3, jitter=True)
+
+                plt.title(f"Metric: {metric}\nGroup: {group[:30]}...")
+                plt.ylabel(metric)
+                plt.grid(True, alpha=0.3)
+
+                # Saving
+                safe_group_name = "".join([c if c.isalnum() else "_" for c in str(group)])[:50]
+                fname = out_path / f"{metric}__{safe_group_name}.png"
+                plt.savefig(fname, dpi=150, bbox_inches="tight")
+                plt.close()
+
+    def plot_errors_by_group(self, metrics: list[str], output_dir: Path | str):
+        """
+        Generates plot of absolute errors grouped by feature group.
+        """
+        out_path = Path(output_dir) / "errors"
+        out_path.mkdir(parents=True, exist_ok=True)
+
+        cols_err = ["feature_set"] + [f"{m}_abs_err" for m in metrics]
+        df_err = self.paired_df[cols_err].copy()
+
+
+        for metric in metrics:
+            col_name = f"{metric}_abs_err"
+            if col_name not in df_err.columns:
+                continue
+
+            plt.figure(figsize=(10, 6))
+
+            # Horizontal Bar Plot: Feature Group Y, Error X
+            sns.boxplot(data=df_err, y="feature_set", x=col_name, orient="h", palette="viridis")
+
+            plt.title(f"Absolute Error Distribution: {metric}")
+            plt.xlabel(f"Absolute Error (|Synth - Real|)")
+            plt.ylabel("Feature Configuration")
+            plt.grid(True, alpha=0.3)
+
+            fname = out_path / f"error_dist__{metric}.png"
+            plt.savefig(fname, dpi=150, bbox_inches="tight")
+            plt.close()

@@ -98,7 +98,7 @@ class CohortComparator:
 
                 # Absolute Error: |Synth - Real|
                 # Useful for magnitude of error regardless of direction.
-                abs_err_series = paired[f"{col}_diff"].abs()
+                abs_err_series = diff_series.abs()
 
                 # Saving in new_data to avoid fragmentation
                 new_data[f"{col}_diff"] = diff_series

@@ -48,7 +48,7 @@ def main() -> None:
     print(f"Running on device: {device}")
 
     # --- Configuration Constants (Diffusion Specific) ---
-    RUN_NAME = "diffwave_1"
+    RUN_NAME = "diffwave_400_epochs"
 
     # Data Params
     SEQ_LEN = 288
@@ -70,7 +70,7 @@ def main() -> None:
 
     # Training Params
     # Diffusion models typically require more epochs to converge than GANs.
-    MAX_EPOCHS = 200
+    MAX_EPOCHS = 400
     VAL_CHECK_INTERVAL = 10  # Validate less frequently to save time
 
     # Config dict for WandB/Logging
@@ -302,9 +302,18 @@ def main() -> None:
     print("\n   [Generating Validation Data]...")
     orchestrator.run(
         dfs=val_dfs_norm,
-        output_dir=output_dir / "val_gen",
+        output_dir=output_dir / "val",
         file_prefix="val_synthetic",
         split_name="Validation"
+    )
+
+    # 5. Generate Train Set (for future testing)
+    print("\n   [Generating Validation Data]...")
+    orchestrator.run(
+        dfs=train_dfs_norm,
+        output_dir=output_dir / "train",
+        file_prefix="train_synthetic",
+        split_name="Train"
     )
 
     print(f"\n>>> Pipeline Completed Successfully. Results saved in {output_dir}")

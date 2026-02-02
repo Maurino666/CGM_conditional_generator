@@ -19,15 +19,15 @@ from evaluation.wrappers import (
 # =============================================================================
 
 # Run Identifiers
-RUN_NAME = "runs_diffusion/20260129_181816_diffwave_1"
+RUN_NAME = "runs_timegan/20260123_190958_Projected_Static_SW5_MW1_L3"
 
 # Paths
 # Assuming global_config.yaml is in the parent directory or the run directory.
 # Adjust this path to where your YAML file actually lives.
 GLOBAL_CONFIG_PATH = Path("../global_config.yaml")
 
-DATA_DIR = Path(f"../runs/{RUN_NAME}/val_gen/csv_data")  # Folder containing per-subject CSVs
-OUTPUT_DIR = Path(f"../reports/{RUN_NAME}/val_gen")  # Folder where results/plots will be saved
+DATA_DIR = Path(f"../runs/{RUN_NAME}/val/csv_data")  # Folder containing per-subject CSVs
+OUTPUT_DIR = Path(f"../reports/{RUN_NAME}/val")  # Folder where results/plots will be saved
 
 # Synthetic Column Name
 # This is usually specific to the model output and not in the global schema.

@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+
+from matplotlib.pyplot import legend
+
 from .types import EvaluationResult
 
 
@@ -81,6 +84,8 @@ class CohortComparator:
         #    (We exclude metadata columns like feature_set, id, etc.)
         numeric_cols = df_real.select_dtypes(include=[np.number]).columns
 
+        new_data = {}
+
         for col in numeric_cols:
             col_real = f"{col}_real"
             col_synth = f"{col}_synth"
@@ -89,11 +94,20 @@ class CohortComparator:
             if col_real in paired.columns and col_synth in paired.columns:
                 # Raw Difference: (Synth - Real)
                 # Positive means Synth is higher; Negative means Synth is lower.
-                paired[f"{col}_diff"] = paired[col_synth] - paired[col_real]
+                diff_series = paired[col_synth] - paired[col_real]
 
                 # Absolute Error: |Synth - Real|
                 # Useful for magnitude of error regardless of direction.
-                paired[f"{col}_abs_err"] = paired[f"{col}_diff"].abs()
+                abs_err_series = paired[f"{col}_diff"].abs()
+
+                # Saving in new_data to avoid fragmentation
+                new_data[f"{col}_diff"] = diff_series
+                new_data[f"{col}_abs_err"] = abs_err_series
+
+        # Create a df from new_data and concat one-time
+        if new_data:
+            df_deltas = pd.DataFrame(new_data, index=paired.index)
+            paired = pd.concat([paired, df_deltas], axis=1)
 
         return paired.reset_index()  # Bring subject_id back as a column
 
@@ -150,13 +164,17 @@ class CohortComparator:
         subset = self.paired_df[cols_to_keep].copy()
 
         for metric in metrics:
+            if f"{metric}_real" not in subset.columns:
+                print("Skipped metric " + metric)
+                continue
+
             real_data = subset[["feature_set", f"{metric}_real"]].rename(columns={f"{metric}_real": "value"})
             real_data["type"] = "Real"
 
             synth_data = subset[["feature_set", f"{metric}_synth"]].rename(columns={f"{metric}_synth": "value"})
             synth_data["type"] = "Synth"
 
-            long_df = pd.concat([real_data, synth_data], axis=0)
+            long_df = pd.concat([real_data, synth_data], axis=0, ignore_index=True)
 
             unique_groups = long_df["feature_set"].unique()
 
@@ -165,8 +183,24 @@ class CohortComparator:
                 group_data = long_df[long_df["feature_set"] == group]
 
                 plt.figure(figsize=(6, 5))
-                sns.boxplot(data=group_data, x="type", y="value", palette=["#1f77b4", "#ff7f0e"], showfliers=False)
-                sns.stripplot(data=group_data, x="type", y="value", color="black", alpha=0.3, jitter=True)
+                sns.boxplot(
+                    data=group_data,
+                    x="type", y="value",
+                    hue="type",
+                    palette=["#1f77b4", "#ff7f0e"],
+                    showfliers=False,
+                    legend=False,
+                )
+                sns.stripplot(
+                    data=group_data,
+                    x="type",
+                    y="value",
+                    hue="type",
+                    palette=["black", "black"],
+                    alpha=0.3,
+                    jitter=True,
+                    legend=False,
+                )
 
                 plt.title(f"Metric: {metric}\nGroup: {group[:30]}...")
                 plt.ylabel(metric)
@@ -197,7 +231,15 @@ class CohortComparator:
             plt.figure(figsize=(10, 6))
 
             # Horizontal Bar Plot: Feature Group Y, Error X
-            sns.boxplot(data=df_err, y="feature_set", x=col_name, orient="h", palette="viridis")
+            sns.boxplot(
+                data=df_err,
+                y="feature_set",
+                x=col_name,
+                hue="feature_set",
+                orient="h",
+                palette="viridis",
+                legend=False,
+            )
 
             plt.title(f"Absolute Error Distribution: {metric}")
             plt.xlabel(f"Absolute Error (|Synth - Real|)")

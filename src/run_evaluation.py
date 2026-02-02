@@ -252,19 +252,15 @@ def run_pipeline():
     summary.to_csv(OUTPUT_DIR / "comparison_by_feature_group.csv")
 
     key_metrics = [
-        # --- Fisiologia Base (Distribution Matching) ---
         "basic_stats__mean",  # Il glucosio medio è realistico?
         "basic_stats__std",  # La variabilità è corretta?
         "basic_stats__tir",  # Time in Range (70-180): Fondamentale
         "basic_stats__tbr",  # Time Below Range (<70): Critico per la sicurezza (Ipoglicemia)
         "basic_stats__tar",  # Time Above Range (>180)
 
-        # --- Stabilità Giornaliera (AGP) ---
         "agp__iqr_mean",  # Variabilità intra-giornaliera media
         "agp__median_mean",  # Livello mediano del glucosio
 
-        # --- Dinamica e Condizionamento (Aggregate) ---
-        # Usiamo le medie su tutti gli orizzonti per avere un singolo boxplot riassuntivo
         "arx_linear__delta_r2_mean__avg_over_horizons",  # Quanto linearmente predicibile è il segnale grazie all'input?
         "delta_r2_nonlinear__delta_r2_mean__avg_over_horizons",  # Quanto NON-linearmente predicibile è?
         "granger__partial_r2_is__avg_over_horizons",  # Causalità di Granger media

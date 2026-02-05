@@ -1,9 +1,13 @@
-from pathlib import Path
 from typing import Any
 import pandas as pd
-
 from .base_dataset import BaseDataset
 from .processors.interface import DataProcessor
+
+
+from .processors.cleaning import TypeAndValueCleaner
+from .processors.duplicates import DuplicateRemover
+from .processors.gaps import GapFiller
+from .processors.insuline_merger import InsulinComponentsMerger
 
 
 class AZTSpecificCleaner(DataProcessor):
@@ -11,13 +15,13 @@ class AZTSpecificCleaner(DataProcessor):
     Processor containing data cleaning logic specific to the AZT1D2025 dataset.
 
     Operations:
-    1. device_mode: Replaces '0' or 0 with 'Unknown' and sets type to category.
-    2. bolus_type: Replaces '0' or 0 with 'None' and sets type to category.
+    1. device_mode: Replaces '0' with 'Unknown' (Category).
+    2. bolus_type: Replaces '0' with 'None' (Category).
     3. basal_rate: Applies forward-fill to handle missing values (sensor protocol).
     """
 
     def process(self, data_list: list[pd.DataFrame], context: dict[str, Any]) -> list[pd.DataFrame]:
-        print(f"   [AZTSpecificCleaner] Applying AZT-specific fixes (device_mode, bolus_type, basal_rate)...")
+        print(f"   [AZTSpecificCleaner] Applying AZT-specific fixes...")
 
         for i, df in enumerate(data_list):
             # 1. Fix device_mode
@@ -33,8 +37,10 @@ class AZTSpecificCleaner(DataProcessor):
                 ).fillna("None").astype("category")
 
             # 3. Fix basal_rate gaps
+            # Critical: Basal rate is a stateful value. If missing, it implies
+            # "same as before", so we use ffill().
             if "basal_rate" in df.columns:
-                df["basal_rate"] = df["basal_rate"].ffill()
+                df["basal_rate"] = df["basal_rate"].ffill().fillna(0)
 
             data_list[i] = df
 
@@ -45,29 +51,38 @@ class AZT1D2025Dataset(BaseDataset):
     """
     Dataset class for AZT1D2025.
 
-    It extends BaseDataset by injecting a specific cleaning step
-    into the cleaning pipeline.
+    Key Characteristics:
+    - High granularity: Separates Basal Rate and Bolus.
+    - Requires merging these components into a 'total insulin' column for global compatibility.
     """
     name = "azt1d2025"
 
-    def __init__(
-            self,
-            dataset_root: Path,
-            config_file: Path,
-            global_config_file: Path | None = None,
-            patient_metadata_path: Path | None = None,
-            logging_dir: Path | None = None
-    ):
-        # Initialize the base orchestrator
-        super().__init__(
-            dataset_root=dataset_root,
-            config_file=config_file,
-            global_config_file=global_config_file,
-            patient_metadata_path=patient_metadata_path,
-            logging_dir=logging_dir,
-        )
+    def _init_cleaning_pipeline(self) -> list[DataProcessor]:
+        """
+        Override the cleaning pipeline to inject Insulin Merging logic.
 
-        # INJECTION: Insert the dataset-specific cleaner into the pipeline.
-        # We place it at index 1, immediately after TypeAndValueCleaner (index 0),
-        # so we work on typed data before dealing with duplicates or gaps.
-        self.cleaning_pipeline.append(AZTSpecificCleaner())
+        Execution Order:
+        1. TypeAndValueCleaner: Standard type fixing.
+        2. AZTSpecificCleaner: Fills gaps in 'basal_rate' (CRITICAL before merging).
+        3. InsulinComponentsMerger: computes 'insulin' = basal + bolus.
+        4. DuplicateRemover / GapFiller: Standard cleaning.
+        """
+        return [
+            # 1. Standard Type Cleaning
+            TypeAndValueCleaner(),
+
+            # 2. Create Total Insulin Column
+            # Requires clean 'basal_rate' from previous step
+            InsulinComponentsMerger(
+                basal_col="basal_rate",
+                bolus_col="bolus_total",
+                target_col="insulin"
+            ),
+
+            # 3. Standard Cleaning
+            DuplicateRemover(),
+            GapFiller(),
+
+            # 4. Dataset Specific Cleaning
+            AZTSpecificCleaner(),
+        ]

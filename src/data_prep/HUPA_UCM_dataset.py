@@ -3,6 +3,10 @@ from typing import Any
 import pandas as pd
 
 from .base_dataset import BaseDataset
+from .processors.cleaning import TypeAndValueCleaner
+from .processors.duplicates import DuplicateRemover
+from .processors.gaps import GapFiller
+from .processors.insuline_merger import InsulinComponentsMerger
 from .processors.interface import DataProcessor
 
 
@@ -91,6 +95,34 @@ class HUPA_UCMDataset(BaseDataset):
             logging_dir=logging_dir,
         )
 
-        # INJECTION: Insert the scaler into the cleaning pipeline.
-        # Placed after TypeAndValueCleaner to ensure 'carbs' is already numeric.
-        self.cleaning_pipeline.append(HUPACarbsScaler())
+
+
+    def _init_cleaning_pipeline(self) -> list[DataProcessor]:
+        """
+        Override the cleaning pipeline to inject Insulin Merging logic.
+
+        Execution Order:
+        1. TypeAndValueCleaner: Standard type fixing.
+        2. AZTSpecificCleaner: Fills gaps in 'basal_rate' (CRITICAL before merging).
+        3. InsulinComponentsMerger: computes 'insulin' = basal + bolus.
+        4. DuplicateRemover / GapFiller: Standard cleaning.
+        """
+        return [
+            # 1. Standard Type Cleaning
+            TypeAndValueCleaner(),
+
+            # 2. Create Total Insulin Column
+            # Requires clean 'basal_rate' from previous step
+            InsulinComponentsMerger(
+                basal_col="basal_rate",
+                bolus_col="bolus_total",
+                target_col="insulin"
+            ),
+
+            # 3. Standard Cleaning
+            DuplicateRemover(),
+            GapFiller(),
+
+            # 4. Dataset Specific Cleaning
+            HUPACarbsScaler(),
+        ]

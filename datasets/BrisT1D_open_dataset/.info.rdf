@@ -1,0 +1,1445 @@
+<rdf:RDF
+    xmlns:dc="http://purl.org/dc/terms/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:opmv="http://purl.org/net/opmv/ns#"
+    xmlns:dctypes="http://purl.org/dc/dcmitype/"
+    xmlns:schema="http://schema.org/"
+    xmlns:bibo="http://purl.org/ontology/bibo/"
+    xmlns:repo="http://vocab.bris.ac.uk/data/repository#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/">
+  <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08">
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:21.294Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:22.805Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:23:04.917Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:23:04.928Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <repo:includes-third-party-data>0</repo:includes-third-party-data>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:51:11.613Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:52:11.956Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:51.488Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:51.863Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <repo:organisation rdf:resource="http://data.bris.ac.uk/orgs/FENG"/>
+    <dc:issued>2025</dc:issued>
+    <dc:dateSubmitted rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+    >2025-03-07T14:04:39.199Z</dc:dateSubmitted>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:51.902Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:51.915Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:31:01.74Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PublishSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:31:01.813Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:18:55.166Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:20:26.712Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+    >157604887</dc:extent>
+    <repo:other-licences>0</repo:other-licences>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:11:28.048Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:12:12.848Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:30:57.702Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.MDExtractTika</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:31:00.043Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <repo:base-directory>/RDSF1/projects/BrisT1D_Dataset</repo:base-directory>
+    <dc:title>BrisT1D-Open Dataset</dc:title>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:12:12.881Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:12:12.894Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:license rdf:resource="https://creativecommons.org/licenses/by/4.0/"/>
+    <dc:language>eng</dc:language>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:20:31.499Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:21:13.096Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:hasPart>
+      <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/README.txt">
+        <rdfs:label>README.txt</rdfs:label>
+        <dc:format>text/plain; charset=UTF-8</dc:format>
+        <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >5496</dc:extent>
+        <foaf:sha1>97ac71aa171267f9ac167c8198e43b0c6db99b56</foaf:sha1>
+      </rdf:Description>
+    </dc:hasPart>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:51:05.371Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:51:05.383Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:10:00.113Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:11:19.654Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:52.918Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:52.93Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:22.889Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:23.135Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:31:00.587Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.DataCiteSubmit</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:31:01.58Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:11:19.764Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:11:28.016Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:date rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+    >2025-04-29T12:30:49.889Z</dc:date>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:20:26.793Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:20:31.468Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:31:01.961Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.ZipPreTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:31:02.551Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:30:50.203Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.IndexDepositTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:30:56.14Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:hasPart>
+      <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/LICENCE.txt">
+        <rdfs:label>LICENCE.txt</rdfs:label>
+        <dc:format>text/plain; charset=windows-1252</dc:format>
+        <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >19051</dc:extent>
+        <foaf:sha1>6afef7e63bd257753bcae1b1ffe6cf399b486939</foaf:sha1>
+      </rdf:Description>
+    </dc:hasPart>
+    <bibo:doi>10.5523/bris.33z5jc8fa6tob21ptrugzqog08</bibo:doi>
+    <repo:funding rdf:parseType="Resource">
+      <repo:funder>
+        <rdf:Description rdf:about="http://dx.doi.org/10.13039/501100000266">
+          <rdfs:label>Engineering and Physical Sciences Research Council</rdfs:label>
+        </rdf:Description>
+      </repo:funder>
+      <schema:identifier>EP/Y028392/1</schema:identifier>
+    </repo:funding>
+    <dc:available>2025-04-10</dc:available>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:30:50.118Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.RemovePreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-29T12:30:50.129Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <repo:project>BrisT1D_Dataset</repo:project>
+    <dc:publisher>University of Bristol</dc:publisher>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.458Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.7Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:22.846Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:22.854Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:hasFormat>
+      <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/33z5jc8fa6tob21ptrugzqog08.zip">
+        <dc:format>application/zip</dc:format>
+      </rdf:Description>
+    </dc:hasFormat>
+    <dc:source>RDSF1/projects/BrisT1D_Dataset/export/Data-Bris/brist1d-open</dc:source>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:17.877Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.384Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:23:11.447Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:24:05.334Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:hasPart>
+      <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/study_forms">
+        <rdfs:label>study_forms</rdfs:label>
+        <dc:hasPart>
+          <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/study_forms/consent_form.pdf">
+            <rdfs:label>consent_form.pdf</rdfs:label>
+            <dc:title>Factors influencing choice and consumption of caffeine-containing drinks: From genetic individuality to attitudes</dc:title>
+            <dc:format>application/pdf</dc:format>
+            <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+            >123702</dc:extent>
+            <foaf:sha1>52cbec34a7f37ba157c2be38d038d81f3d502b45</foaf:sha1>
+            <dc:modified>2023-03-20T18:14:09Z</dc:modified>
+          </rdf:Description>
+        </dc:hasPart>
+        <dc:hasPart>
+          <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/study_forms/participant_information_sheet.pdf">
+            <rdfs:label>participant_information_sheet.pdf</rdfs:label>
+            <dc:format>application/pdf</dc:format>
+            <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+            >125502</dc:extent>
+            <foaf:sha1>7d48f42ee3c781ba08c21abe0784c0e957fd2bcb</foaf:sha1>
+            <dc:modified>2023-03-20T18:08:48Z</dc:modified>
+          </rdf:Description>
+        </dc:hasPart>
+      </dctypes:Collection>
+    </dc:hasPart>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:52:11.993Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:52:12.007Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:hasPart>
+      <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts">
+        <rdfs:label>transcripts</rdfs:label>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/3_september_focus_groups">
+            <rdfs:label>3_september_focus_groups</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/3_september_focus_groups/3_FG_FG1.pdf">
+                <rdfs:label>3_FG_FG1.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >113203</dc:extent>
+                <foaf:sha1>0a57db22747c1b7b77a89598fe1efb48b3392eb0</foaf:sha1>
+                <dc:modified>2024-12-13T15:51:14Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/3_september_focus_groups/3_FG_FG2.pdf">
+                <rdfs:label>3_FG_FG2.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >126139</dc:extent>
+                <foaf:sha1>fd8914e6833fee82e43881588fe3cdd50dccfdaa</foaf:sha1>
+                <dc:modified>2024-12-13T15:51:16Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/3_september_focus_groups/3_FG_FG3.pdf">
+                <rdfs:label>3_FG_FG3.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >101400</dc:extent>
+                <foaf:sha1>739a7b44ab32e665825e63020cbcda9ed6c90693</foaf:sha1>
+                <dc:modified>2024-12-13T15:51:18Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews">
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P16.pdf">
+                <rdfs:label>6_Int_P16.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >111002</dc:extent>
+                <foaf:sha1>e65f3dd664a42f5d57111b5de3715e4c80aeb120</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:21Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P18.pdf">
+                <rdfs:label>6_Int_P18.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >125634</dc:extent>
+                <foaf:sha1>67cd9ff624d91465294e680156d4d3194f404c0d</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:28Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P02.pdf">
+                <rdfs:label>6_Int_P02.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >128672</dc:extent>
+                <foaf:sha1>9ef66b6dcb2f26e1bcdcc73b0262c2bb8f06bfa8</foaf:sha1>
+                <dc:modified>2024-12-13T15:54:51Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P19.pdf">
+                <rdfs:label>6_Int_P19.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >140596</dc:extent>
+                <foaf:sha1>31cdcac02c82896bc2a4a37bfa9a204afea30d42</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:31Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P01.pdf">
+                <rdfs:label>6_Int_P01.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >126188</dc:extent>
+                <foaf:sha1>4478bb62574742c93941649827f38d0f4d2a4064</foaf:sha1>
+                <dc:modified>2024-12-13T15:54:48Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P21.pdf">
+                <rdfs:label>6_Int_P21.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >133284</dc:extent>
+                <foaf:sha1>617a87c8d39b5f05dc1d0b4fb3a97d99fcf94fd5</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:35Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P10.pdf">
+                <rdfs:label>6_Int_P10.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >156236</dc:extent>
+                <foaf:sha1>78666678da5e34da631749aae43b24d64bfc49d3</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:11Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P17.pdf">
+                <rdfs:label>6_Int_P17.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >160631</dc:extent>
+                <foaf:sha1>696dbfa5fa912e317ce20e4063a2f9a9b330801e</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:25Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P12.pdf">
+                <rdfs:label>6_Int_P12.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >115452</dc:extent>
+                <foaf:sha1>4296ac1197498c1bf3ff9757d7d3afffe1a74012</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:18Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P06.pdf">
+                <rdfs:label>6_Int_P06.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >143338</dc:extent>
+                <foaf:sha1>a1a21f6147b6d128775f73367da6449603842e96</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:05Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P03.pdf">
+                <rdfs:label>6_Int_P03.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >125678</dc:extent>
+                <foaf:sha1>a8a90787fdee8cca2e10a7e3f3d884a2dbc4df38</foaf:sha1>
+                <dc:modified>2024-12-13T15:54:54Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <rdfs:label>6_december_interviews</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P22.pdf">
+                <rdfs:label>6_Int_P22.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >137161</dc:extent>
+                <foaf:sha1>e55f4d26a02589ec019cbcb4ed495dd3fea14e52</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:41Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P07.pdf">
+                <rdfs:label>6_Int_P07.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >112384</dc:extent>
+                <foaf:sha1>52cec97e298809175e6e154e55f34796a158e899</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:07Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P04.pdf">
+                <rdfs:label>6_Int_P04.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >139160</dc:extent>
+                <foaf:sha1>ecb124777f21fa9cbb83b1046cfe6a8792d503cc</foaf:sha1>
+                <dc:modified>2024-12-13T15:54:58Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P11.pdf">
+                <rdfs:label>6_Int_P11.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >163907</dc:extent>
+                <foaf:sha1>68ecdb1000a089e6c8b2c755dd62d8d044c3cec3</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:16Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P24.pdf">
+                <rdfs:label>6_Int_P24.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >118876</dc:extent>
+                <foaf:sha1>6605471829c2412ab685f19597d53a94d15c8a68</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:43Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/6_december_interviews/6_Int_P05.pdf">
+                <rdfs:label>6_Int_P05.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >135808</dc:extent>
+                <foaf:sha1>4609a304915152b13776f03d31bd96be0ecee042</foaf:sha1>
+                <dc:modified>2024-12-13T15:55:01Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews">
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P04.pdf">
+                <rdfs:label>0_Int_P04.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >149929</dc:extent>
+                <foaf:sha1>4f4e7aa5f911ef2e847c58475558caf0c36634f7</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:29Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P21.pdf">
+                <rdfs:label>0_Int_P21.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >142613</dc:extent>
+                <foaf:sha1>d67d94505231e3521e326ca7be17b153db33ce46</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:47Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P23.pdf">
+                <rdfs:label>0_Int_P23.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >157077</dc:extent>
+                <foaf:sha1>55a524eb21eb6c5b8404de894eb17f3f59aeb158</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:56Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P16.pdf">
+                <rdfs:label>0_Int_P16.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >132844</dc:extent>
+                <foaf:sha1>42d0e656597e29efc7baa786d6fe2dd9b0c86073</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:24Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P19.pdf">
+                <rdfs:label>0_Int_P19.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >147920</dc:extent>
+                <foaf:sha1>b8067a028d1bd4590073f974ee65f59b3b265ea4</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:38Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P02.pdf">
+                <rdfs:label>0_Int_P02.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >156592</dc:extent>
+                <foaf:sha1>653a5e2c6f4646bdf9d501bb02c52c553c90a0d1</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:21Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P11.pdf">
+                <rdfs:label>0_Int_P11.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >173725</dc:extent>
+                <foaf:sha1>4386981869e944aad81d8efe9733ab3000806138</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:03Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P24.pdf">
+                <rdfs:label>0_Int_P24.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >136683</dc:extent>
+                <foaf:sha1>67f40e8875e4feb50345bcacdf712fec6f88e8db</foaf:sha1>
+                <dc:modified>2024-12-13T15:41:01Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P17.pdf">
+                <rdfs:label>0_Int_P17.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >141808</dc:extent>
+                <foaf:sha1>14cd9152d17558af26526d5a8fa35e0b2bcbae19</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:28Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P20.pdf">
+                <rdfs:label>0_Int_P20.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >139812</dc:extent>
+                <foaf:sha1>fd34e798a3660ed7d169f47d1f223045e3548632</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:43Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P08.pdf">
+                <rdfs:label>0_Int_P08.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >136560</dc:extent>
+                <foaf:sha1>23b3a99b39c8027c5bcd8907dd2a7e0296786493</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:48Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P12.pdf">
+                <rdfs:label>0_Int_P12.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >137392</dc:extent>
+                <foaf:sha1>62a273b458cda07e951feeaf31baaa48ebb7544c</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:08Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <rdfs:label>0_introductory_interviews</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P07.pdf">
+                <rdfs:label>0_Int_P07.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >137565</dc:extent>
+                <foaf:sha1>25a24fbc9aef4d9395ab09baaae00990b670207d</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:44Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P22.pdf">
+                <rdfs:label>0_Int_P22.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >131354</dc:extent>
+                <foaf:sha1>f03660e46c365bc5955d2fca77d2df1992c7d00d</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:52Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P09.pdf">
+                <rdfs:label>0_Int_P09.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >120577</dc:extent>
+                <foaf:sha1>214b5819537ebea38a68f9be286b0a8a8ce66e77</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:52Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P01.pdf">
+                <rdfs:label>0_Int_P01.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >136435</dc:extent>
+                <foaf:sha1>886a695f55287bb6a0334ca02060975a6df868e3</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:18Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P14.pdf">
+                <rdfs:label>0_Int_P14.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >138418</dc:extent>
+                <foaf:sha1>8a82fcc0475a3d8890866d49f4e3aebda35b896e</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:15Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P06.pdf">
+                <rdfs:label>0_Int_P06.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >159624</dc:extent>
+                <foaf:sha1>7e31cbb7d3759053943312e1306efd4d17fb77bd</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:41Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P05.pdf">
+                <rdfs:label>0_Int_P05.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >140752</dc:extent>
+                <foaf:sha1>fa890a3fc2f76c8d6cd5bf2465f3d8bf59d470aa</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:34Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P13.pdf">
+                <rdfs:label>0_Int_P13.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >143288</dc:extent>
+                <foaf:sha1>dc9199564afb161ea59834de2fa43a7d2141fd68</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:12Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P10.pdf">
+                <rdfs:label>0_Int_P10.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >150809</dc:extent>
+                <foaf:sha1>f97beb3ae72540b14ad8fcdb8e83fb85f65b7b8d</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:57Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P18.pdf">
+                <rdfs:label>0_Int_P18.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >158512</dc:extent>
+                <foaf:sha1>544096ed71be8d49225d6584889b6575ffca4774</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:33Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P03.pdf">
+                <rdfs:label>0_Int_P03.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >139558</dc:extent>
+                <foaf:sha1>912c67b1b676ec6eee56a0aa310f74562cf36177</foaf:sha1>
+                <dc:modified>2024-12-13T15:39:25Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/0_introductory_interviews/0_Int_P15.pdf">
+                <rdfs:label>0_Int_P15.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >149595</dc:extent>
+                <foaf:sha1>228f205352de1efc92d8fa9743edf9e5187f82d1</foaf:sha1>
+                <dc:modified>2024-12-13T15:40:20Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/5_november_focus_groups">
+            <rdfs:label>5_november_focus_groups</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/5_november_focus_groups/5_FG_FG1.pdf">
+                <rdfs:label>5_FG_FG1.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >186860</dc:extent>
+                <foaf:sha1>808705d388a6dac2825c677193c8d8a4241801e5</foaf:sha1>
+                <dc:modified>2024-12-13T15:54:13Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/5_november_focus_groups/5_FG_FG2.pdf">
+                <rdfs:label>5_FG_FG2.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >211375</dc:extent>
+                <foaf:sha1>3f72a5fec2d5a899a0ec3d30032cbefa434fe8ce</foaf:sha1>
+                <dc:modified>2024-12-13T15:54:18Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/2_august_focus_groups">
+            <rdfs:label>2_august_focus_groups</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/2_august_focus_groups/2_FG_FG3.pdf">
+                <rdfs:label>2_FG_FG3.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >301848</dc:extent>
+                <foaf:sha1>f13fce3712d3fd2705c4422d764a5956d0707a43</foaf:sha1>
+                <dc:modified>2024-12-13T15:51:02Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/2_august_focus_groups/2_FG_FG1.pdf">
+                <rdfs:label>2_FG_FG1.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >261177</dc:extent>
+                <foaf:sha1>270ff6952c08708c8f1bbabaff06ef8a6fc394e7</foaf:sha1>
+                <dc:modified>2024-12-13T15:50:49Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/2_august_focus_groups/2_FG_FG2.pdf">
+                <rdfs:label>2_FG_FG2.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >283055</dc:extent>
+                <foaf:sha1>3b48457bc6f840d10051ac5d868835fdaabcbd0a</foaf:sha1>
+                <dc:modified>2024-12-13T15:50:55Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews">
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P11.pdf">
+                <rdfs:label>1_Int_P11.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >185400</dc:extent>
+                <foaf:sha1>0daf021679f3273ecffc8d585cbb2b9411d7c2fa</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:29Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P12.pdf">
+                <rdfs:label>1_Int_P12.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >146825</dc:extent>
+                <foaf:sha1>d74d74e9cf142d773c02d092905f5182fdc705db</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:32Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P17.pdf">
+                <rdfs:label>1_Int_P17.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >190534</dc:extent>
+                <foaf:sha1>081b24d29c5af0ec23f69ce850945233b0037110</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:47Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P09.pdf">
+                <rdfs:label>1_Int_P09.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >134212</dc:extent>
+                <foaf:sha1>8b0dee6829a5541ce07f62b73ab80fb96edcc776</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:20Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P01.pdf">
+                <rdfs:label>1_Int_P01.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >155132</dc:extent>
+                <foaf:sha1>0d6a3d01e8443d7703ffa71e31d568858c8ce388</foaf:sha1>
+                <dc:modified>2024-12-13T15:43:57Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P19.pdf">
+                <rdfs:label>1_Int_P19.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >157320</dc:extent>
+                <foaf:sha1>7d6194ce0c93eca797f90fdfb678f8ceb9facf70</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:57Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P18.pdf">
+                <rdfs:label>1_Int_P18.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >160329</dc:extent>
+                <foaf:sha1>796d0ee0d0238937e31509cc8a14033205e12210</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:50Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <rdfs:label>1_july_interviews</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P15.pdf">
+                <rdfs:label>1_Int_P15.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >138332</dc:extent>
+                <foaf:sha1>cdc5214452a95c8ab1c79169635f8be059e40f8c</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:39Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P07.pdf">
+                <rdfs:label>1_Int_P07.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >126579</dc:extent>
+                <foaf:sha1>4dc6b98dfa9f79e31784837d0d51317a2a51bc11</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:18Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P16.pdf">
+                <rdfs:label>1_Int_P16.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >146217</dc:extent>
+                <foaf:sha1>f4290258d4ba54e424b1d05a76d4432770aa87dc</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:42Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P10.pdf">
+                <rdfs:label>1_Int_P10.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >183098</dc:extent>
+                <foaf:sha1>d638730b288d15e765b703f95be06a3dab13afe8</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:25Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P02.pdf">
+                <rdfs:label>1_Int_P02.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >172997</dc:extent>
+                <foaf:sha1>26c41bd8852effc98f8b0490d886416af1775f12</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:00Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P13.pdf">
+                <rdfs:label>1_Int_P13.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >137681</dc:extent>
+                <foaf:sha1>38659a0efe745d38226a335bc9a462e1667e3166</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:36Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P06.pdf">
+                <rdfs:label>1_Int_P06.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >133689</dc:extent>
+                <foaf:sha1>957eb8fa9833e69f4dab9d09f57fb1ad4c496105</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:14Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P23.pdf">
+                <rdfs:label>1_Int_P23.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >169782</dc:extent>
+                <foaf:sha1>a00b83e1e4bbca39e810a9759c677400b1cd9534</foaf:sha1>
+                <dc:modified>2024-12-13T15:45:14Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P03.pdf">
+                <rdfs:label>1_Int_P03.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >154098</dc:extent>
+                <foaf:sha1>cd38980d66f8edbd92fa16634368a931dd9f5eab</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:03Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P22.pdf">
+                <rdfs:label>1_Int_P22.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >176053</dc:extent>
+                <foaf:sha1>c578f16b14300b6dde06fa8d7d2e95a8ce158352</foaf:sha1>
+                <dc:modified>2024-12-13T15:45:08Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P04.pdf">
+                <rdfs:label>1_Int_P04.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >170142</dc:extent>
+                <foaf:sha1>a95a63802cf8e5dbb90b9645be94ecb79b2f5e0d</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:07Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P24.pdf">
+                <rdfs:label>1_Int_P24.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >151912</dc:extent>
+                <foaf:sha1>f9b1ed103283ece8c41553a932b317c13bcd786b</foaf:sha1>
+                <dc:modified>2024-12-13T15:45:19Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P05.pdf">
+                <rdfs:label>1_Int_P05.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >196129</dc:extent>
+                <foaf:sha1>1c80881ba11c5b0f67cdd8516c0bdf797d2cf94b</foaf:sha1>
+                <dc:modified>2024-12-13T15:44:11Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/1_july_interviews/1_Int_P21.pdf">
+                <rdfs:label>1_Int_P21.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >148785</dc:extent>
+                <foaf:sha1>d1f16882f63f2a5219feaa3b1c5e81a52d4a16ff</foaf:sha1>
+                <dc:modified>2024-12-13T15:45:02Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/4_october_focus_groups">
+            <rdfs:label>4_october_focus_groups</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/4_october_focus_groups/4_FG_FG1.pdf">
+                <rdfs:label>4_FG_FG1.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >220513</dc:extent>
+                <foaf:sha1>a429549b039c8543fec82b4b27ee59077b386497</foaf:sha1>
+                <dc:modified>2024-12-13T15:53:49Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/4_october_focus_groups/4_FG_FG2.pdf">
+                <rdfs:label>4_FG_FG2.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >261503</dc:extent>
+                <foaf:sha1>09c8bb4dd1336839d930ef62e6b75e7fab2923d3</foaf:sha1>
+                <dc:modified>2024-12-13T15:53:54Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/transcripts/4_october_focus_groups/4_FG_FG3.pdf">
+                <rdfs:label>4_FG_FG3.pdf</rdfs:label>
+                <dc:format>application/pdf</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >217696</dc:extent>
+                <foaf:sha1>cce5dc06df5e42c58938e080792e12706eb42934</foaf:sha1>
+                <dc:modified>2024-12-13T15:53:58Z</dc:modified>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+      </dctypes:Collection>
+    </dc:hasPart>
+    <repo:funding rdf:parseType="Resource">
+      <repo:funder rdf:resource="http://dx.doi.org/10.13039/501100000266"/>
+      <schema:identifier>EP/S023704/1</schema:identifier>
+    </repo:funding>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:17:47.338Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:18:52.94Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:48:43.275Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:51:05.34Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:hasPart>
+      <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/demographic_data.csv">
+        <rdfs:label>demographic_data.csv</rdfs:label>
+        <dc:format>text/plain; charset=windows-1252</dc:format>
+        <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1018</dc:extent>
+        <foaf:sha1>94a0640d7cce724fe46d9d3f91adbefcd43acedc</foaf:sha1>
+      </rdf:Description>
+    </dc:hasPart>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:23.602Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:23.787Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:52.562Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:52.884Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:51:05.412Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T13:51:11.581Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:21:13.129Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:21:13.141Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:21:44.854Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:23:04.887Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:23:04.956Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:23:11.418Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <repo:state>Publishing</repo:state>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:11:19.688Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-12T16:11:19.702Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:50.406Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:50.922Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:hasPart>
+      <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data">
+        <rdfs:label>device_data</rdfs:label>
+        <dc:hasPart>
+          <dctypes:Collection rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state">
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P12.csv">
+                <rdfs:label>P12.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >9731399</dc:extent>
+                <foaf:sha1>0108323f86bb73bad74a22d34b7d43c1fa5ef6fb</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P11.csv">
+                <rdfs:label>P11.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8169423</dc:extent>
+                <foaf:sha1>8ec187a86ef695cf7d7506a9aae658aa71746c72</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P21.csv">
+                <rdfs:label>P21.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >6505039</dc:extent>
+                <foaf:sha1>bf51ee49822987e77853dae7808082cac02b01e6</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P02.csv">
+                <rdfs:label>P02.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8674566</dc:extent>
+                <foaf:sha1>d7b9293398b421910f99120164098bc5a9d984ba</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P19.csv">
+                <rdfs:label>P19.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8740253</dc:extent>
+                <foaf:sha1>5fa710a3d9bb2f7cc04d56341db6532c5cf6a398</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P13.csv">
+                <rdfs:label>P13.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >3157170</dc:extent>
+                <foaf:sha1>810d35bd926fdbeea2e8ea588309a6ac5c5eff75</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P15.csv">
+                <rdfs:label>P15.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8376423</dc:extent>
+                <foaf:sha1>eaf8e1511bd68d4e839b0519a51c277915107420</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <rdfs:label>processed_state</rdfs:label>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P06.csv">
+                <rdfs:label>P06.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >6670186</dc:extent>
+                <foaf:sha1>022ae816c456b7ce2957cb19b993879e25ca5119</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P16.csv">
+                <rdfs:label>P16.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8714060</dc:extent>
+                <foaf:sha1>4f3ee8e92cd7662041e5c4e8925d766063df140e</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P18.csv">
+                <rdfs:label>P18.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >7357080</dc:extent>
+                <foaf:sha1>fc0b9507eee5884ded10cfeebfd0cd352734af04</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P01.csv">
+                <rdfs:label>P01.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >7507350</dc:extent>
+                <foaf:sha1>8ca9994f86b33d7f751959b641fe45a8ee9ef100</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P24.csv">
+                <rdfs:label>P24.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8719507</dc:extent>
+                <foaf:sha1>f6bfe5f908d42eb6e5ba29e6dc6e0c6d2f5bb77a</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P04.csv">
+                <rdfs:label>P04.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >9013225</dc:extent>
+                <foaf:sha1>546c49bd76958415b620ab7975da43f78bfcb6f4</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P23.csv">
+                <rdfs:label>P23.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >3742295</dc:extent>
+                <foaf:sha1>db6bc96013fcd5ff079a9fb6fc361b63550d5c64</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P17.csv">
+                <rdfs:label>P17.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >5483054</dc:extent>
+                <foaf:sha1>e4bfea027189492f8ed14b7765cf868352bb8925</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P22.csv">
+                <rdfs:label>P22.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8378057</dc:extent>
+                <foaf:sha1>e9768cf36e2611504e713e5d8ef124a3d8217c37</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P07.csv">
+                <rdfs:label>P07.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >6393869</dc:extent>
+                <foaf:sha1>ce40f06f3977a0707cfc608a08936a5d2bf0e145</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P10.csv">
+                <rdfs:label>P10.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8320362</dc:extent>
+                <foaf:sha1>79288ddc55acc2d20ada98626850367c3215f833</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P03.csv">
+                <rdfs:label>P03.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >4057711</dc:extent>
+                <foaf:sha1>b6031a29e37cfc14ab3ac76040c33a360a0f1611</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+            <dc:hasPart>
+              <rdf:Description rdf:about="https://data.bris.ac.uk/datasets/33z5jc8fa6tob21ptrugzqog08/device_data/processed_state/P05.csv">
+                <rdfs:label>P05.csv</rdfs:label>
+                <dc:format>text/plain; charset=windows-1252</dc:format>
+                <dc:extent rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                >8265625</dc:extent>
+                <foaf:sha1>74cf61fbc6355b355fab8868493bf6afeeafd2c5</foaf:sha1>
+              </rdf:Description>
+            </dc:hasPart>
+          </dctypes:Collection>
+        </dc:hasPart>
+      </dctypes:Collection>
+    </dc:hasPart>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:51.897Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:52.087Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:51.181Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:51.452Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:23.173Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-16T09:42:23.557Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/Dataset"/>
+    <repo:depositor>ej20262</repo:depositor>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:52.126Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:52.526Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:50.959Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T17:00:51.149Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:05:26.142Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:17:38.406Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:41:08.301Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.SyncTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:42:51.857Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.735Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.EnsurePublicPermissions</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.879Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:18:52.964Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:18:52.974Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:17:38.44Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:17:38.5Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <repo:data-steward>
+      <rdf:Description rdf:about="http://data.bris.ac.uk/people/521643">
+        <rdfs:label>Zahraa Abdallah</rdfs:label>
+      </rdf:Description>
+    </repo:data-steward>
+    <dc:description>The BrisT1D Dataset features the data collected in a longitudinal study in which 24 young adults with Type 1 Diabetes (T1D) in the UK were given smartwatches to use alongside their T1D self-management. During the six-month study, participants donated the data collected by their T1D devices and smartwatches and were involved in monthly interviews or focus groups. The anonymised transcripts of these study sessions are included along with the device data, in both an anonymised raw state and a processed state.&#xD;
+&#xD;
+This is the Open-Access part of the BrisT1D Dataset. It includes the processed state device data, study forms, transcripts, and demographic data. The raw state device data can be found in the BrisT1D-Restricted Dataset (https://doi.org/10.5523/bris.yonrplcb4bvi2vhhn2ehtmpey), available through data.bris (University of Bristol Data Repository) under Restricted Access.</dc:description>
+    <dc:creator rdf:parseType="Collection">
+      <rdf:Description rdf:about="http://data.bris.ac.uk/people/379308">
+        <rdfs:label>Sam Gordon James</rdfs:label>
+      </rdf:Description>
+      <rdf:Description rdf:about="http://data.bris.ac.uk/people/397757">
+        <rdfs:label>Miranda Armstrong</rdfs:label>
+      </rdf:Description>
+      <rdf:Description rdf:about="http://data.bris.ac.uk/people/394771">
+        <rdfs:label>Aisling O'Kane</rdfs:label>
+      </rdf:Description>
+      <rdf:Description rdf:about="http://data.bris.ac.uk/people/547477">
+        <rdfs:label>Harry Emerson</rdfs:label>
+      </rdf:Description>
+      <rdf:Description rdf:about="http://data.bris.ac.uk/people/521643"/>
+    </dc:creator>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:24:05.382Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:24:05.395Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:20:26.747Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-07T15:20:26.76Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.916Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.StateChanger</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:19.018Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:17:38.527Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.GenerateApacheIndexes</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-03-07T14:17:47.309Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+    <opmv:wasGeneratedBy rdf:parseType="Resource">
+      <opmv:wasStartedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.418Z</opmv:wasStartedAt>
+      <opmv:used>uk.ac.bristol.dundry.tasks.PreviewSymLinkTask</opmv:used>
+      <opmv:wasEndedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+      >2025-04-10T16:43:18.421Z</opmv:wasEndedAt>
+    </opmv:wasGeneratedBy>
+  </rdf:Description>
+</rdf:RDF>

@@ -72,6 +72,7 @@ class BaseDataset:
         self.config = load_dataset_config(config_file)
         self.global_config = yaml.safe_load(open(global_config_file))
         self.logging_dir = logging_dir
+        self.patient_metadata_path = patient_metadata_path
 
 
         if self.logging_dir:
@@ -110,31 +111,16 @@ class BaseDataset:
         # 4. Define Pipelines
 
         # A) Structure Pipeline (Mandatory & Immediate)
-        self.structure_pipeline = [
-            ColumnMapper(),  # 1. Raw Names -> Standard Names
-            TimeIndexer(),  # 2. Set Index & Sort
-        ]
+        self.structure_pipeline = self._init_structure_pipeline()
 
         # B) Cleaning Pipeline (Lazy - runs on clean_data())
-        self.cleaning_pipeline = [
-            TypeAndValueCleaner(),
-            DuplicateRemover(),
-            GapFiller(),
-        ]
+        self.cleaning_pipeline = self._init_cleaning_pipeline()
 
         # C) Schema Standardization Pipeline
-        self.standardization_pipeline = [
-            StaticFeaturesProcessor(patient_metadata_path),
-            SchemaStandardizer(  # 3. Create Masks & Enforce Column Order
-                global_cond_cols=self.global_config['schema'].get('cond_cols', [])
-            ),
-            TodProcessor()
-        ]
+        self.standardization_pipeline = self._init_standardization_pipeline()
 
         # D) Augmentation Pipeline
-        self.augmentation_pipeline = [
-            BaseTimeEventAugmenter(),
-        ]
+        self.augmentation_pipeline = self._init_augmentation_pipeline()
 
         # 5. Execute Structure Pipeline Immediately
         self._run_pipeline(self.structure_pipeline, "Initialization (Structure)")
@@ -142,6 +128,58 @@ class BaseDataset:
         # Log initial structural summary
         if self.logging_dir:
             print_df_summary(self.all_data, self.logging_dir / "init_structure_summary.txt")
+
+    def _init_structure_pipeline(self) -> list[DataProcessor]:
+        """
+        Overridable hook to inject custom structure pipeline.
+        Default instantiates:
+            - ColumnMapper
+            - TimeIndexer
+        """
+        return [
+            ColumnMapper(),  # 1. Raw Names -> Standard Names
+            TimeIndexer(),  # 2. Set Index & Sort
+        ]
+
+    def _init_cleaning_pipeline (self) -> list[DataProcessor]:
+        """
+        Overridable hook to inject custom cleaning pipeline.
+        Default instantiates:
+            - TypeAndValueCleaner
+            - DuplicateRemover
+            - GapFiller
+        """
+        return [
+            TypeAndValueCleaner(),
+            DuplicateRemover(),
+            GapFiller(),
+        ]
+
+    def _init_standardization_pipeline (self) -> list[DataProcessor]:
+        """
+        Overridable hook to inject custom standardization pipeline.
+        Default instantiates:
+            - StaticFeaturesProcessor (self.patient_metadata_path)
+            - SchemaStandardizer (global_cond_cols=self.global_config['schema'].get('cond_cols', []))
+            - TodProcessor
+        """
+        return [
+            StaticFeaturesProcessor(self.patient_metadata_path),
+            SchemaStandardizer(  # 3. Create Masks & Enforce Column Order
+                global_cond_cols=self.global_config['schema'].get('cond_cols', [])
+            ),
+            TodProcessor()
+        ]
+
+    def _init_augmentation_pipeline(self) -> list[DataProcessor]:
+        """
+        Overridable hook to inject custom augmentation pipeline.
+        Default instantiates:
+            - BaseTimeEventAugmenter
+        """
+        return [
+            BaseTimeEventAugmenter(),
+        ]
 
     def clean(self):
         """

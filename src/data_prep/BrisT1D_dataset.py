@@ -103,58 +103,61 @@ class BrisT1DAligner(DataProcessor):
 
 
 
-    class BrisT1DDataset(BaseDataset):
+class BrisT1DDataset(BaseDataset):
+    """
+    Dataset loader for the BrisT1D Dataset (University of Bristol).
+
+    Key Characteristics:
+    - Source Units: mmol/L (requires conversion to mg/dL).
+    - Asynchronous timestamps: Devices record at different offsets (e.g., :03 vs :05).
+    - Requires specific pipeline ordering to ensure clean indexing.
+    """
+
+    name = "brist1d"
+
+    def _init_structure_pipeline(self) -> list[DataProcessor]:
         """
-        Dataset loader for the BrisT1D Dataset (University of Bristol).
+        Override the default structure pipeline to inject Alignment and Conversion logic.
 
-        Key Characteristics:
-        - Source Units: mmol/L (requires conversion to mg/dL).
-        - Asynchronous timestamps: Devices record at different offsets (e.g., :03 vs :05).
-        - Requires specific pipeline ordering to ensure clean indexing.
+        Execution Order is CRITICAL:
+        1. ColumnMapper:
+           Renames raw columns (e.g. 'Glucose Level') to standard internal names ('bg', 'insulin').
+           This allows subsequent processors to refer to 'bg' safely.
+
+        2. GlucoseUnitConverter:
+           Converts 'bg' from mmol/L to mg/dL.
+           Must happen before alignment to ensure we aggregate values in the correct scale.
+
+        3. BrisT1DAligner:
+           Snaps asynchronous timestamps to the target frequency grid (e.g., 5min).
+           Merges rows that fall into the same bin (summing insulin, averaging BG).
+
+        4. TimeIndexer:
+           Sets the DataFrame index to the time column and sorts it.
+           It receives a clean, regularized time series from the Aligner, avoiding duplicate index errors.
         """
 
-        name = "brist1d"
+        # Extract target frequency from config (default to 5min if missing)
+        target_freq = self.config["sampling"].get("target_frequency", "5min")
 
-        def _init_structure_pipeline(self) -> list[DataProcessor]:
-            """
-            Override the default structure pipeline to inject Alignment and Conversion logic.
+        return [
+            # Step 1: Standardize Names
+            ColumnMapper(),
 
-            Execution Order is CRITICAL:
-            1. ColumnMapper:
-               Renames raw columns (e.g. 'Glucose Level') to standard internal names ('bg', 'insulin').
-               This allows subsequent processors to refer to 'bg' safely.
+            # Step 2: Harmonize Units
+            GlucoseUnitConverter(
+                source_col="bg",
+                target_unit="mg/dL"
+            ),
 
-            2. GlucoseUnitConverter:
-               Converts 'bg' from mmol/L to mg/dL.
-               Must happen before alignment to ensure we aggregate values in the correct scale.
+            # Step 3: Fix Time Alignment (The "Smart Snap")
+            BrisT1DAligner(
+                freq=target_freq
+            ),
 
-            3. BrisT1DAligner:
-               Snaps asynchronous timestamps to the target frequency grid (e.g., 5min).
-               Merges rows that fall into the same bin (summing insulin, averaging BG).
+            # Step 4: Create Index (Now safe)
+            TimeIndexer(),
+        ]
 
-            4. TimeIndexer:
-               Sets the DataFrame index to the time column and sorts it.
-               It receives a clean, regularized time series from the Aligner, avoiding duplicate index errors.
-            """
 
-            # Extract target frequency from config (default to 5min if missing)
-            target_freq = self.config["sampling"].get("target_frequency", "5min")
-
-            return [
-                # Step 1: Standardize Names
-                ColumnMapper(),
-
-                # Step 2: Harmonize Units
-                GlucoseUnitConverter(
-                    source_col="bg",
-                    target_unit="mg/dL"
-                ),
-
-                # Step 3: Fix Time Alignment (The "Smart Snap")
-                BrisT1DAligner(
-                    freq=target_freq
-                ),
-
-                # Step 4: Create Index (Now safe)
-                TimeIndexer(),
-            ]
+    # TODO add config file for this dataset

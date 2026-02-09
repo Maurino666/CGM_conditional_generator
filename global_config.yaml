@@ -11,6 +11,7 @@ schema: # information on global columns
 
   dense_cols:
     - "glucose"
+    - "total_insulin"
     - "basal_rate"
     - "heart_rate"
     - "steps"

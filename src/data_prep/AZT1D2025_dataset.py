@@ -76,7 +76,7 @@ class AZT1D2025Dataset(BaseDataset):
             InsulinComponentsMerger(
                 basal_col="basal_rate",
                 bolus_col="bolus_total",
-                target_col="insulin"
+                target_col="total_insulin"
             ),
 
             # 3. Standard Cleaning

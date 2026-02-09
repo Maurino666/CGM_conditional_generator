@@ -1,0 +1,45 @@
+dataset:
+  name: "brist1d"
+  description: "BrisT1D: Young adults with T1D using smartwatches (Bristol University)"
+  separator: ","
+
+schema:
+  target_col: "glucose"
+  time_col: "timestamp"
+
+  col_mapping:
+    timestamp: "timestamp"
+    glucose: "bg"
+    total_insulin: "insulin"
+    carbs: "carbs"
+    heart_rate: "hr"
+    steps: "steps"
+    calories_burned: "cals"
+
+  dtypes:
+    timestamp: "datetime64[ns]"
+    glucose: "float"
+    total_insulin: "float"
+    carbs: "float"
+    heart_rate: "float"
+    steps: "float"
+    calories_burned: "float"
+
+  defaults:
+    total_insulin: 0.0
+    carbs: 0.0
+    steps: 0.0
+    calories_burned: 0.0
+
+units:
+  glucose: "mmol/L"
+  total_insulin: "U"
+  carbs: "g"
+  heart_rate: "bpm"
+  steps: "count"
+
+sampling:
+  target_frequency: "5min"
+  interval_minutes: 5
+  assumes_already_on_grid: false
+  enforce_regular_grid: true

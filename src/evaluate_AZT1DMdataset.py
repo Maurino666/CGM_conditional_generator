@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 from data_prep import AZT1D2025Dataset
+from data_prep import BrisT1DDataset
 
 from evaluation import *
 from evaluation.wrappers import CmiKsgDecompositionParams
@@ -21,8 +22,8 @@ DEFAULT_COND_COLS: list[str] = []
 
 
 def main() -> None:
-    dataset = AZT1D2025Dataset(
-        dataset_root= Path("../datasets/AZT1D2025/CGM Records"),
+    dataset = BrisT1DDataset(
+        dataset_root= Path("../datasets/BrisT1D_open_dataset/device_data/processed_state"),
         config_file= Path("../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"),
         patient_metadata_path= Path("../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"),
         logging_dir=Path("../datasets/AZT1D2025/prep_logs"),

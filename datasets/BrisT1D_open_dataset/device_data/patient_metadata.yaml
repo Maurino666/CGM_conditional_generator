@@ -1,0 +1,79 @@
+"1":
+  age: 24.0
+  sex_m: 0.0
+
+"2":
+  age: 24.0
+  sex_m: 0.0
+
+"3":
+  age: 24.0
+  # sex_m omesso per paziente non-binary -> mask sarà 0
+
+"4":
+  age: 21.0
+  sex_m: 0.0
+
+"5":
+  age: 26.0
+  sex_m: 0.0
+
+"6":
+  age: 27.0
+  sex_m: 1.0
+
+"7":
+  age: 24.0
+  sex_m: 0.0
+
+"8":
+  age: 24.0
+  sex_m: 0.0
+
+"9":
+  age: 25.0
+  sex_m: 0.0
+
+"10":
+  age: 23.0
+  sex_m: 1.0
+
+"11":
+  age: 23.0
+  sex_m: 0.0
+
+"12":
+  age: 26.0
+  sex_m: 0.0
+
+"13":
+  age: 25.0
+  sex_m: 0.0
+
+"14":
+  age: 32.0
+  sex_m: 0.0
+
+"15":
+  age: 23.0
+  sex_m: 0.0
+
+"16":
+  age: 24.0
+  # sex_m omesso per paziente non-binary -> mask sarà 0
+
+"17":
+  age: 21.0
+  sex_m: 0.0
+
+"18":
+  age: 20.0
+  sex_m: 0.0
+
+"19":
+  age: 21.0
+  sex_m: 1.0
+
+"20":
+  age: 22.0
+  sex_m: 0.0

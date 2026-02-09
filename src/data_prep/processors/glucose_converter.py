@@ -11,7 +11,7 @@ class GlucoseUnitConverter(DataProcessor):
     Formula: mg/dL = mmol/L * 18.0182
     """
 
-    def __init__(self, source_col: str = "bg", target_unit: str = "mg/dL"):
+    def __init__(self, source_col: str = "glucose", target_unit: str = "mg/dL"):
         """
         Args:
             source_col: The name of the column containing glucose values.

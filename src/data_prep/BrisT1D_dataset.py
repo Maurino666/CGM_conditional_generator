@@ -146,7 +146,7 @@ class BrisT1DDataset(BaseDataset):
 
             # Step 2: Harmonize Units
             GlucoseUnitConverter(
-                source_col="bg",
+                source_col="glucose",
                 target_unit="mg/dL"
             ),
 

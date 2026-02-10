@@ -107,7 +107,7 @@ class GaussianNoiseScheduler(nn.Module):
         """
         return torch.randint(0, self.timesteps, (batch_size,), device=device).long()
 
-    def _extract(self, a: torch.Tensor, t: torch.Tensor, x_shape: torch.Size) -> torch.Tensor:
+    def extract(self, a: torch.Tensor, t: torch.Tensor, x_shape: torch.Size) -> torch.Tensor:
         """
         Helper function to extract values from a 1D tensor 'a' at indices 't',
         and reshape the result to (Batch, 1, 1, ...) to match 'x_shape'.

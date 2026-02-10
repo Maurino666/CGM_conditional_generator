@@ -6,17 +6,17 @@ from typing import Any
 
 from ..module_interfaces import BaseTrainableModule
 from .scheduler import GaussianNoiseScheduler
+from .ema import EMA
 
 
 class BaseDiffusionModule(BaseTrainableModule, ABC):
     """
-    Abstract Base Class for Diffusion Models.
+    Abstract Base Class for Diffusion Models with EMA support.
 
-    It implements the standard DDPM training loop (Forward Process -> MSE Loss),
-    which is common across almost all diffusion architectures (CNN, Transformer, etc.).
-
-    Subclasses must implement:
-    - _build_backbone(): To instantiate the specific neural network.
+    Implements:
+    1. Standard DDPM training loop.
+    2. Hook-based EMA integration.
+    3. Dynamic switching between Online and EMA weights for inference.
     """
 
     def __init__(
@@ -27,6 +27,8 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             beta_start: float = 1e-4,
             beta_end: float = 0.02,
             lr: float = 1e-3,
+            use_ema: bool = True,
+            ema_decay: float = 0.999,
     ):
         super().__init__()
 
@@ -37,6 +39,8 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         self.beta_start = beta_start
         self.beta_end = beta_end
         self.lr = lr
+        self.use_ema = use_ema
+        self.ema_decay = ema_decay
 
         # 1. Physics (Standard Gaussian Schedule)
         # Almost all models use this, so we define it in the base.
@@ -50,7 +54,14 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         # This is the variable part. The base class doesn't know if it's a CNN or Transformer.
         self.backbone = self._build_backbone()
 
-        # 3. Optimizer
+
+        # 3. EMA Initialization
+        # Initializes Exponential Moving Average Shadow Net, mirroring the backbone
+        self.ema: EMA | None = None
+        if self.use_ema:
+            self.ema = EMA(self.backbone, self.ema_decay)
+
+        # 4. Optimizer
         self.optimizer = torch.optim.AdamW(self.parameters(), lr=lr)
 
     @abstractmethod
@@ -60,6 +71,22 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         Must be implemented by subclasses.
         """
         pass
+
+    @property
+    def inference_backbone(self) -> nn.Module:
+        """
+        Dynamic Getter (Hook) for the backbone used during Inference.
+
+        Logic:
+            - If EMA is enabled and initialized -> Returns the Shadow Model (EMA).
+            - Otherwise -> Returns the Online Model (Standard).
+
+        This ensures that validation and generation always use the best available weights
+        without requiring code changes in the generation loops.
+        """
+        if self.use_ema and self.ema is not None:
+            return self.ema.ema_model
+        return self.backbone
 
     def forward(self, x: torch.Tensor, t: torch.Tensor, cond: torch.Tensor) -> torch.Tensor:
         """Pass-through to the backbone."""
@@ -82,10 +109,15 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
 
         y, c = batch
 
-        y = y.transpose(1, 2)
-        c = c.transpose(1, 2)
+        return y.transpose(1, 2), c.transpose(1, 2)
 
-        return y, c
+    def on_train_batch_end(self):
+        """
+        Hook executed immediately after the optimizer step.
+        Used to update the EMA shadow weights.
+        """
+        if self.use_ema and self.ema is not None:
+            self.ema.update(self.backbone)
 
     def training_step(self, batch: tuple[torch.Tensor, torch.Tensor]) -> dict[str, float]:
         """
@@ -96,16 +128,12 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         batch_size = x_real.shape[0]
         device = x_real.device
 
-        # 1. Sample random timesteps
+        # 1. Prepare Data
         t = self.scheduler.sample_random_timesteps(batch_size, device)
-
-        # 2. Create target noise
         noise = torch.randn_like(x_real)
-
-        # 3. Add noise (Forward Process)
         x_noisy = self.scheduler.add_noise(x_real, noise, t)
 
-        # 4. Optimization Step
+        # 2. Optimization Step
         self.optimizer.zero_grad()
 
         # Predict noise (using the abstract backbone)
@@ -116,10 +144,13 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         loss.backward()
         self.optimizer.step()
 
+        # 3. Trigger Hook
+        self.on_train_batch_end()
+
         return {"loss": loss.item()}
 
     def validation_step(self, batch: tuple[torch.Tensor, torch.Tensor]) -> dict[str, float]:
-        """Standard validation loop."""
+        """Validation step using EMA weights if available."""
         x_real, c_cond = self._parse_batch(batch)
         batch_size = x_real.shape[0]
         device = x_real.device
@@ -129,7 +160,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         x_noisy = self.scheduler.add_noise(x_real, noise, t)
 
         with torch.no_grad():
-            noise_pred = self.backbone(x_noisy, t, c_cond)
+            noise_pred = self.inference_backbone(x_noisy, t, c_cond)
             loss = F.mse_loss(noise_pred, noise)
 
         return {"val_loss": loss.item()}
@@ -148,6 +179,7 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
         """
         Standard DDPM Sampling Loop.
         Uses the scheduler math and the backbone prediction.
+        Uses EMA weights if enabled.
         """
         if cond.ndim == 2:
             cond = cond.unsqueeze(0)
@@ -169,11 +201,12 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
 
         for i in iterator:
             t = torch.full((n_samples,), i, device=device, dtype=torch.long)
-            noise_pred = self.backbone(img, t, cond)
+            # Uses Property
+            noise_pred = self.inference_backbone(img, t, cond)
 
-            alpha = self.scheduler._extract(self.scheduler.alphas, t, img.shape)
-            beta = self.scheduler._extract(self.scheduler.betas, t, img.shape)
-            sqrt_one_minus_alpha_cumprod = self.scheduler._extract(
+            alpha = self.scheduler.extract(self.scheduler.alphas, t, img.shape)
+            beta = self.scheduler.extract(self.scheduler.betas, t, img.shape)
+            sqrt_one_minus_alpha_cumprod = self.scheduler.extract(
                 self.scheduler.sqrt_one_minus_alphas_cumprod, t, img.shape
             )
             mean = (1 / torch.sqrt(alpha)) * (img - (beta / sqrt_one_minus_alpha_cumprod) * noise_pred)
@@ -193,4 +226,44 @@ class BaseDiffusionModule(BaseTrainableModule, ABC):
             "beta_start": self.beta_start,
             "beta_end": self.beta_end,
             "lr": self.lr,
+            "use_ema": self.use_ema,
+            "ema_decay": self.ema_decay
         }
+
+    def to_checkpoint(self, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Saves the model state.
+        Includes the EMA state dict if EMA is enabled.
+        """
+        ckpt = super().to_checkpoint(extra)
+
+        if self.use_ema and self.ema is not None:
+            ckpt["ema_state_dict"] = self.ema.state_dict()
+
+        return ckpt
+
+    @classmethod
+    def from_checkpoint(
+            cls,
+            checkpoint: dict[str, Any],
+            map_location: str | torch.device | None = None,
+    ) -> "BaseDiffusionModule":
+        """
+        Loads the model from checkpoint.
+        Handles loading the EMA state dict alongside the standard model.
+        """
+        # 1. Instantiate the class and load standard weights (via super)
+        model = super().from_checkpoint(checkpoint, map_location)
+
+        # 2. Check if we need to load EMA weights
+        # We need to cast 'model' because super() returns BaseTrainableModule
+        if isinstance(model, BaseDiffusionModule) and model.use_ema and "ema_state_dict" in checkpoint:
+            # model.ema is initialized in __init__ with random weights (via deepcopy).
+            # We must overwrite them with the trained EMA weights.
+            model.ema.load_state_dict(checkpoint["ema_state_dict"])
+
+            if map_location is not None:
+                # Ensure EMA tensors are on the correct device
+                model.ema.ema_model.to(map_location)
+
+        return model

@@ -158,6 +158,3 @@ class BrisT1DDataset(BaseDataset):
             # Step 4: Create Index (Now safe)
             TimeIndexer(),
         ]
-
-
-    # TODO add config file for this dataset

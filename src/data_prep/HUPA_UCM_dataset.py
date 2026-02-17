@@ -82,7 +82,7 @@ class HUPA_UCMDataset(BaseDataset):
             self,
             dataset_root: Path,
             config_file: Path,
-            global_config_file: Path | None = None,
+            global_config: Path | None = None,
             patient_metadata_path: Path | None = None,
             logging_dir: Path | None = None
     ):
@@ -90,7 +90,7 @@ class HUPA_UCMDataset(BaseDataset):
         super().__init__(
             dataset_root=dataset_root,
             config_file=config_file,
-            global_config_file=global_config_file,
+            global_config=global_config,
             patient_metadata_path=patient_metadata_path,
             logging_dir=logging_dir,
         )

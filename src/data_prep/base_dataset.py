@@ -58,7 +58,7 @@ class BaseDataset:
             self,
             dataset_root: Path,
             config_file: Path,
-            global_config_file: Path | None = None,
+            global_config: Path | dict[str, Any] | None = None,
             patient_metadata_path: Path | None = None,
             logging_dir: Path | None = None
     ):
@@ -66,11 +66,14 @@ class BaseDataset:
         Initializes the dataset, loads raw data, and enforces structural consistency.
         """
         # 1. Setup Paths & Configs
-        if global_config_file is None:
-            global_config_file = Path(GLOBAL_CONFIG_PATH)
+        if global_config is None:
+            self.global_config = yaml.safe_load(open(GLOBAL_CONFIG_PATH))
+        elif isinstance(global_config, (str, Path)):
+            self.global_config = yaml.safe_load(open(global_config))
+        else:
+            self.global_config = global_config
 
         self.config = load_dataset_config(config_file)
-        self.global_config = yaml.safe_load(open(global_config_file))
         self.logging_dir = logging_dir
         self.patient_metadata_path = patient_metadata_path
 

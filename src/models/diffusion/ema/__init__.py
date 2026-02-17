@@ -1,4 +1,4 @@
-from ema import EMA
+from .ema import EMA
 
 __all__ = [
     EMA

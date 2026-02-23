@@ -1,0 +1,163 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# ProjectedStaticTimeGAN – Smoketest
+# ═══════════════════════════════════════════════════════════════════════════
+# Replicates the original run_ProjectionTimeGan_pipeline.py
+#
+# Run:  python run_experiments.py experiments/timegan_smoketest.yaml
+
+run_name: "smoketest"
+base_dir: "../runs"
+model_filename: "timegan_model.pth"
+
+# ---------------------------------------------------------------------------
+# Global config
+# ---------------------------------------------------------------------------
+global_config: "../global_config.yaml"
+
+# ---------------------------------------------------------------------------
+# Features
+# ---------------------------------------------------------------------------
+# use_static: true  →  static columns are separated and passed to the model
+#                       independently (TimeGAN needs static_dim vs cond_dim).
+features:
+  use_static: true
+  add_masks: true
+
+# ---------------------------------------------------------------------------
+# Data
+# ---------------------------------------------------------------------------
+data:
+  global_config: "../global_config.yaml"
+  datasets:
+    - class: AZT1D2025Dataset
+      params:
+        dataset_root: "../datasets/AZT1D2025/CGM Records"
+        config_file: "../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"
+        patient_metadata_path: "../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"
+        logging_dir: "../datasets/AZT1D2025/prep_logs"
+    - class: HUPA_UCMDataset
+      params:
+        dataset_root: "../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"
+        config_file: "../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"
+        patient_metadata_path: "../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"
+        logging_dir: "../datasets/HUPA-UCM Diabetes Dataset/prep_logs"
+  split:
+    class: DataSplitter
+    strategy: subject
+    val_ratio: 0.15
+    random_state: 42
+
+# ---------------------------------------------------------------------------
+# Normalization  ([0, 1] default for GAN)
+# ---------------------------------------------------------------------------
+normalization:
+  class: MinMaxNormalizer
+  feature_range: [0, 1]
+
+# ---------------------------------------------------------------------------
+# Windowing
+# ---------------------------------------------------------------------------
+windowing:
+  class: WindowBuilder
+  params:
+    batch_size: 512
+    num_workers: 4
+    # static_cols are auto-injected by the runner when features.use_static=true
+  train:
+    seq_len: 24
+    step: 12
+    shuffle: true
+  val:
+    seq_len: 24
+    step: 12
+    shuffle: true
+
+# ---------------------------------------------------------------------------
+# Logger
+# ---------------------------------------------------------------------------
+logger:
+  class: WandBLogger
+  project_name: "CGM_conditional_generation"
+
+# ---------------------------------------------------------------------------
+# Model
+# ---------------------------------------------------------------------------
+model:
+  class: ProjectedStaticTimeGanModule
+  params:
+    # cond_dim and static_dim: auto-injected from feature resolution
+    hidden_dim: 12
+    num_layers: 3
+    noise_dim: 12
+    g_steps_per_iter: 3
+    noise_std: 0.1
+    soft_label: 0.9
+    supervised_weight: 5.0
+    moment_weight: 1.0
+    gamma: 1.0
+    lr: 1.0e-4
+    d_loss_threshold: 0.5
+
+# ---------------------------------------------------------------------------
+# Trainer
+# ---------------------------------------------------------------------------
+trainer:
+  class: Trainer
+  log_every_n_steps: 50
+
+# ---------------------------------------------------------------------------
+# Training phases  (TimeGAN = 3 phases)
+# ---------------------------------------------------------------------------
+training:
+  phases:
+    # Phase 1: Autoencoder
+    - name: ae
+      max_epochs: 2
+
+    # Phase 2: Supervisor
+    - name: sup
+      max_epochs: 2
+
+    # Phase 3: Adversarial (Joint)
+    - name: adv
+      max_epochs: 2
+      callbacks:
+        - class: GenerativeVisualizer
+          params:
+            every_n_epochs: 5
+        - class: GenerativeMomentsMetric
+          params:
+            every_n_epochs: 5
+            max_batches: 10
+        - class: GenerativePCAVisualizer
+          params:
+            every_n_epochs: 5
+            max_batches: 10
+            n_components: 2
+
+# ---------------------------------------------------------------------------
+# Inference
+# ---------------------------------------------------------------------------
+inference:
+  builder:
+    class: WindowBuilder
+    params:
+      batch_size: 512
+      num_workers: 4
+      allow_target_nan: true
+  reconstructor:
+    class: WindowReconstructor
+    params:
+      strategy: overwrite
+  orchestrator:
+    class: InferenceOrchestrator
+    params:
+      seq_len: 24
+
+  generate:
+    - split: val
+      prefix: val_subject
+      label: Validation
+    - split: train
+      prefix: train_tstr_subject
+      label: Train_TSTR

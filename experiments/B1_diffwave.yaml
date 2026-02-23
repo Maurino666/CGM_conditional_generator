@@ -1,0 +1,108 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# BLOCK 1 — Baseline: DiffWave
+# ═══════════════════════════════════════════════════════════════════════════
+# Cross-architecture comparison: Diffusion vs GAN.
+# Different normalization range [-1,1], single training phase, different
+# inference pipeline (FullSequenceBuilder + SequenceInferenceOrchestrator).
+
+run_name: "B1_diffwave"
+base_dir: "../runs/block1_baselines"
+model_filename: "model.pth"
+
+global_config: "../global_config.yaml"
+
+# All features as dynamic (DiffWave does not separate static)
+features:
+  use_static: false
+
+data:
+  global_config_file: "../global_config.yaml"
+  datasets:
+    - class: AZT1D2025Dataset
+      params:
+        dataset_root: "../datasets/AZT1D2025/CGM Records"
+        config_file: "../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"
+        patient_metadata_path: "../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"
+        logging_dir: "../datasets/AZT1D2025/prep_logs"
+    - class: HUPA_UCMDataset
+      params:
+        dataset_root: "../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"
+        config_file: "../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"
+        patient_metadata_path: "../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"
+        logging_dir: "../datasets/HUPA-UCM Diabetes Dataset/prep_logs"
+  split:
+    strategy: subject
+    val_ratio: 0.15
+    random_state: 42
+
+# KEY DIFFERENCE: [-1, 1] for diffusion (symmetric around 0 for Gaussian noise)
+normalization:
+  class: MinMaxNormalizer
+  feature_range: [-1, 1]
+
+windowing:
+  class: WindowBuilder
+  params:
+    batch_size: 384
+    num_workers: 4
+  train:
+    seq_len: 288
+    step: 12
+  val:
+    seq_len: 288
+    step: 288
+
+logger:
+  class: WandBLogger
+  project_name: "CGM_block1_baselines"
+
+model:
+  class: DiffWaveDiffusionModule
+  params:
+    input_dim: 1
+    # cond_dim: auto-injected
+    residual_channels: 64
+    num_layers: 30
+    cycle_length: 10
+    timesteps: 1000
+    beta_start: 1.0e-4
+    beta_end: 0.02
+    lr: 2.0e-4
+    use_ema: true
+    ema_decay: 0.999
+
+trainer:
+  class: Trainer
+  log_every_n_steps: 50
+  val_check_interval: 10
+
+# Single training phase
+training:
+  phases:
+    - max_epochs: 400
+      callbacks:
+        - class: GenerativeVisualizer
+          params:
+            every_n_epochs: 20
+
+# KEY DIFFERENCE: FullSequence inference pipeline
+inference:
+  builder:
+    class: FullSequenceBuilder
+    params:
+      batch_size: 1
+      num_workers: 0
+      allow_target_nan: true
+  reconstructor:
+    class: FullSequenceReconstructor
+    params: {}
+  orchestrator:
+    class: SequenceInferenceOrchestrator
+    params: {}
+  generate:
+    - split: val
+      prefix: val_synthetic
+      label: Validation
+    - split: train
+      prefix: train_synthetic
+      label: Train

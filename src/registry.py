@@ -49,8 +49,11 @@ _LAZY_MAP: Dict[str, tuple[str, str]] = {
     "WindowReconstructor":           ("reconstruction", "WindowReconstructor"),
     "FullSequenceReconstructor":     ("reconstruction", "FullSequenceReconstructor"),
     # --- Models ---
-    "DiffWaveDiffusionModule":       ("models", "DiffWaveDiffusionModule"),
+    "ConditionalTimeGanModule":      ("models", "ConditionalTimeGanModule"),
+    "StaticConditionalTimeGanModule":("models", "StaticConditionalTimeGanModule"),
     "ProjectedStaticTimeGanModule":  ("models", "ProjectedStaticTimeGanModule"),
+
+    "DiffWaveDiffusionModule":       ("models", "DiffWaveDiffusionModule"),
     # --- Training ---
     "Trainer":                       ("training", "Trainer"),
     "WandBLogger":                   ("training.loggers", "WandBLogger"),

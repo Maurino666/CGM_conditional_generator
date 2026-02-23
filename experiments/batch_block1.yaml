@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════════════
 # BLOCK 1 — Baseline Model Comparison
 # ═══════════════════════════════════════════════════════════════════════════
-# Same data (AZT1D + HUPA), same features, same training budget.
+# Same data (AZT1D + HUPA + BrisT1D), same features, same training budget.
 # Only the model architecture changes.
 #
 # Purpose: establish which model family performs best before tuning.

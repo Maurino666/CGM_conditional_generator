@@ -30,6 +30,12 @@ data:
         config_file: "../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"
         patient_metadata_path: "../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"
         logging_dir: "../datasets/HUPA-UCM Diabetes Dataset/prep_logs"
+    - class: BrisT1DDataset
+      params:
+        dataset_root: "../datasets/BrisT1D_open_dataset/device_data/processed_state"
+        config_file: "../datasets/BrisT1D_open_dataset/brist1d.yaml"
+        patient_metadata_path: "../datasets/BrisT1D_open_dataset/patient_metadata.yaml"
+        logging_dir: "../datasets/BrisT1D_open_dataset/prep_logs"
   split:
     strategy: subject
     val_ratio: 0.15

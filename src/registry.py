@@ -39,7 +39,7 @@ _LAZY_MAP: Dict[str, tuple[str, str]] = {
     # --- Data Management ---
     "DataSplitter":                  ("data_management.splitter", "DataSplitter"),
     "MinMaxNormalizer":              ("data_management.normalization", "MinMaxNormalizer"),
-    "QuantileNormalizer":            ("data_management.normalization", "MinMaxNormalizer"),
+    "QuantileNormalizer":            ("data_management.normalization", "QuantileNormalizer"),
     # --- Windowing ---
     "WindowBuilder":                 ("windowing", "WindowBuilder"),
     "FullSequenceBuilder":           ("windowing", "FullSequenceBuilder"),

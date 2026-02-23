@@ -247,13 +247,24 @@ def run_experiment(config: dict[str, Any] | str | Path) -> Path:
     print("\n>>> 3. Normalizing Data...")
     norm_cfg = config.get("normalization", {})
     normalizer_cls = registry.get(norm_cfg.get("class", "MinMaxNormalizer"))
-    feature_range = tuple(norm_cfg.get("feature_range", [0, 1]))
 
-    normalizer = normalizer_cls(
-        cols_to_normalize=all_feature_cols + [target_col],
-        feature_range=feature_range,
-        fixed_ranges=global_config.get("normalization_ranges", None),
-    )
+    norm_params = copy.deepcopy(norm_cfg.get("params", {}))
+    norm_params["cols_to_normalize"] = all_feature_cols + [target_col]
+
+    # Backward compat: support top-level feature_range
+    if "feature_range" in norm_cfg and "feature_range" not in norm_params:
+        norm_params["feature_range"] = tuple(norm_cfg["feature_range"])
+    if "fixed_ranges" not in norm_params:
+        fixed_ranges = global_config.get("normalization_ranges", None)
+        if fixed_ranges is not None:
+            norm_params.setdefault("fixed_ranges", fixed_ranges)
+
+    # Only pass kwargs the normalizer actually accepts
+    sig = inspect.signature(normalizer_cls.__init__)
+    valid_keys = set(sig.parameters.keys()) - {"self"}
+    filtered_params = {k: v for k, v in norm_params.items() if k in valid_keys}
+
+    normalizer = normalizer_cls(**filtered_params)
     normalizer.fit(train_dfs_raw)
     normalizer.save_params(output_dir)
     train_dfs_norm = normalizer.transform(train_dfs_raw)

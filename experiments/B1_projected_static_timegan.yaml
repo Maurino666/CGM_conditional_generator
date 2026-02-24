@@ -17,7 +17,7 @@ features:
 
 # --- Data ---
 data:
-  global_config_file: "../global_config.yaml"
+  global_config: "../global_config.yaml"
   datasets:
     - class: AZT1D2025Dataset
       params:

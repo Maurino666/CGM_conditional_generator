@@ -86,8 +86,8 @@ class GaussianNoiseScheduler(nn.Module):
         """
         # 1. Extract the coefficients for the specific timesteps requested
         # resulting shape: (Batch, 1, 1) to allow broadcasting
-        sqrt_alpha_prod = self._extract(self.sqrt_alphas_cumprod, timesteps, original_samples.shape)
-        sqrt_one_minus_alpha_prod = self._extract(self.sqrt_one_minus_alphas_cumprod, timesteps, original_samples.shape)
+        sqrt_alpha_prod = self.extract(self.sqrt_alphas_cumprod, timesteps, original_samples.shape)
+        sqrt_one_minus_alpha_prod = self.extract(self.sqrt_one_minus_alphas_cumprod, timesteps, original_samples.shape)
 
         # 2. Apply the formula
         noisy_samples = (sqrt_alpha_prod * original_samples) + (sqrt_one_minus_alpha_prod * noise)

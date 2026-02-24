@@ -188,7 +188,7 @@ def run_experiment(config: dict[str, Any] | str | Path) -> Path:
     # ------------------------------------------------------------------
     print("\n>>> 1. Loading Datasets...")
     data_cfg = config["data"]
-    global_config_path_for_ds = data_cfg.get("global_config_file")
+    global_config_path_for_ds = data_cfg.get("global_config")
     if global_config_path_for_ds:
         global_config_path_for_ds = _make_path(global_config_path_for_ds, experiment_root)
 
@@ -196,7 +196,7 @@ def run_experiment(config: dict[str, Any] | str | Path) -> Path:
     for ds_cfg in data_cfg["datasets"]:
         extra = {}
         if global_config_path_for_ds:
-            extra["global_config_file"] = global_config_path_for_ds
+            extra["global_config"] = global_config_path_for_ds
         ds = _instantiate_from_cfg(ds_cfg, extra_kwargs=extra, experiment_root=experiment_root)
         print(f"   Processing {ds.config['dataset'].get('name', ds_cfg['class'])}...")
         ds.clean()

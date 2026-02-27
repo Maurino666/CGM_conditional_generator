@@ -65,7 +65,7 @@ model:
   params:
     hidden_dim: 128
     num_layers: 3
-    noise_dim: 64
+    noise_dim: 128
     lr: 1.0e-4
     beta1: 0.5
     gamma: 1.0
@@ -91,7 +91,7 @@ training:
     - name: sup
       max_epochs: 20
     - name: adv
-      max_epochs: 150
+      max_epochs: 200
       callbacks:
         - class: GenerativeVisualizer
           params:

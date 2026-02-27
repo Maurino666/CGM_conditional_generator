@@ -1,6 +1,8 @@
 import pandas as pd
 import yaml
 from pathlib import Path
+import matplotlib
+matplotlib.use("Agg")
 
 from sklearn.ensemble import RandomForestRegressor
 
@@ -19,7 +21,7 @@ from evaluation.wrappers import (
 # =============================================================================
 
 # Run Identifiers
-RUN_NAME = "runs_timegan/20260123_190958_Projected_Static_SW5_MW1_L3"
+RUN_NAME = "block1_baselines/20260225_201047_B1_diffwave"
 
 # Paths
 # Assuming global_config.yaml is in the parent directory or the run directory.

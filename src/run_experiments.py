@@ -57,7 +57,7 @@ def main() -> None:
     # Collect configs from --batch
     if args.batch:
         batch_path = Path(args.batch)
-        with open(batch_path) as f:
+        with open(batch_path, encoding="utf-8") as f:
             batch = yaml.safe_load(f)
         batch_dir = batch_path.parent
         for rel in batch.get("experiments", []):

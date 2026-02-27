@@ -69,7 +69,7 @@ model:
     # cond_dim: auto-injected (all features as dynamic)
     hidden_dim: 128
     num_layers: 3
-    noise_dim: 64
+    noise_dim: 128
     lr: 1.0e-4
     beta1: 0.5
     gamma: 1.0
@@ -86,7 +86,7 @@ model:
 
 trainer:
   class: Trainer
-  log_every_n_steps: 50
+  log_every_n_steps: 100
 
 training:
   phases:
@@ -95,7 +95,7 @@ training:
     - name: sup
       max_epochs: 20
     - name: adv
-      max_epochs: 150
+      max_epochs: 200
       callbacks:
         - class: GenerativeVisualizer
           params:
@@ -103,11 +103,11 @@ training:
         - class: GenerativeMomentsMetric
           params:
             every_n_epochs: 5
-            max_batches: 10
+            max_batches: 20
         - class: GenerativePCAVisualizer
           params:
             every_n_epochs: 5
-            max_batches: 10
+            max_batches: 20
             n_components: 2
 
 inference:

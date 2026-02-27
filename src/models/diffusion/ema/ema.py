@@ -61,10 +61,10 @@ class EMA(nn.Module):
             # new_average = decay * old_average + (1 - decay) * current_value
             ema_param.data.mul_(self.decay).add_(online_param.data, alpha=(1 - self.decay))
 
-    def state_dict(self):
+    def state_dict(self, *args, **kwargs):
         """Returns the state dictionary of the shadow model."""
-        return self.ema_model.state_dict()
+        return self.ema_model.state_dict(*args, **kwargs)
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict, *args, **kwargs):
         """Loads the state dictionary into the shadow model."""
-        self.ema_model.load_state_dict(state_dict)
+        self.ema_model.load_state_dict(state_dict, *args, **kwargs)

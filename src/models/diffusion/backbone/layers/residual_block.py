@@ -14,8 +14,21 @@ class ResidualBlock(nn.Module):
     Time -------[Linear] -----+
     """
 
-    def __init__(self, residual_channels, dilation, cond_channels):
+    def __init__(self, residual_channels, dilation, cond_channels, causal = False):
         super().__init__()
+
+        self.causal = causal
+        self.dilation = dilation
+
+        if causal:
+            # Causal: pad only on the left side.
+            # For kernel_size=3 and dilation=d, we need (kernel_size - 1) * dilation
+            # total left padding to ensure output[t] depends only on input[<=t].
+            self.causal_pad = (3 - 1) * dilation
+            conv_padding = 0  # no automatic padding, we handle it manually
+        else:
+            # Bidirectional: symmetric padding preserves sequence length
+            conv_padding = dilation
 
         # 1. Dilated Convolution
         # We use padding=dilation to ensure the sequence length remains unchanged (Causal padding not strictly needed for generation, but good for consistency)
@@ -23,7 +36,7 @@ class ResidualBlock(nn.Module):
             residual_channels,
             2 * residual_channels,  # 2x channels because we split into Filter/Gate later
             kernel_size=3,
-            padding=dilation,
+            padding=conv_padding,
             dilation=dilation
         )
 

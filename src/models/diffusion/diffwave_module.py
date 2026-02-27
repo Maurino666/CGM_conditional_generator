@@ -19,6 +19,7 @@ class DiffWaveDiffusionModule(BaseDiffusionModule):
             residual_channels: int = 64,
             num_layers: int = 12,
             cycle_length: int = 4,
+            causal: bool = False,
             # Base params (with defaults)
             **kwargs
     ):
@@ -26,6 +27,7 @@ class DiffWaveDiffusionModule(BaseDiffusionModule):
         self.residual_channels = residual_channels
         self.num_layers = num_layers
         self.cycle_length = cycle_length
+        self.causal = causal
 
         # Init base class
         super().__init__(input_dim=input_dim, cond_dim=cond_dim, **kwargs)
@@ -40,7 +42,8 @@ class DiffWaveDiffusionModule(BaseDiffusionModule):
             cond_channels=self.cond_dim,
             residual_channels=self.residual_channels,
             num_layers=self.num_layers,
-            cycle_length=self.cycle_length
+            cycle_length=self.cycle_length,
+            causal=self.causal,
         )
 
     def get_config(self) -> dict[str, Any]:

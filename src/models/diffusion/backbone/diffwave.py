@@ -15,7 +15,8 @@ class DiffWaveBackbone(BaseDiffusionBackbone):
             cond_channels: int = 5,
             residual_channels: int = 64,
             num_layers: int = 12,
-            cycle_length: int = 4
+            cycle_length: int = 4,
+            causal = False,
     ):
         """
         Args:
@@ -24,8 +25,11 @@ class DiffWaveBackbone(BaseDiffusionBackbone):
             residual_channels: Hidden dimension size (64 is good for small GPUs).
             num_layers: Total number of residual blocks.
             cycle_length: How often dilation resets. E.g., if 4: [1, 2, 4, 8, 1, 2, 4, 8...]
+            causal: If True, use causal (left-only) padding in dilated convolutions.
         """
         super().__init__()
+
+        self.causal = causal
 
         # 1. Input Projection (Matches input dim to hidden dim)
         self.input_projection = nn.Conv1d(input_channels, residual_channels, kernel_size=1)
@@ -48,7 +52,8 @@ class DiffWaveBackbone(BaseDiffusionBackbone):
                 ResidualBlock(
                     residual_channels=residual_channels,
                     dilation=dilation,
-                    cond_channels=cond_channels
+                    cond_channels=cond_channels,
+                    causal=causal,
                 )
             )
 

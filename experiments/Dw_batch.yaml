@@ -1,0 +1,13 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# DiffWave Tuning — Priority Experiments
+# ═══════════════════════════════════════════════════════════════════════════
+# Baseline reference: DiffWave bidirectional + MinMax[-1,1]
+#   (from block1 with cycle_length=6, residual_channels=128)
+#
+# These two experiments can run in parallel on different machines.
+#
+# Usage:  python run_experiments.py --batch ../experiments/diffwave_tuning/batch_dw_tuning.yaml
+
+experiments:
+  - DW_quantile_normalizer.yaml
+  - DW_causal.yaml

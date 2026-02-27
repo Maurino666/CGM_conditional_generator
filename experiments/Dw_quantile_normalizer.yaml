@@ -1,22 +1,23 @@
 # ═══════════════════════════════════════════════════════════════════════════
-# BLOCK 1 — Baseline: DiffWave
+# DiffWave Tuning — QuantileNormalizer
 # ═══════════════════════════════════════════════════════════════════════════
-# Cross-architecture comparison: Diffusion vs GAN.
-# Different normalization range [-1,1], single training phase, different
-# inference pipeline (FullSequenceBuilder + SequenceInferenceOrchestrator).
+# Hypothesis: DDPM adds Gaussian noise, so if input data is already
+# Gaussian-distributed (via QuantileNormalizer), the forward/reverse
+# process is more coherent → better calibrated output distribution.
+#
+# Compared against: DiffWave with MinMax [-1,1] (block1 baseline)
 
-run_name: "B1_diffwave"
-base_dir: "../runs/block1_baselines"
+run_name: "DW_quantile_normalizer"
+base_dir: "../runs/diffwave_tuning"
 model_filename: "model.pth"
 
 global_config: "../global_config.yaml"
 
-# All features as dynamic (DiffWave does not separate static)
 features:
   use_static: false
 
 data:
-  global_config: "../global_config.yaml"
+  global_config_file: "../global_config.yaml"
   datasets:
     - class: AZT1D2025Dataset
       params:
@@ -41,15 +42,19 @@ data:
     val_ratio: 0.15
     random_state: 42
 
-# KEY DIFFERENCE: [-1, 1] for diffusion (symmetric around 0 for Gaussian noise)
+# KEY DIFFERENCE: QuantileNormalizer instead of MinMax
 normalization:
-  class: MinMaxNormalizer
-  feature_range: [-1, 1]
+  class: QuantileNormalizer
+  params:
+    n_quantiles: 1000
+    output_distribution: normal
+    mask_suffix: "_mask"
+    subsample: 1000000
 
 windowing:
   class: WindowBuilder
   params:
-    batch_size: 512
+    batch_size: 384
     num_workers: 4
   train:
     seq_len: 288
@@ -60,16 +65,16 @@ windowing:
 
 logger:
   class: WandBLogger
-  project_name: "CGM_block1_baselines"
+  project_name: "CGM_diffwave_tuning"
 
 model:
   class: DiffWaveDiffusionModule
   params:
     input_dim: 1
-    # cond_dim: auto-injected
     residual_channels: 128
     num_layers: 30
     cycle_length: 6
+    causal: false
     timesteps: 1000
     beta_start: 1.0e-4
     beta_end: 0.02
@@ -79,28 +84,26 @@ model:
 
 trainer:
   class: Trainer
-  log_every_n_steps: 100
+  log_every_n_steps: 50
   val_check_interval: 10
 
-# Single training phase
 training:
   phases:
     - max_epochs: 150
       callbacks:
         - class: GenerativeVisualizer
           params:
-            every_n_epochs: 10
+            every_n_epochs: 20
         - class: GenerativeMomentsMetric
           params:
-            every_n_epochs: 10
+            every_n_epochs: 20
             max_batches: 20
         - class: GenerativePCAVisualizer
           params:
-            every_n_epochs: 10
+            every_n_epochs: 20
             max_batches: 20
             n_components: 2
 
-# KEY DIFFERENCE: FullSequence inference pipeline
 inference:
   builder:
     class: FullSequenceBuilder

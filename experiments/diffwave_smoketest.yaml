@@ -5,8 +5,8 @@
 # Different normalization range [-1,1], single training phase, different
 # inference pipeline (FullSequenceBuilder + SequenceInferenceOrchestrator).
 
-run_name: "B1_diffwave"
-base_dir: "../runs/block1_baselines"
+run_name: "diffwave"
+base_dir: "../runs"
 model_filename: "model.pth"
 
 global_config: "../global_config.yaml"
@@ -43,8 +43,7 @@ data:
 
 # KEY DIFFERENCE: [-1, 1] for diffusion (symmetric around 0 for Gaussian noise)
 normalization:
-  class: MinMaxNormalizer
-  feature_range: [-1, 1]
+  class: QuantileNormalizer
 
 windowing:
   class: WindowBuilder
@@ -76,6 +75,7 @@ model:
     lr: 2.0e-4
     use_ema: true
     ema_decay: 0.999
+    causal: true
 
 trainer:
   class: Trainer

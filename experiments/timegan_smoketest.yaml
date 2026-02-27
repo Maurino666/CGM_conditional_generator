@@ -64,11 +64,11 @@ windowing:
     num_workers: 4
     # static_cols are auto-injected by the runner when features.use_static=true
   train:
-    seq_len: 24
+    seq_len: 288
     step: 12
     shuffle: true
   val:
-    seq_len: 24
+    seq_len: 288
     step: 12
     shuffle: true
 
@@ -77,7 +77,7 @@ windowing:
 # ---------------------------------------------------------------------------
 logger:
   class: WandBLogger
-  project_name: "CGM_conditional_generation"
+  project_name: "CGM_SMOKETEST"
 
 # ---------------------------------------------------------------------------
 # Model

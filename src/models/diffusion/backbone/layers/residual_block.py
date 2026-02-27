@@ -1,6 +1,7 @@
 import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class ResidualBlock(nn.Module):
     """
@@ -61,6 +62,8 @@ class ResidualBlock(nn.Module):
         h = x
 
         # A. Apply Dilated Convolution to the signal
+        if self.causal:
+            h = F.pad(h, (self.causal_pad, 0))
         h = self.dilated_conv(h)  # (B, 2*C, L)
 
         # B. Add Conditioning Information (Local)
@@ -83,7 +86,7 @@ class ResidualBlock(nn.Module):
         h = torch.tanh(filter_info) * torch.sigmoid(filter_gate)
 
         # E. Projections
-        # Skip connection goes to the final accumulator (collects multi-scale features)
+        # Skip connection goes to the final accumulator (collects multiscale features)
         skip = self.skip_projection(h)
 
         # Residual connection goes to the next layer (x + transformed_x)

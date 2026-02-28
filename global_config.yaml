@@ -35,6 +35,15 @@ schema: # information on global columns
     - "sex_m"
     - "hba1c"
 
+  cond_a:
+    - "total_insulin"
+    - "carbs"
+
+  cond_b:
+    - "heart_rate"
+    - "steps"
+    - "calories_burned"
+
   dtypes:
     glucose: "float"
     basal_rate: "float"

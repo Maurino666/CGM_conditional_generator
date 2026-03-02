@@ -1,0 +1,139 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# BLOCK 1 — Baseline: ProjectedStaticTimeGan
+# ═══════════════════════════════════════════════════════════════════════════
+# Reference config for model comparison. All Block 1 experiments share the
+# same data, features, and training budget — only the model changes.
+
+run_name: "B3_projected_static_timegan_tod"
+base_dir: "../runs/block3"
+model_filename: "model.pth"
+
+global_config: "../global_config.yaml"
+global_config_overrides:
+  schema:
+    cond_cols:
+      - "basal_rate"
+      - "bolus_total"
+      - "bolus_correction"
+      - "bolus_meal"
+      - "carbs"
+      - "age"
+      - "sex_m"
+      - "hba1c"
+
+
+# --- Features: static separated (TimeGAN with static injection) ---
+features:
+  use_static: true
+  add_masks: true
+
+# --- Data ---
+data:
+  global_config: "../global_config.yaml"
+  datasets:
+    - class: AZT1D2025Dataset
+      params:
+        dataset_root: "../datasets/AZT1D2025/CGM Records"
+        config_file: "../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"
+        patient_metadata_path: "../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"
+        logging_dir: "../datasets/AZT1D2025/prep_logs"
+  split:
+    strategy: subject
+    val_ratio: 0.15
+    random_state: 42
+
+# --- Normalization ---
+normalization:
+  class: MinMaxNormalizer
+  feature_range: [0, 1]
+
+# --- Windowing ---
+windowing:
+  class: WindowBuilder
+  params:
+    batch_size: 512
+    num_workers: 4
+  train:
+    seq_len: 288
+    step: 6
+  val:
+    seq_len: 288
+    step: 288
+
+# --- Logger ---
+logger:
+  class: WandBLogger
+  project_name: "CGM_block3"
+
+# --- Model ---
+model:
+  class: ProjectedStaticTimeGanModule
+  params:
+    hidden_dim: 128
+    num_layers: 3
+    noise_dim: 128
+    lr: 1.0e-4
+    beta1: 0.5
+    gamma: 1.0
+    moment_weight: 5.0
+    supervised_weight: 5.0
+    grad_clip_G: 1.0
+    grad_clip_D: 0.5
+    g_steps_per_iter: 3
+    d_loss_threshold: 0.5
+    noise_std: 0.1
+    soft_label: 0.9
+    g_cond_noise_std: 0.0
+    d_cond_noise_std: 0.0
+
+# --- Trainer ---
+trainer:
+  class: Trainer
+  log_every_n_steps: 50
+
+# --- Training: 3 phases ---
+training:
+  phases:
+    - name: ae
+      max_epochs: 40
+    - name: sup
+      max_epochs: 20
+    - name: adv
+      max_epochs: 200
+      callbacks:
+        - class: GenerativeVisualizer
+          params:
+            every_n_epochs: 5
+        - class: GenerativeMomentsMetric
+          params:
+            every_n_epochs: 5
+            max_batches: 20
+        - class: GenerativePCAVisualizer
+          params:
+            every_n_epochs: 5
+            max_batches: 20
+            n_components: 2
+
+# --- Inference ---
+inference:
+  builder:
+    class: WindowBuilder
+    params:
+      batch_size: 512
+      num_workers: 4
+      allow_target_nan: true
+  reconstructor:
+    class: WindowReconstructor
+    params:
+      strategy: overwrite
+  orchestrator:
+    class: InferenceOrchestrator
+    params:
+      seq_len: 288
+  generate:
+    - split: val
+      prefix: val_subject
+      label: Validation
+    - split: train
+      prefix: train_tstr_subject
+      label: Train_TSTR

@@ -1,0 +1,16 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# BLOCK 1 — Baseline Model Comparison
+# ═══════════════════════════════════════════════════════════════════════════
+# Same data (AZT1D + HUPA + BrisT1D), same features, same training budget.
+# Only the model architecture changes.
+#
+# Purpose: establish which model family performs best before tuning.
+#
+# Usage:  python run_experiments.py --batch ../experiments/block1/batch_block1.yaml
+#
+# Expected runtime: TimeGAN models ~30min each, DiffWave ~2-3h (400 epochs)
+# Tip: run DiffWave overnight, TimeGANs can run sequentially during the day.
+
+experiments:
+  - B3_projected_static_timegan.yaml
+  - B3_diffwave.yaml

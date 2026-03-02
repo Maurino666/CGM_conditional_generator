@@ -1,11 +1,13 @@
 import pandas as pd
 import yaml
+import copy
 from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 
 from sklearn.ensemble import RandomForestRegressor
 
+from config_utils import deep_merge
 from evaluation import CmiKsgMetric, DeltaR2NonlinearMetric, DeltaR2NonlinearParams, CmiKsgParams, CohortComparator
 from evaluation.evaluator import Evaluator
 from evaluation.types import EvaluationConfig
@@ -21,18 +23,14 @@ from evaluation.wrappers import (
 # =============================================================================
 
 # Run Identifiers
-RUN_NAME = "block1_baselines/20260225_201047_B1_diffwave"
+RUN_NAME = "block3/20260302_094211_B3_diffwave_causal"
 
 # Paths
-# Assuming global_config.yaml is in the parent directory or the run directory.
-# Adjust this path to where your YAML file actually lives.
-GLOBAL_CONFIG_PATH = Path("../global_config.yaml")
-
-DATA_DIR = Path(f"../runs/{RUN_NAME}/val/csv_data")  # Folder containing per-subject CSVs
-OUTPUT_DIR = Path(f"../reports/{RUN_NAME}/val")  # Folder where results/plots will be saved
+RUN_DIR = Path(f"../runs/{RUN_NAME}")
+DATA_DIR = RUN_DIR / "val" / "csv_data"
+OUTPUT_DIR = Path(f"../reports/{RUN_NAME}/val")
 
 # Synthetic Column Name
-# This is usually specific to the model output and not in the global schema.
 COL_TARGET_SYNTH = "glucose_synth"
 
 HORIZONS = [15, 30, 45, 60, 75, 90, 105, 120]
@@ -42,38 +40,60 @@ HORIZONS = [15, 30, 45, 60, 75, 90, 105, 120]
 # HELPER FUNCTIONS
 # =============================================================================
 
-def load_global_config(path: Path) -> dict:
+def resolve_global_config(run_dir: Path) -> dict:
     """
-    Loads the YAML configuration file.
+    Resolves the global config from the experiment, applying any overrides.
+    Mirrors the runner's _resolve_global_config logic.
     """
-    if not path.exists():
-        raise FileNotFoundError(f"Global config file not found at: {path}")
+    experiment_config_path = run_dir / "experiment_config.yaml"
+    if not experiment_config_path.exists():
+        raise FileNotFoundError(f"Experiment config not found: {experiment_config_path}")
 
-    with open(path, "r") as f:
-        return yaml.safe_load(f)
+    with open(experiment_config_path, "r", encoding="utf-8") as f:
+        experiment_config = yaml.safe_load(f)
+
+    # Resolve base global config (path or inline dict)
+    gc_section = experiment_config.get("global_config")
+    if gc_section is None:
+        base = {}
+    elif isinstance(gc_section, dict):
+        base = copy.deepcopy(gc_section)
+    else:
+        # It's a path — resolve relative to experiment YAML's original location
+        # The experiment was run from the experiments/ directory
+        p = Path(gc_section)
+        if not p.is_absolute():
+            # Try relative to run_dir first, then experiments/
+            candidates = [
+                run_dir / p,
+                run_dir.parent.parent / "experiments" / p,
+                Path("..") / p,  # fallback: relative to cwd
+            ]
+            for candidate in candidates:
+                if candidate.exists():
+                    p = candidate
+                    break
+        with open(p, "r", encoding="utf-8") as f:
+            base = yaml.safe_load(f)
+
+    # Apply overrides if present
+    overrides = experiment_config.get("global_config_overrides")
+    if overrides:
+        base = deep_merge(base, overrides)
+        print(f"[Config] Applied global_config_overrides from experiment")
+
+    return base
 
 
 def get_metrics() -> list:
-    """
-    Factory function to instantiate the list of metrics.
-    We re-instantiate metrics for each run (Real vs Synth) to ensure
-    no internal state leaks between the two passes.
-    """
-
-
     return [
-        # 1. Clinical Statistics (Mean, TIR, Hypo/Hyper)
         ClinicalStatsMetric(
             params=ClinicalStatsParams(hypo_threshold=70.0, hyper_threshold=180.0)
         ),
-
-        # 2. Ambulatory Glucose Profile (AGP)
         AgpMetric(
             params=AgpParams(freq="5min"),
             name="agp"
         ),
-
-        # 3. Linear Predictability (ARX)
         ArxDeltaR2LinearMetric(
             params=ArxDeltaR2LinearParams(
                 horizons_min=HORIZONS,
@@ -82,8 +102,6 @@ def get_metrics() -> list:
             ),
             name="arx_linear"
         ),
-
-        # 4. Granger Causality (Block F-Test)
         GrangerBlockFTestMetric(
             params=GrangerBlockParams(
                 horizons_min=HORIZONS,
@@ -92,7 +110,6 @@ def get_metrics() -> list:
             ),
             name="granger"
         ),
-
         DeltaR2NonlinearMetric(
             params=DeltaR2NonlinearParams(
                 horizons_min=HORIZONS,
@@ -100,7 +117,7 @@ def get_metrics() -> list:
                 add_time_of_day=True,
                 min_samples=200,
                 flatten_all_horizons=True,
-                regressor_factory = lambda seed: RandomForestRegressor(
+                regressor_factory=lambda seed: RandomForestRegressor(
                     n_estimators=100,
                     max_depth=10,
                     n_jobs=-1,
@@ -109,12 +126,11 @@ def get_metrics() -> list:
             ),
             name="delta_r2_nonlinear"
         ),
-
         CmiKsgMetric(
             params=CmiKsgParams(
                 horizons_min=HORIZONS,
                 freq_min=5,
-                k=5,  # Nearest neighbors for KSG
+                k=5,
                 min_samples=100,
                 flatten_all_horizons=True
             ),
@@ -124,10 +140,6 @@ def get_metrics() -> list:
 
 
 def load_series(path: Path, time_col: str | None) -> list[pd.DataFrame]:
-    """
-    Loads all CSV files from the specified directory into a list of DataFrames.
-    Parses time columns if they exist.
-    """
     if not path.exists():
         raise FileNotFoundError(f"Data directory not found: {path}")
 
@@ -138,7 +150,6 @@ def load_series(path: Path, time_col: str | None) -> list[pd.DataFrame]:
     for f in csv_files:
         try:
             df = pd.read_csv(f)
-            # Ensure time is datetime for accurate lag/AGP calculation
             if time_col and time_col in df.columns:
                 df[time_col] = pd.to_datetime(df[time_col])
             series.append(df)
@@ -147,26 +158,20 @@ def load_series(path: Path, time_col: str | None) -> list[pd.DataFrame]:
 
     return series
 
+
 # =============================================================================
 # MAIN PIPELINE
 # =============================================================================
 
 def run_pipeline():
-    # 1. Load Configuration
-    print(f"[Config] Loading configuration from {GLOBAL_CONFIG_PATH}...")
-    config_data = load_global_config(GLOBAL_CONFIG_PATH)
+    # 1. Load Configuration — resolved from experiment, with overrides
+    print(f"[Config] Resolving global config from experiment: {RUN_DIR}...")
+    config_data = resolve_global_config(RUN_DIR)
     schema = config_data.get("schema", {})
 
-    # Extract Column Definitions from YAML Schema
     col_time = schema.get("time_col", "timestamp")
     col_target_real = schema.get("target_col", "glucose")
-
-    # Chimera/Conditional Columns:
-    # We take the list directly from the YAML 'cond_cols'
     all_cond_cols = schema.get("cond_cols", [])
-
-    # Subject ID:
-    # YAML defines 'metadata_cols', usually the first one is the ID (e.g., patient_id)
     metadata_cols = schema.get("metadata_cols", [])
     col_subject = metadata_cols[0] if metadata_cols else "patient_id"
 
@@ -182,7 +187,6 @@ def run_pipeline():
         print("[Error] No data loaded. Exiting.")
         return
 
-    # Ensure output directory exists
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     # -------------------------------------------------------------------------
@@ -193,19 +197,13 @@ def run_pipeline():
     print("=" * 40)
 
     cfg_real = EvaluationConfig(
-        target_col=col_target_real,  # Loaded from YAML
-        cond_cols=all_cond_cols,  # Loaded from YAML
-        time_col=col_time,  # Loaded from YAML
-        subject_id_col=col_subject,  # Loaded from YAML
-
-        # Mask handling for Chimera datasets
+        target_col=col_target_real,
+        cond_cols=all_cond_cols,
+        time_col=col_time,
+        subject_id_col=col_subject,
         masked_dataframes=True,
-
-        # Feature Engineering controls
         lag_minutes=HORIZONS,
         ensure_time_of_day=True,
-
-        # Output controls
         output_dir=OUTPUT_DIR / "real",
         per_subject_plots=True
     )
@@ -220,11 +218,9 @@ def run_pipeline():
     print(" STARTING PASS 2: SYNTHETIC DATA (Model)")
     print("=" * 40)
 
-    print(all_cond_cols)
-
     cfg_synth = EvaluationConfig(
-        target_col=COL_TARGET_SYNTH,  # Hardcoded/Defined in script
-        cond_cols=all_cond_cols,  # Same conditions as Real
+        target_col=COL_TARGET_SYNTH,
+        cond_cols=all_cond_cols,
         time_col=col_time,
         subject_id_col=col_subject,
         masked_dataframes=True,
@@ -241,32 +237,28 @@ def run_pipeline():
     # COMPARE AND FINALIZE
     # -------------------------------------------------------------------------
     comparator = CohortComparator(
-        real_res= results_real,
-        synth_res= results_synth,
+        real_res=results_real,
+        synth_res=results_synth,
     )
 
     print(f"Found feature groups: {comparator.get_feature_groups()}")
 
     summary = comparator.get_summary_by_group()
-
     print(f"Summary:\n{summary}")
-
     summary.to_csv(OUTPUT_DIR / "comparison_by_feature_group.csv")
 
     key_metrics = [
-        "basic_stats__mean",  # Il glucosio medio è realistico?
-        "basic_stats__std",  # La variabilità è corretta?
-        "basic_stats__tir",  # Time in Range (70-180): Fondamentale
-        "basic_stats__tbr",  # Time Below Range (<70): Critico per la sicurezza (Ipoglicemia)
-        "basic_stats__tar",  # Time Above Range (>180)
-
-        "agp__iqr_mean",  # Variabilità intra-giornaliera media
-        "agp__median_mean",  # Livello mediano del glucosio
-
-        "arx_linear__delta_r2_mean__avg_over_horizons",  # Quanto linearmente predicibile è il segnale grazie all'input?
-        "delta_r2_nonlinear__delta_r2_mean__avg_over_horizons",  # Quanto NON-linearmente predicibile è?
-        "granger__partial_r2_is__avg_over_horizons",  # Causalità di Granger media
-        "cmi_ksg__cmi_bits__avg_over_horizons"  # Conditional Mutual Information (Information flow)
+        "basic_stats__mean",
+        "basic_stats__std",
+        "basic_stats__tir",
+        "basic_stats__tbr",
+        "basic_stats__tar",
+        "agp__iqr_mean",
+        "agp__median_mean",
+        "arx_linear__delta_r2_mean__avg_over_horizons",
+        "delta_r2_nonlinear__delta_r2_mean__avg_over_horizons",
+        "granger__partial_r2_is__avg_over_horizons",
+        "cmi_ksg__cmi_bits__avg_over_horizons"
     ]
 
     print("[Comparator] Generating distribution plots...")

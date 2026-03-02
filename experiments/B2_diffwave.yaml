@@ -1,23 +1,22 @@
 # ═══════════════════════════════════════════════════════════════════════════
-# DiffWave Tuning — Causal Convolutions
+# BLOCK 1 — Baseline: DiffWave
 # ═══════════════════════════════════════════════════════════════════════════
-# Hypothesis: Causal convolutions enforce physically correct temporal
-# ordering (output[t] depends only on conditions[<=t]).
-# Trade-off: loses future context but gains physiological correctness.
-#
-# Compared against: DiffWave bidirectional (block1 baseline with corrected arch)
+# Cross-architecture comparison: Diffusion vs GAN.
+# Different normalization range [-1,1], single training phase, different
+# inference pipeline (FullSequenceBuilder + SequenceInferenceOrchestrator).
 
-run_name: "DW_causal"
-base_dir: "../runs/diffwave_tuning"
+run_name: "B2_diffwave_tod"
+base_dir: "../runs/block2_baselines"
 model_filename: "model.pth"
 
 global_config: "../global_config.yaml"
 
+# All features as dynamic (DiffWave does not separate static)
 features:
   use_static: false
 
 data:
-  global_config_file: "../global_config.yaml"
+  global_config: "../global_config.yaml"
   datasets:
     - class: AZT1D2025Dataset
       params:
@@ -25,12 +24,6 @@ data:
         config_file: "../datasets/AZT1D2025/CGM Records/azt1d2025.yaml"
         patient_metadata_path: "../datasets/AZT1D2025/CGM Records/patient_metadata.yaml"
         logging_dir: "../datasets/AZT1D2025/prep_logs"
-    - class: HUPA_UCMDataset
-      params:
-        dataset_root: "../datasets/HUPA-UCM Diabetes Dataset/Preprocessed"
-        config_file: "../datasets/HUPA-UCM Diabetes Dataset/hupa-ucm.yaml"
-        patient_metadata_path: "../datasets/HUPA-UCM Diabetes Dataset/patient_metadata.yaml"
-        logging_dir: "../datasets/HUPA-UCM Diabetes Dataset/prep_logs"
     - class: BrisT1DDataset
       params:
         dataset_root: "../datasets/BrisT1D_open_dataset/device_data/processed_state"
@@ -42,6 +35,7 @@ data:
     val_ratio: 0.15
     random_state: 42
 
+# KEY DIFFERENCE: [-1, 1] for diffusion (symmetric around 0 for Gaussian noise)
 normalization:
   class: MinMaxNormalizer
   feature_range: [-1, 1]
@@ -49,7 +43,7 @@ normalization:
 windowing:
   class: WindowBuilder
   params:
-    batch_size: 384
+    batch_size: 512
     num_workers: 4
   train:
     seq_len: 288
@@ -60,16 +54,16 @@ windowing:
 
 logger:
   class: WandBLogger
-  project_name: "CGM_diffwave_tuning"
+  project_name: "CGM_block2_baselines"
 
 model:
   class: DiffWaveDiffusionModule
   params:
     input_dim: 1
+    # cond_dim: auto-injected
     residual_channels: 128
     num_layers: 30
     cycle_length: 6
-    causal: true          
     timesteps: 1000
     beta_start: 1.0e-4
     beta_end: 0.02
@@ -79,26 +73,28 @@ model:
 
 trainer:
   class: Trainer
-  log_every_n_steps: 50
-  val_check_interval: 10
+  log_every_n_steps: 100
+  val_check_interval: 50
 
+# Single training phase
 training:
   phases:
     - max_epochs: 150
       callbacks:
         - class: GenerativeVisualizer
           params:
-            every_n_epochs: 20
+            every_n_epochs: 10
         - class: GenerativeMomentsMetric
           params:
-            every_n_epochs: 20
-            max_batches: 20
+            every_n_epochs: 50
+            max_batches: 10
         - class: GenerativePCAVisualizer
           params:
-            every_n_epochs: 20
-            max_batches: 20
+            every_n_epochs: 50
+            max_batches: 10
             n_components: 2
 
+# KEY DIFFERENCE: FullSequence inference pipeline
 inference:
   builder:
     class: FullSequenceBuilder

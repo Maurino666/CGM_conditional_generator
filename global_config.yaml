@@ -64,14 +64,14 @@ schema: # information on global columns
     glucose_source: "category"
 
   cond_cols:
-    # - "basal_rate"
+    - "basal_rate"
     - "heart_rate"
     - "steps"
     - "calories_burned"
     - "total_insulin"
-    # - "bolus_total"
-    # - "bolus_correction"
-    # - "bolus_meal"
+    - "bolus_total"
+    - "bolus_correction"
+    - "bolus_meal"
     - "carbs"
     - "age"
     - "sex_m"

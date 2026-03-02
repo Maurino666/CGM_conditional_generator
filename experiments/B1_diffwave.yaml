@@ -92,12 +92,12 @@ training:
             every_n_epochs: 10
         - class: GenerativeMomentsMetric
           params:
-            every_n_epochs: 10
-            max_batches: 20
+            every_n_epochs: 50
+            max_batches: 10
         - class: GenerativePCAVisualizer
           params:
-            every_n_epochs: 10
-            max_batches: 20
+            every_n_epochs: 50
+            max_batches: 10
             n_components: 2
 
 # KEY DIFFERENCE: FullSequence inference pipeline

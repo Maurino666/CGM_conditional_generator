@@ -23,7 +23,7 @@ from evaluation.wrappers import (
 # =============================================================================
 
 # Run Identifiers
-RUN_NAME = "block3/20260302_094211_B3_diffwave_causal"
+RUN_NAME = "block1_baselines/20260225_092323_B1_conditional_timegan"
 
 # Paths
 RUN_DIR = Path(f"../runs/{RUN_NAME}")

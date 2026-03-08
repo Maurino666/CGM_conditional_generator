@@ -211,6 +211,11 @@ def run_pipeline():
     evaluator_real = Evaluator(cfg_real, get_metrics(), verbose=True)
     results_real = evaluator_real.evaluate(series)
 
+    (OUTPUT_DIR / "real").mkdir(parents=True, exist_ok=True)
+    results_real.per_subject.to_csv(OUTPUT_DIR / "real" / "per_subject.csv", index=False)
+    results_real.summary.to_csv(OUTPUT_DIR/ "real" / "summary.csv", index=False)
+    print(f"[OK] Saved per-subject and summary reports (REAL) in: {OUTPUT_DIR / "real"}")
+
     # -------------------------------------------------------------------------
     # PASS 2: SYNTHETIC DATA EVALUATION
     # -------------------------------------------------------------------------
@@ -232,6 +237,11 @@ def run_pipeline():
 
     evaluator_synth = Evaluator(cfg_synth, get_metrics(), verbose=True)
     results_synth = evaluator_synth.evaluate(series)
+
+    (OUTPUT_DIR / "synth").mkdir(parents=True, exist_ok=True)
+    results_synth.per_subject.to_csv(OUTPUT_DIR / "synth" / "per_subject.csv", index=False)
+    results_synth.summary.to_csv(OUTPUT_DIR / "synth" / "summary.csv", index=False)
+    print(f"[OK] Saved per-subject and summary reports (SYNTH) in: {OUTPUT_DIR / "synth"}")
 
     # -------------------------------------------------------------------------
     # COMPARE AND FINALIZE
